@@ -4,7 +4,6 @@
   },
   "imageLightbox": {
     "imageUnavailable": "Image unavailable",
-    "previewOnly": "Showing preview — full image unavailable",
     "previousImage": "Previous image",
     "nextImage": "Next image",
     "goToImage": "Go to image {{index}}"

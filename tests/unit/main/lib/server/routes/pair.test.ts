@@ -13,8 +13,10 @@ const registerDevice = vi.fn(async () => ({
   deviceId: 'dev-1',
   token: 'TOKEN'
 }))
+const leaveDevice = vi.fn(async () => {})
 vi.mock('@main/lib/lan/devices', () => ({
-  registerDevice: (name: string) => registerDevice(name)
+  registerDevice: (name: string) => registerDevice(name),
+  leaveDevice: (id: string) => leaveDevice(id)
 }))
 vi.mock('@main/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }
@@ -24,7 +26,13 @@ const { default: pairRouter } = await import('@main/lib/server/routes/pair')
 const { errorHandler } =
   await import('@main/lib/server/middlewares/error-handler')
 
-const app = new Hono()
+const app = new Hono<{ Variables: { deviceId?: string } }>()
+// What authGate does on the lan listener: the token's device, by id.
+app.use('/api/*', async (c, next) => {
+  const device = c.req.header('x-test-device')
+  if (device) c.set('deviceId', device)
+  await next()
+})
 app.route('/api/v1/pair', pairRouter)
 app.onError(errorHandler)
 
@@ -88,5 +96,25 @@ describe('POST /api/v1/pair', () => {
     expect(res.status).toBe(400)
     expect(verify).not.toHaveBeenCalled()
     expect(registerDevice).not.toHaveBeenCalled()
+  })
+})
+
+// The phone unpairing itself tells the computer first, so the device leaves
+// Settings → Devices too instead of lingering there.
+describe('DELETE /api/v1/pair', () => {
+  it('removes the device that asks, and lets the listener re-check', async () => {
+    const res = await app.request('/api/v1/pair', {
+      method: 'DELETE',
+      headers: { 'x-test-device': 'dev-7' }
+    })
+    expect(res.status).toBe(200)
+    expect(leaveDevice).toHaveBeenCalledWith('dev-7')
+    expect(syncLan).toHaveBeenCalled()
+  })
+
+  it('does not exist without a paired device (loopback)', async () => {
+    const res = await app.request('/api/v1/pair', { method: 'DELETE' })
+    expect(res.status).toBe(404)
+    expect(leaveDevice).not.toHaveBeenCalled()
   })
 })

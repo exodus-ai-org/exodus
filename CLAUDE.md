@@ -314,9 +314,17 @@ Deep Research keeps its own volume, `DEEP_RESEARCH_LIMITS`). Sources are
 numbered through a chat, not per run: the tools' rank registry is made anew
 for every request, so the chat route hands `bindCallingTools` the highest
 number the conversation has got to (`highestSourceRank()` in
-`ai/utils/web-sources.ts`, read from the posted history's `web_search` /
-`web_fetch` results) and the run counts on from it — a `【3-source】` means
-one source in the whole chat.
+`chat/sources.ts`, the highest `rank` of the chat's `chat_source` rows) and
+the run counts on from it — a `【3-source】` means one source in the whole
+chat. A picture or video from `media="images"` hangs on the
+source whose page it came from (`attachMedia()`), never on the first
+source — the model cites a picture by that page; one from a page the search
+did not read is a source of its own ("the page itself was not read"), and
+renditions of one picture (`-1140x815` / `-120x86`) count once. The gallery
+under an answer and its lightbox show only the thumbnail Brave fetched,
+never the site's own file — it may refuse a hotlink, be gone or not answer
+(owner, 2026-09-30); an image with no thumbnail is left out
+(`collectGalleryImages()`; exodus-ios `SearchGallery`, `SearchViewerImage`).
 
 Settings → General → Color tone (`generals.tsx`) persists `settings.colorTone`
 (`ColorToneSchema`: neutral | emerald | blue | violet | rose | orange | yellow;
@@ -406,6 +414,8 @@ Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
 
+The `/api/v1/chat` route serves history a page at a time (spec `docs/superpowers/specs/2026-10-01-chat-history-and-context-design.md` §C3, `src/main/lib/chat/page.ts`): `GET /api/v1/chat/:id/page?runs=10&before=<runId>&through=<runId>` → `{ messages, sources, questions, hasOlder, olderCursor }` — the newest `runs` runs (1–50, default 10) before `before`'s group, reaching back at least to `through`'s (the outline's jump), whole runs and a regenerate group never split; `messages` in `GET /:id`'s row shape without what no client reads (`compactRow`: `searchText`, `chatId`, a successful result's text when `details` carry the payload — computer use keeps it for its screenshot — a search result's `content` extract, an artifact call's `code`), a row still over 64 KB cut to 8 KB per string with `truncated: true` (`limitRow`); `sources` every `chat_source` row of the chat without its text, each with its `runId`; `questions` one per run group (≤ 200 characters); `404 RUN_NOT_FOUND` for a cursor not of the chat. `GET /api/v1/chat/:id/messages/:messageId` is one row whole (`404 MESSAGE_NOT_FOUND`). `GET /api/v1/chat/:id` (every row, whole) is unchanged. Both clients open a chat on its newest page.
+
 The `/api/v1/chat` route includes `POST /api/v1/chat/:chatId/choose` (`{ runId }` → `{ attempts }`) — keeps one answer of a regenerate group (see Chat Flow); `404 RUN_NOT_FOUND` for a run not in a group of that chat, `409 ATTEMPT_LOCKED` once a later run exists (repeating the current choice always answers). Deliberately not in `PRESENCE_PATHS`: it only picks which of the user's own answers the model sees next, and exodus-ios calls it over the LAN.
 
 **Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values, everything under a secret-named `extraConfig` key, and secrets inside an MCP `url` / `args`: userinfo, secret-named query values, capability path segments, `--token` / `--api-key=` / `--header "Authorization: …"` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A write that moves a secret's destination (`SECRET_DESTINATIONS`: a provider base URL / Azure endpoint, the Elasticsearch or LightRAG URL; for MCP the effective `url` / `transportType` for `headers` and the `extraConfig` secrets, `command` / `args` — and any edit to `env` itself (an entry added, removed or changed: `PATH`, `npm_config_registry`, `HOME`, `BASH_ENV`… each can swap the program), which counts as a new command — for `env` — a partial PUT that leaves the secrets out clears them too, `prepareMcpUpdate` in `at-rest.ts`) while the secret comes back as its mask, or is not re-sent, clears it — a stored key is never carried to a new host. Secret `args` go only to the command they were saved with: a new `command` refuses masked args, and a PUT that changes `command` without sending `args` writes `args: []` (none of the stored ones follow). A url / args / env / headers / secret `extraConfig` value (or anything on an MCP create) that holds `••••` without being the exact mask is a 400 "re-enter the secret" (`SECRET_REENTRY_REQUIRED`, `params.field` naming the column: `url` / `args` / `env` / `headers` / `extraConfig`) — a mask is never stored. At rest the values are `enc:v1:…` (see Security Considerations); `GET /api/v1/settings/secrets-status` answers `{ encryption: 'on' | 'unavailable', needsReentry: string[] }` for the Settings notices — `needsReentry` holds both the secrets that do not decrypt and those a destination move cleared (`moved.ts`), as plain names. A new schema field whose name `isSecretName()` flags (`…key`, secret, password, token, auth, bearer, credential, cookie, session, `pat` — word by word, so `path` / `author` / `keyboard` are not, nor the allowlisted `max-tokens` / `token-limit` / `session-name` / `session-timeout` / `signature-version` / `pass-through`; a value after a secret flag or under a secret name is masked whatever its shape — all digits (`-u root -p 98765432`, `DB_PASSWORD=12345678`) included) fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
@@ -413,6 +423,13 @@ The `/api/v1/chat` route includes `POST /api/v1/chat/:chatId/choose` (`{ runId }
 
 **Middleware Pipeline** (order in `app.ts`):
 
+0. Compression (`compressLan`, `middlewares/compress.ts`) — registered first so
+   it sees every response, refusals and errors included: on the LAN listener
+   only (the phone, at home or over Tailscale; loopback is left alone), a
+   JSON/text body of 1 KB or more goes out brotli (quality 5) when the client
+   takes it — URLSession does over HTTPS by itself — else gzip; never an
+   event stream (each frame must leave at once). A chat's history measured
+   2.4 MB raw, 360 KB brotli, 725 KB gzip (2026-10-01)
 1. Origin gate (`createOriginGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or, in a dev build only, exactly the Vite renderer's; anything else — a website, another loopback port, `null`, an extension, the artifact sandbox — gets `403`, as does a request on the loopback listener addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`. Which listener took a request is in the bindings (`listenerOf(c)` in `server/types.ts`)
 2. CORS middleware (`hono/cors`)
 3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
@@ -443,6 +460,16 @@ There is no MCP middleware: the chat route itself fetches the active servers' to
 - `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
   the device's token, never the token. Machine-local — deliberately not part of
   `db-io` export/import or of a data reset
+- `chat_source` - a chat's numbered sources (migration 0012): every result of
+  its `web_search` calls and every page `web_fetch` read, one row per (chat,
+  call, rank) with the text the model was given (`content`: a search result's
+  extract, a fetched page whole) and the card fields. Derived from `message`,
+  which stays the record: `RunRecorder.persist()` saves a run's sources, and
+  `ensureChatSources()` (`src/main/lib/chat/sources.ts`) fills in a chat older
+  than the table — or restored by `db-io`, which carries messages only — the
+  first time it is read. A rank repeats in a chat numbered before 2026-09-29
+  (every run counted from 1); the newest row of a rank is that rank. Serves
+  `recall({ source })` and the next run's numbering
 - `lcm_summary` - a conversation's own memory: what compaction wrote of its
   older part. The text is `content`, one row per summary, by `chatId` (`kind`
   `leaf` | `condensed`, `depth`, the span it covers in `earliestAt` /
@@ -549,13 +576,23 @@ rendering work in.
   once is per call, never remembered. The card's Allow button is disabled
   for its first 600 ms and ignores untrusted (script-dispatched) clicks
 - `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
-  `finally` saves the run's rows with its duration and enqueues the post-run
-  jobs
+  `finally` saves the run's rows with its duration, puts them into LCM's
+  context items **then and there** (`trackContextMessages()` — needs no model
+  or key, skips what is tracked, seeds a chat that has rows and no items; it
+  used to be the queued job's work, which a quick follow-up did not wait for
+  and which a missing key skipped for good), and enqueues the post-run jobs
+  with ids only: `lcm-post-turn` compacts, `memory-consolidate` reads the
+  conversation when it runs (no conversation travels through the queue)
 - `invariant.ts` — `dropBrokenRuns()`: a provider request starts with a user
   message and every tool result follows its tool call; a violating run is
   dropped and logged, never sent (the 2026-09-21 `unexpected tool_use_id` 400)
 - `events.ts` — the `KernelEvent` union; `faux.ts` / `faux-boot.ts` — pi's
   scripted provider for tests (see Testing)
+
+**The chat API's contract is `docs/chat-api.md`** — every endpoint, the SSE events and their order, what the model
+is sent of earlier runs, regenerate, sources, pages, approvals, compatibility, the invariants and the tests that hold
+them, and the checklist for changing it. Read it before changing the chat route, the kernel, context assembly or
+either client's chat code, and keep it true in the same change.
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
@@ -568,7 +605,19 @@ rendering work in.
    (`recordRegenerate`); an ordinary message first closes an open comparison
    (`settleOpenComparison`: the newest answer that did not fail or stop is
    `chosen`, else the older; the other `folded`). A client-sent `attempt` is
-   ignored, and `done` echoes the history with the stored states
+   ignored. **The server owns the conversation** (spec
+   `docs/superpowers/specs/2026-10-01-chat-history-and-context-design.md`
+   §C1–C2): a send is `{ id, message, protocol: 2, advancedTools, … }` — the
+   new question only — and the history is read from the database
+   (`chat/history.ts`: `loadChatHistory()`, `rowToChatMessage()`, every field
+   kept), never from what a client posts (an older client's `messages` is
+   accepted; only its last message is used). The question is stamped with the
+   server's clock (every read orders by `createdAt`). With `protocol: 2`,
+   `done` is `{ messages: <the run: its question as stored, then its
+answer>, attempts: <every group's stored state> }` and the client merges
+   (`mergeRun()` in `packages/shared/src/utils/run-merge.ts`; exodus-ios
+   `RunMerge`, same vectors); without it, `done` echoes the whole
+   conversation (read from the database) as before
 2. Assemble the context (LCM, in whole runs) and bind built-in tools based on
    the `AdvancedTools` selection and `settings.tools.disabledTools`. The
    context leaves out the runs a regenerate group keeps from the model
@@ -578,8 +627,8 @@ rendering work in.
    twice. One filter for both paths: the LCM assembler and compaction start
    from `contextRuns()` (so the fresh tail counts runs the model sees, and a
    folded answer never reaches a summary — the span a summary replaces takes
-   its context items with it), and with LCM off the posted history goes
-   through `runsForContext()` with the stored states
+   its context items with it), and with LCM off the stored history goes
+   through `runsForContext()`
 3. `for await` over `runAgent()`, mapping each kernel event onto one SSE
    event through `createSseWriter` (`routes/chat-sse.ts`): streaming
    `message_update` snapshots are coalesced to one per
@@ -628,7 +677,7 @@ the tool definitions, the binder, the system prompt, the renderer's dispatch
 and the settings registry (migration 0007 rewrote stored rows from the old
 camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `recall`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
 `map_itinerary` enriches places through Google Places from main with
 `googleCloud.googleApiKey`. That key is masked by the API like every other
@@ -686,6 +735,43 @@ server?, query? })` returns each tool's server, name, description and
 parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
 call and returns the result unchanged; the prompt's `<mcp_servers>` block
 carries one line per connected server so the model knows what exists.
+
+**Prompt cache** (spec
+`docs/superpowers/specs/2026-10-01-chat-history-and-context-design.md` §A):
+providers cache a request by its prefix — tools, then system, then messages —
+so nothing in the tools or the system prompt may change between two requests
+of a chat unless something real changed. No time in a tool description (the
+system prompt has the date, day granularity); the skills index and the MCP
+directory are sorted (by slug, by server name); the memory block is per run
+(above); the kernel passes the chat id as pi's `sessionId` (OpenAI's
+`prompt_cache_key`). Chat Audit's **Prompt cache by run** preset reads each
+run's first call (`hit_pct`, `input_cost_units` at Anthropic's 1 / 1.25 /
+0.1); before this, the first call of every run read 0 % from cache.
+
+**Tool output ages** (same spec, §B; `ai/context-management/aging.ts`): a
+tool's output is for the step that called it, so the runs before this one
+carry a **digest** of it — a line per numbered source for a search, a
+command and its last ten lines for `terminal`, a path and a size for
+`read_file`, the first 1 000 characters for most others — past the age
+`TOOL_POLICIES` sets per tool (a run's age: how many runs came after it).
+`web_search` / `web_fetch` stay whole through the next run (follow-ups dig
+into the same results); everything else is whole only in the run that called
+it; `image_generation`, `update_memory` and every failed call are never
+digested, and a result under 600 characters is left as it is. A past call's
+string arguments over 300 characters (a file's content, an artifact's code)
+become a note of their length. Every digest names its way back:
+`recall({ source: N })` / `recall({ call: "<id>" })`
+(`calling-tools/recall.ts`) returns the stored text byte for byte, no
+network — except the weather, whose digest says it is stale and to call
+`weather` again. Nothing is deleted, calls are never removed and every result
+keeps its call (`dropBrokenRuns` holds after aging), and a digest is a pure
+function of the stored row, so a past run is the same bytes on every request
+and stays cached; changing a digest is a `DIGEST_VERSION` bump. The chat route
+ages only while `recall` is bound (it can be switched off in Built-in Tools —
+then the context is sent whole), on both paths (LCM on and off); LCM's leaf
+compaction summarises from the digests too (`digestAll()`), so a search dump
+is not paid for twice and a summary cites sources by number. A new built-in
+needs a `TOOL_POLICIES` row (`satisfies Record<ToolName, ToolPolicy>`).
 
 **System prompt** (`src/main/lib/ai/prompts.ts`, `getSystemPrompt({
 mcpDirectory, workspaceDir, skillsIndex })`): the policy is autonomy — use
@@ -821,12 +907,23 @@ A durable, topic-consolidated memory of the user. Key functions:
    so its `delete` only switches the entry off (`softDeleteMemory`) and
    Settings → Memory can restore it.
 
-2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
-   pre-turn when `memory.useInChat`. One LLM call picks the relevant
-   entries; selected entries are recorded in `memory_usage_log` (with the
-   run's id and the entry's key/section at the time, so a later delete still
-   has a name to show) and get `lastUsedAt` bumped, then rendered into a
-   `<user_memory>` system block.
+2. **Read filter** (`loadRelevantMemories()`) — pre-turn when
+   `memory.useInChat`. One LLM call picks the relevant entries; selected
+   entries are recorded in `memory_usage_log` (with the run's id and the
+   entry's key/section at the time, so a later delete still has a name to
+   show) and get `lastUsedAt` bumped. **The block goes with its run, never
+   in the system prompt** (`memory/run-memory.ts`, 2026-10-01): each run's
+   user message is preceded by a `<user_memory>` block of the entries chosen
+   for that run (`loadRunMemoryBlocks()`, from `memory_usage_log`), rendered
+   with their _current_ values in a fixed order (section, then key). Chosen
+   afresh every message, the block used to change the system prompt on every
+   turn, and with it the provider's whole cached prefix; now a past run's
+   block is the same bytes on every request, an edited entry changes the
+   runs that used it once, and a deleted or switched-off one drops out of
+   every run. The assemblers say which message opens which run
+   (`AssembledContext.runHeads`; the LCM-off path the same) and the route
+   applies `withRunMemory()`; the kernel gets a copy of the prompt with its
+   block — the saved row and the `done` echo are the question alone
 
 3. **User correction** (`runMemoryInstruction()`, the same engine Settings →
    Memory's instruction box uses) — one LLM call turns a free-text
@@ -861,7 +958,7 @@ skipped, not shown). Renderer: `hooks/use-memory.ts` (`useMemories`,
 `useRunMemoryUsage`, `useUndoMemoryChanges`) backs
 `components/chat/used-memories.tsx` (the "Used N memories · keys" line and its
 popover at the run's foot — a deleted entry still shows its logged key,
-greyed; "This is wrong" prefills the composer through `chatInputFocusAtom`)
+greyed; the card opens with a line saying what the memories were for, and each entry's "Fix in chat" — beside its title, owner 2026-09-30, after "This is wrong" read as a verdict — prefills the composer through `chatInputFocusAtom`)
 and `components/chat/memory-change-strip.tsx` (the run-foot strip for
 `update_memory`: running → done, with per-change before/after and Undo;
 `lib/run-memory-changes.ts` derives its state from the run's own messages,
@@ -903,7 +1000,9 @@ Compacts long conversations without losing information, surfacing summaries the 
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
 - Route: `/api/v1/lcm`
-- Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`
+- Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`; and `recall`,
+  which reads back the full form of an aged tool output (see "Tool output
+  ages"), and whose digests leaf compaction summarises from
 - **The recall tools read a conversation: this one, or one the user names.**
   `lcm_grep(chatId)` and `lcm_expand(model, apiKey, chatId)` are bound to the
   chat (`bindCallingTools`) and read it when the model passes no `chatId` —
@@ -1041,9 +1140,19 @@ Their windows live in `src/main/lib/window.ts`.
 - The chat list and a chat's messages are what a run changes without a mutation. The list is
   refreshed by the stream manager (`lib/stream-manager.ts`: on the `title` event and however a run
   ends) rather than by the chat page, which is gone when the user has opened another chat. A chat's
-  messages seed `<Chat>` once, on mount, so `ChatDetail` waits for the fetch of this visit
-  (`useChatMessages().isFresh`) instead of seeding it with the copy an earlier visit cached —
-  without the runs sent since, with a regenerate group's state as it was.
+  newest page seeds `<Chat>` once, on mount, so `ChatDetail` waits for the fetch of this visit
+  (`useChatPage().isFresh`) instead of seeding it with the copy an earlier visit cached —
+  without the runs sent since, with a regenerate group's state as it was — and shows
+  `chat/transcript-skeleton.tsx` meanwhile (after 300 ms, `hooks/use-delayed.ts`). Older pages are
+  `hooks/use-older-pages.ts` (`useOlderPages`: a `useMutation` per page, put in front of the
+  messages with `setMessages`; `olderSources` / `olderQuestions` are what the page says of the runs
+  not loaded; `historyIds` keeps them from animating in as fresh; a `truncated` row is replaced by
+  `GET …/messages/:messageId`), and `hooks/use-older-history-scroll.ts` is the transcript's side:
+  a scroll within 600 px of the top — or a first page shorter than the window — loads the page
+  before, and the scroll position moves down by what was added (the container is
+  `overflow-anchor: none`). `buildCitationSources(segments, cache, olderSources)` starts every
+  turn's sources from the unloaded runs', and `ChatToc` lists `older` questions first; picking one
+  loads back `through` it, then scrolls there.
 - Hook tests: some wrap `renderWithQueryClient` from `tests/unit/helpers/query-test-utils.ts` for the
   mount scaffolding (isolated client, retries off); others still roll their own — not yet a single
   convention across every hook test. `@tanstack/react-query-devtools` is dev-only in `main.tsx`.
@@ -1135,7 +1244,14 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   between them, so a run that called nothing with a card (a web search, a
   file read — `hasToolCard()` in `calling-tools/tool-cards.ts`) is one
   `Markdown`, as it always was; a tool that failed is a line of the
-  timeline, not a card. Blocks are only ever added at the end and the last
+  timeline, not a card. Text in a message whose calls only fetch
+  something (web search, web fetch, file reads, grep, the lcm tools — the
+  built-ins `keepsTextInAnswer()` is false for) is the model at work
+  ("I'll pull the photos."): it is a `narration` step of the timeline,
+  drawn as a plain row, and not part of `blocks` or `body`; beside a tool
+  with a card, `image_generation` or `update_memory` it stays in the
+  answer, since that is often the answer itself (owner, 2026-09-30;
+  exodus-ios: `RunGrouper.narratingTools`, `ThinkingStep.isNarration`). Blocks are only ever added at the end and the last
   text grows in place, which is what lets the text above a card sit out the
   frames of the text streaming below it. `body` — every text block joined —
   is what Copy, read-aloud and the Sources panel take as the answer. A
@@ -1283,6 +1399,29 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   mounted components register (Escape) needs `conflictBehavior: 'allow'`, or
   every duplicate `console.warn`s — disabled registrations included. A key that
   commits an IME composition arrives with `event.isComposing`: guard it.
+- **Images load through `LazyLoadImage`** (`components/lazy-load-image.tsx`,
+  the owner's rule of 2026-09-30): a skeleton while it loads, a fade in, an
+  icon — or the caller's `fallback` — when it fails; never a bare `<img>` for
+  anything fetched from the network. Props: `imgClassName` for the image's
+  own fit (`object-contain` for a whole picture, as the search lightbox;
+  `object-cover`, the default, for a tile), `referrerPolicy` for hosts that
+  refuse an app's Referer (Google avatars, news sites), `loadingClassName`
+  for room while a picture of no set size loads (a Markdown image). Used by
+  the search gallery and lightbox, the video cards, the citation cards, the
+  Discover feed, the map's pins, photos and review avatars, and
+  `RemoteImage` for a network Markdown image. Drawn directly, on purpose:
+  tiny glyphs (`SourceFavicon`, `<Flag>`, favicon dots), images already here
+  (`data:` attachments, avatars, computer-use frames, bundled logos), and
+  the image-generation card, whose dither field is its own loading state and
+  whose `Zoom` needs the `<img>` itself
+- **The window never scrolls, a page's region does.** The main window's
+  `<html class="app-shell">` and its body are `overflow: hidden`
+  (`globals.css`; not the artifact sandbox, whose pages scroll), and a
+  scroll region is `relative`, so an absolutely positioned element inside it
+  (an `sr-only` label) is contained by it. Before 2026-09-30 a
+  `SecretInput`'s `sr-only` span on a long Settings page, with no positioned
+  ancestor, grew the document, and the whole window — sidebar and traffic
+  lights included — scrolled up
 - Toast notifications via `sileo` (mounted once as `<AppToaster />` per
   layout — chat/settings/philharmonic; its fill is the `--foreground` token
   read from the document, so it follows the colour tone); `sonner`'s
@@ -1427,7 +1566,7 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 - `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
 - `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
 - `src/main/lib/ai/utils/image-data.ts` — `bareImageData()` / `withBareImages()`: a chat saves an image attachment as the data URL the renderer shows (`data:image/png;base64,…`), and pi hands an image part's `data` to the provider as it is — Anthropic answered 400 "invalid base64 data", OpenAI got the prefix twice. The kernel's `convertToLlm` strips it from every message it sends (so old chats need no migration), and Philharmonic builds its image parts through `bareImageData()`
-- `src/main/lib/ai/utils/usage.ts` — `storedUsage()`: the `usage` of an assistant message rebuilt from a stored row. pi reads `usage` off **every** assistant message of a request (each provider clamps its max tokens through `estimateContextTokens`), so a message without one fails the request before it is sent — every request after a chat's first did, 2026-09-23 to 09-29 (`Cannot read properties of undefined (reading 'totalTokens')`). Anything that hands pi an assistant message it did not produce goes through it (chat LCM, Philharmonic LCM); the kernel's `convertToLlm` applies it once more (`withUsage` in `kernel/invariant.ts`) for history a client posted
+- `src/main/lib/ai/utils/usage.ts` — `storedUsage()`: the `usage` of an assistant message rebuilt from a stored row. pi reads `usage` off **every** assistant message of a request (each provider clamps its max tokens through `estimateContextTokens`), so a message without one fails the request before it is sent — every request after a chat's first did, 2026-09-23 to 09-29 (`Cannot read properties of undefined (reading 'totalTokens')`). Anything that hands pi an assistant message it did not produce goes through it (chat LCM, Philharmonic LCM); the kernel's `convertToLlm` applies it once more (`withUsage` in `kernel/invariant.ts`) for any history it is handed
 
 ## Testing Locally
 
@@ -1593,10 +1732,14 @@ Main process:
 - `src/main/main.ts` — app bootstrap, lifecycle, IPC + server startup
 - `src/main/lib/server/app.ts` — Hono server + route registration
 - `src/main/lib/server/routes/` — API route handlers
-- `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
+- `src/main/lib/server/middlewares/` — LAN compression, origin gate, auth gate, lock gate, presence gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `log-throws.ts` (`loggingThrows()`: pi keeps only the message of what is thrown into it, so `streamFn`, `convertToLlm`, `beforeToolCall` and the listener log the Error — scope `kernel`, once, with the chat and the run — and throw it on), `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/chat/history.ts` — the conversation as the server reads it (`loadChatHistory()`, `rowToChatMessage()`); the chat route's history, never a client's. `findToolCall()`: an earlier call's arguments and stored result, for `recall`
+- `src/main/lib/chat/page.ts` — history a page at a time (`loadChatPage()`, `compactRow()`, `limitRow()`, `loadChatRow()`); wire types in `packages/shared/src/types/chat-page.ts`
+- `src/main/lib/chat/sources.ts` — the `chat_source` table: `sourcesOfRows()` (a run's sources from its rows), `saveChatSources()`, `ensureChatSources()` (fill in an older or imported chat), `highestSourceRank()`, `getChatSource()`, `listChatSources()`
+- `src/main/lib/ai/context-management/aging.ts` — tool output aging (`TOOL_POLICIES`, `ageToolOutput()`, `digestAll()`, `DIGEST_VERSION`); see "Tool output ages"
 - `src/main/lib/chat/attempts.ts` — regenerate-group transitions (`recordRegenerate`, `chooseAttempt`, `settleOpenComparison`, `pickAutoChoice`); the only writer of `message.alternateOf` / `message.attempt`
 - `src/main/lib/presence.ts` — the per-launch user-presence token (see Middleware Pipeline, presence gate)
 - `src/main/lib/remote-debugging-guard.ts` — `main.ts`'s first import: a packaged build exits when started with a Chromium remote-debugging switch (`remote-debugging.ts`), which would expose the main frame and its presence token
@@ -1697,8 +1840,9 @@ Main process:
   button, the zoomed view's toolbar button)
 - `src/main/lib/lan/` — access from the LAN (exodus-ios on a device). The app is
   served twice (`server/app.ts`): plaintext on loopback, and over HTTPS on
-  `LAN_SERVER_PORT` behind `authGate` — but only while a device is paired or a
-  pairing window is open; until then nothing listens on the LAN at all.
+  `LAN_SERVER_PORT` behind `authGate` — but only while a device is paired, a
+  pairing window is open, or a revoked device has yet to be told (see
+  `revoked.ts`); otherwise nothing listens on the LAN at all.
   `pairing.ts` (the pairing window: a one-time code, two minutes, single use,
   five wrong guesses close it; pure, clock injected; also the
   `exodus://pair?h=&p=&c=&f=&n=` link and LAN host discovery), `devices.ts`
@@ -1708,8 +1852,16 @@ Main process:
   `safeStorage` in `~/.exodus/tls/`; its fingerprint is what devices pin — never
   rotated except by "Reset all"), `listener.ts` (`sync()` makes the HTTPS
   listener match "wanted"; resolves once listening), `index.ts` (the process's
-  `pairing`, `syncLan()`, `openPairingWindow()`). Routes: `POST /api/v1/pair`
-  (code → token), `/api/v1/devices` (list, open/close a window, revoke, reset —
+  `pairing`, `syncLan()`, `openPairingWindow()`), `revoked.ts` (a device
+  revoked here learns it only from a 401 on its next request, and the
+  listener used to stop with the last device, so the phone found nothing and
+  stayed "paired": each revocation keeps a token-hash record in
+  `~/.exodus/lan-revoked.json` that keeps the listener wanted until
+  `authGate` answers that token once, or 30 days pass; a reset replaces the
+  certificate, so it keeps none and drops the rest). Routes: `POST
+/api/v1/pair` (code → token), `DELETE /api/v1/pair` (a paired device
+  unpairing itself — authenticated by its own token, it leaves the Devices
+  list too), `/api/v1/devices` (list, open/close a window, revoke, reset —
   loopback only). Spec:
   `docs/superpowers/specs/2026-09-20-lan-pairing-sandbox-isolation-design.md`
 - `src/main/lib/artifact-protocol.ts` — the `exodus-artifact://sandbox` scheme
@@ -1831,7 +1983,7 @@ Renderer:
 - `src/renderer/stores/` — Jotai atoms, incl. `input.ts`'s `chatInputAtom`
   (the composer's draft text) and `chatInputFocusAtom` (a counter
   `multimodel-input.tsx`'s `InputBox` watches to refocus and re-caret the
-  composer — bumped by `used-memories.tsx`'s "This is wrong")
+  composer — bumped by `used-memories.tsx`'s "Fix in chat")
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
 - `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `query-client.ts` — the one
@@ -1887,6 +2039,7 @@ Docs:
 - `docs/superpowers/plans/` — implementation plans
 - `docs/manual-qa-checklist.md` — the owner's hand-run acceptance checklist
   (every feature but Philharmonic, P0/P1/P2); add a line when a feature ships
+- `docs/chat-api.md` — the chat API's technical specification (see Chat Flow)
 - `docs/security-hardening.md` — threat model, protections in place, and the
   open security items with their intended fixes
 - `docs/pi-ai-review.md` — review of the pi-ai usage against the upstream

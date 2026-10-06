@@ -399,6 +399,10 @@
         "label": "Actualizar memoria",
         "description": "Permite que el asistente corrija, agregue o elimine entradas de memoria cuando le diga que algo sobre usted es incorrecto."
       },
+      "recall": {
+        "label": "Recuperar",
+        "description": "Permite que el asistente vuelva a leer completo un resultado de búsqueda o la salida de una herramienta que los turnos anteriores ya solo llevan resumidos, a partir de lo guardado y sin volver a buscar."
+      },
       "mapItinerary": {
         "label": "Itinerario en mapa",
         "description": "Mostrar lugares, rutas y viajes de varios días en una sola tarjeta de mapa interactiva"
@@ -947,6 +951,7 @@
       "rebuild": "Regenerar",
       "building": "Creando…",
       "builtAt": "Creada {{when}}",
+      "stale": "Creada antes de las tablas actuales: vuelve a crearla o algunas consultas predefinidas fallarán.",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (copiados de los archivos de registro)",
       "logsMissing": "logs (no se encontraron archivos de registro)",
@@ -956,6 +961,7 @@
     },
     "presets": {
       "title": "Consultas predefinidas",
+      "cacheByRun": "Caché de prompt por turno",
       "messagesPerDay": "Mensajes por día (30 días)",
       "costByModel": "Tokens y coste por modelo",
       "toolCalls": "Llamadas a herramientas",

@@ -1,4 +1,5 @@
 import { CHAT_AUDIT_PRESETS } from '@exodus/shared/constants/chat-audit-presets'
+import { CHAT_AUDIT_SCHEMA_VERSION } from '@exodus/shared/constants/chat-audit-schema'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import {
@@ -46,19 +47,7 @@ import {
 
 import { SettingsSection } from '../settings-row'
 import { ChatAuditEditor } from './chat-audit-editor'
-
-const PRESET_KEYS = {
-  messagesPerDay: 'chatAudit.presets.messagesPerDay',
-  costByModel: 'chatAudit.presets.costByModel',
-  toolCalls: 'chatAudit.presets.toolCalls',
-  longestChats: 'chatAudit.presets.longestChats',
-  errorsByModel: 'chatAudit.presets.errorsByModel',
-  activityByHour: 'chatAudit.presets.activityByHour',
-  searchText: 'chatAudit.presets.searchText',
-  logsBySeverity: 'chatAudit.presets.logsBySeverity'
-} as const
-
-type PresetId = keyof typeof PRESET_KEYS
+import { PRESET_KEYS, type PresetId } from './chat-audit-preset-keys'
 
 function cellText(value: unknown): string {
   if (value === null || value === undefined) return ''
@@ -130,6 +119,10 @@ export function ChatAudit() {
   }
 
   const snapshot = status?.snapshot ?? null
+  // Built before a column was added (or before snapshots recorded their
+  // schema): the presets that read the new columns would fail against it.
+  const stale =
+    snapshot !== null && snapshot.schemaVersion !== CHAT_AUDIT_SCHEMA_VERSION
   const unavailable = status !== undefined && !status.available
 
   return (
@@ -188,6 +181,11 @@ export function ChatAudit() {
                         : t('chatAudit.snapshot.logsMissing')}
                     </Badge>
                   </div>
+                  {stale && (
+                    <span className="text-destructive text-xs">
+                      {t('chatAudit.snapshot.stale')}
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -218,7 +216,7 @@ export function ChatAudit() {
               )}
               <Button
                 size="sm"
-                variant={snapshot ? 'outline' : 'default'}
+                variant={snapshot && !stale ? 'outline' : 'default'}
                 data-testid={TEST_IDS.chatAudit.buildButton}
                 disabled={building || statusLoading}
                 onClick={rebuild}

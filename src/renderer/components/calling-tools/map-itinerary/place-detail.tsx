@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import {
   Carousel,
   type CarouselApi,
@@ -104,11 +105,10 @@ export function PlaceDetail({
             <CarouselContent className="ml-0">
               {photoUrls.map((url) => (
                 <CarouselItem key={url} className="pl-0">
-                  <img
+                  <LazyLoadImage
                     src={url}
                     alt={place.name}
-                    loading="lazy"
-                    className="h-36 w-full object-cover"
+                    className="h-36 w-full"
                   />
                 </CarouselItem>
               ))}
@@ -400,22 +400,19 @@ export function PlaceDetail({
  *  `referrerPolicy="no-referrer"` makes Google serve them; a genuinely dead URL
  *  still falls back to the initial. */
 function ReviewAvatar({ src, name }: { src?: string; name?: string }) {
-  const [failed, setFailed] = useState(false)
-  if (!src || failed) {
-    return (
-      <div className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
-        {name?.charAt(0)?.toUpperCase() ?? '·'}
-      </div>
-    )
-  }
+  const initial = (
+    <div className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
+      {name?.charAt(0)?.toUpperCase() ?? '·'}
+    </div>
+  )
+  if (!src) return initial
   return (
-    <img
+    <LazyLoadImage
       src={src}
       alt=""
-      loading="lazy"
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
-      className="bg-muted size-6 shrink-0 rounded-full object-cover"
+      fallback={initial}
+      className="bg-muted size-6 shrink-0 rounded-full"
     />
   )
 }

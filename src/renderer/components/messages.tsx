@@ -13,6 +13,7 @@ import type {
   TimelineStep,
   TurnBlock
 } from '@exodus/shared/types/chat'
+import type { ChatPageQuestion } from '@exodus/shared/types/chat-page'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { isLocked, runAttemptInfos } from '@exodus/shared/utils/attempts'
 import { splitThinkingTagsInContent } from '@exodus/shared/utils/thinking-tags'
@@ -22,7 +23,10 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { useDelayed } from '@/hooks/use-delayed'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
+import { useOlderHistoryScroll } from '@/hooks/use-older-history-scroll'
 import { useSettings } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
 import { ENTER_UP } from '@/lib/motion'
@@ -31,7 +35,7 @@ import { cn } from '@/lib/utils'
 
 import { ZoomableAttachment } from './attachment-frame'
 import { foldsIntoTimeline } from './calling-tools/folded-tools'
-import { hasToolCard } from './calling-tools/tool-cards'
+import { hasToolCard, keepsTextInAnswer } from './calling-tools/tool-cards'
 import { ChatToc } from './chat-toc'
 import { AssistantTurnSegment } from './chat/assistant-turn-segment'
 import { COMPARE_FRAME, CompareTurns } from './chat/compare-turns'
@@ -49,7 +53,20 @@ type MessagesProps = {
   showDiscover?: boolean
   /** The run that failed last; its message shows the error at its foot. */
   runError?: RunError | null
+  /** Older history (`useOlderPages`): whether there is more, and loading it. */
+  hasOlder?: boolean
+  loadingOlder?: boolean
+  loadOlder?: (through?: string) => Promise<void>
+  /** The sources of the runs not loaded, oldest first: citations resolve. */
+  olderSources?: WebSearchResult[]
+  /** The questions of the runs not loaded, for the outline. */
+  olderQuestions?: ChatPageQuestion[]
+  /** Every message that came from history, not from this visit. */
+  historyIds?: ReadonlySet<string>
 }
+
+const NO_SOURCES: WebSearchResult[] = []
+const NO_QUESTIONS: ChatPageQuestion[] = []
 
 const AT_BOTTOM_THRESHOLD = 80
 
@@ -321,6 +338,11 @@ function buildAssistantTurn(
     if (msg.role === 'assistant') {
       const assistantMsg = msg as ChatAssistantMessage
       timestamp = assistantMsg.timestamp
+      // Text beside calls that only fetch something is the model at work:
+      // it goes into the timeline, not the answer.
+      const calls = assistantMsg.content.filter((b) => b.type === 'toolCall')
+      const narrates =
+        calls.length > 0 && !calls.some((c) => keepsTextInAnswer(c.name))
       for (const block of assistantMsg.content) {
         if (block.type === 'thinking' && block.thinking?.trim()) {
           steps.push({ type: 'thinking', text: block.thinking })
@@ -336,8 +358,12 @@ function buildAssistantTurn(
           pendingToolCalls.push({ name: block.name, id: block.id })
           answer.call(block.id, block.name, block.arguments)
         } else if (block.type === 'text' && block.text.trim()) {
-          texts.push(block.text)
-          answer.text(block.text)
+          if (narrates) {
+            steps.push({ type: 'narration', text: block.text })
+          } else {
+            texts.push(block.text)
+            answer.text(block.text)
+          }
         }
       }
     } else if (msg.role === 'toolResult') {
@@ -702,12 +728,15 @@ export interface CitationSourcesCache {
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
 export function buildCitationSources(
   segments: Segment[],
-  cache?: CitationSourcesCache
+  cache?: CitationSourcesCache,
+  // The sources of the runs before the first one loaded (`olderSources`):
+  // every turn can cite them. A new array is a new cache (see `caches`).
+  base: WebSearchResult[] = NO_SOURCES
 ): Map<AssistantTurn, WebSearchResult[]> {
   const map = new Map<AssistantTurn, WebSearchResult[]>()
   const turns: AssistantTurn[] = []
   const sources: WebSearchResult[][] = []
-  const acc: WebSearchResult[] = []
+  const acc: WebSearchResult[] = base.slice()
   let prefixUnchanged = cache !== undefined
 
   const record = (turn: AssistantTurn, build: () => WebSearchResult[]) => {
@@ -747,7 +776,13 @@ function Messages({
   regenerate,
   chooseAttempt,
   showDiscover,
-  runError
+  runError,
+  hasOlder = false,
+  loadingOlder = false,
+  loadOlder,
+  olderSources = NO_SOURCES,
+  olderQuestions = NO_QUESTIONS,
+  historyIds
 }: MessagesProps) {
   const { t } = useTranslation('chat')
   const isLoading = status === 'streaming' || status === 'submitted'
@@ -778,8 +813,8 @@ function Messages({
       segments: new Map() as SegmentCache,
       citations: { turns: [], sources: [] } as CitationSourcesCache
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is the reset key
-    [t]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` and the older sources are the reset keys
+    [t, olderSources]
   )
 
   const segments = useMemo(
@@ -790,8 +825,14 @@ function Messages({
   // The messages the chat opened with: history, rendered in place. Only a
   // run that starts after that is "fresh" and gets an entrance — the whole
   // transcript rising on every open would be motion without a purpose.
-  const [openedWith] = useState(() => new Set(messages.map((m) => m.id)))
-  const isFresh = (runId: string) => !openedWith.has(runId)
+  // So is a page of older history loaded since (`historyIds`).
+  const [openedWith] = useState(() => {
+    const ids = new Set(messages.map((m) => m.id))
+    for (const id of historyIds ?? []) ids.add(id)
+    return ids
+  })
+  const isFresh = (runId: string) =>
+    !openedWith.has(runId) && !historyIds?.has(runId)
 
   // The rail lists what is on screen: a regenerate group asks its question
   // once, however many attempts stand behind it.
@@ -799,8 +840,8 @@ function Messages({
 
   // Keyed by the segment object (same memoized refs used in render below).
   const citationSourcesByTurn = useMemo(
-    () => buildCitationSources(segments, caches.citations),
-    [segments, caches]
+    () => buildCitationSources(segments, caches.citations, olderSources),
+    [segments, caches, olderSources]
   )
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
@@ -828,6 +869,13 @@ function Messages({
     }
   }, [status, scrollToBottom])
 
+  const { requestOlder, nearTop } = useOlderHistoryScroll(chatBoxRef, {
+    firstId: messages[0]?.id,
+    hasOlder,
+    loadingOlder,
+    loadOlder
+  })
+
   const handleScroll = useCallback(() => {
     const $el = chatBoxRef.current
     if (!$el) return
@@ -835,7 +883,10 @@ function Messages({
       $el.scrollHeight - $el.scrollTop - $el.clientHeight < AT_BOTTOM_THRESHOLD
     isAtBottom.current = atBottom
     setShowScrollButton(!atBottom)
-  }, [])
+    nearTop()
+  }, [nearTop])
+
+  const showOlderSpinner = useDelayed(loadingOlder)
 
   return (
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -843,7 +894,7 @@ function Messages({
         className={cn(
           // A query container: a comparison takes its width from the chat
           // area (`cqw`), not from the reading column it stands in.
-          'no-scrollbar @container flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out',
+          'no-scrollbar @container flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out [overflow-anchor:none]',
           // Room for the floating composer to clear the last message — but
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
@@ -877,6 +928,14 @@ function Messages({
         )}
 
         <div className="w-full md:max-w-3xl">
+          {showOlderSpinner && (
+            <div
+              className="text-muted-foreground flex justify-center pb-6"
+              aria-label={t('history.loadingOlder')}
+            >
+              <Spinner />
+            </div>
+          )}
           {segments.map((segment, segIdx) => {
             if (segment.type === 'user') {
               return (
@@ -949,7 +1008,12 @@ function Messages({
         </div>
       </section>
 
-      <ChatToc scrollContainerRef={chatBoxRef} messages={questions} />
+      <ChatToc
+        scrollContainerRef={chatBoxRef}
+        messages={questions}
+        older={olderQuestions}
+        loadThrough={requestOlder}
+      />
 
       {showScrollButton && messages.length > 0 && (
         <Button

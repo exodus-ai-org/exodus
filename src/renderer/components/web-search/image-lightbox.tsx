@@ -2,14 +2,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { AttachmentRequest } from '@exodus/shared/types/attachment-actions'
 import { useHotkeys } from '@tanstack/react-hotkeys'
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ImageOffIcon,
-  LoaderIcon,
-  XIcon
-} from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -17,6 +10,7 @@ import {
   AttachmentDownloadButton,
   useAttachmentContextMenu
 } from '@/components/attachment-frame'
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import { SourceFavicon } from '@/components/source-favicon'
 import { cn } from '@/lib/utils'
 
@@ -31,70 +25,20 @@ export function galleryAttachment(image: GalleryImage): AttachmentRequest {
 }
 
 /**
- * The stage image. External URLs load slowly, so we never blank out or leave
- * the previous frame on screen: the already-cached grid thumbnail paints
- * immediately (blurred, as a backdrop) and the full-resolution image fades in
- * over it once decoded. Keyed by `image.url` in the parent, so every step
- * remounts with fresh state.
+ * The stage image: the copy Brave fetched, never the site's own file — which
+ * may refuse a hotlink, be gone, or not answer (owner, 2026-09-30). Loaded as
+ * the grid's are (`LazyLoadImage`: a skeleton, then a fade), shown whole.
  */
 function LightboxImage({ image }: { image: GalleryImage }) {
-  const { t } = useTranslation('webSearch')
-  const [loaded, setLoaded] = useState(false)
-  const [fullError, setFullError] = useState(false)
-  const [thumbError, setThumbError] = useState(false)
-  const hasThumb = Boolean(image.thumbnailUrl) && !thumbError
-
-  if (fullError && !hasThumb) {
-    return (
-      <div className="text-muted-foreground flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
-        <ImageOffIcon size={44} />
-        <span className="text-sm">{t('imageLightbox.imageUnavailable')}</span>
-      </div>
-    )
-  }
-
   return (
-    <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center">
-      {hasThumb && (!loaded || fullError) && (
-        <img
-          src={image.thumbnailUrl}
-          alt={image.title}
-          aria-hidden={!fullError}
-          onError={() => setThumbError(true)}
-          className={cn(
-            'absolute max-h-full max-w-full object-contain transition-[filter,transform] duration-300',
-            fullError ? '' : 'scale-105 blur-2xl brightness-95'
-          )}
-        />
-      )}
-
-      {!fullError && (
-        <img
-          src={image.url}
-          alt={image.title}
-          onLoad={() => setLoaded(true)}
-          onError={() => setFullError(true)}
-          className={cn(
-            'relative max-h-full max-w-full object-contain transition-opacity duration-300',
-            loaded ? 'opacity-100' : 'opacity-0'
-          )}
-        />
-      )}
-
-      {!loaded && !fullError && (
-        <div className="bg-background/70 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur">
-          <LoaderIcon
-            size={16}
-            className="text-muted-foreground animate-spin"
-          />
-        </div>
-      )}
-
-      {fullError && hasThumb && (
-        <div className="bg-background/70 text-muted-foreground absolute bottom-3 rounded-full px-3 py-1 text-xs backdrop-blur">
-          {t('imageLightbox.previewOnly')}
-        </div>
-      )}
+    <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center self-stretch">
+      <LazyLoadImage
+        src={image.thumbnailUrl}
+        alt={image.title}
+        className="bg-transparent"
+        skeletonClassName="rounded-lg"
+        imgClassName="object-contain"
+      />
     </div>
   )
 }
@@ -169,18 +113,6 @@ export function ImageLightbox({
       stopPropagation: false
     }
   )
-
-  // Warm the browser cache for the neighbouring frames so stepping through the
-  // carousel is instant after the first visit.
-  useEffect(() => {
-    for (const i of [index + 1, index - 1]) {
-      const neighbour = images[i]
-      if (neighbour) {
-        const img = new Image()
-        img.src = neighbour.url
-      }
-    }
-  }, [index, images])
 
   const current = images[index]
   const onStageContextMenu = useAttachmentContextMenu(

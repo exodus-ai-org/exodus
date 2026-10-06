@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
+import type { ChatPageQuestion } from '@exodus/shared/types/chat-page'
 import { splitHealth } from '@exodus/shared/utils/health-context'
 import { splitAnswer } from '@exodus/shared/utils/interactive-answer'
 import { splitQuoted } from '@exodus/shared/utils/quoted-text'
@@ -28,7 +29,13 @@ interface TocEntry {
 interface ChatTocProps {
   scrollContainerRef: RefObject<HTMLDivElement | null>
   messages: ChatMessage[]
+  /** The questions of runs not loaded yet (older pages), oldest first. */
+  older?: ChatPageQuestion[]
+  /** Loads the history back through a run, so its question can be shown. */
+  loadThrough?: (runId: string) => Promise<void>
 }
+
+const NO_OLDER: ChatPageQuestion[] = []
 
 /**
  * The rail only lists user messages, and those never change while a reply
@@ -51,6 +58,8 @@ function sameUserMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
 export const ChatToc = memo(ChatTocImpl, (prev, next) => {
   return (
     prev.scrollContainerRef === next.scrollContainerRef &&
+    prev.older === next.older &&
+    prev.loadThrough === next.loadThrough &&
     sameUserMessages(prev.messages, next.messages)
   )
 })
@@ -68,14 +77,28 @@ export function outlineText(text: string): string {
   return body || quote || answer?.title || ''
 }
 
-function ChatTocImpl({ scrollContainerRef, messages }: ChatTocProps) {
+function ChatTocImpl({
+  scrollContainerRef,
+  messages,
+  older = NO_OLDER,
+  loadThrough
+}: ChatTocProps) {
   const { t } = useTranslation('chat')
-  const entries: TocEntry[] = messages
-    .filter((m) => m.role === 'user')
-    .map((m) => ({
-      id: m.id,
-      text: outlineText(userMessageText(m)) || t('toc.fallbackLabel')
-    }))
+  // The whole chat's outline: the questions of the pages not loaded yet,
+  // then the ones on screen.
+  const entries: TocEntry[] = [
+    ...older.map((q) => ({
+      id: q.runId,
+      text: outlineText(q.text) || t('toc.fallbackLabel')
+    })),
+    ...messages
+      .filter((m) => m.role === 'user')
+      .map((m) => ({
+        id: m.id,
+        text: outlineText(userMessageText(m)) || t('toc.fallbackLabel')
+      }))
+  ]
+  const unloaded = new Set(older.map((q) => q.runId))
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
@@ -125,6 +148,17 @@ function ChatTocImpl({ scrollContainerRef, messages }: ChatTocProps) {
   if (!enoughEntries) return null
 
   const jumpTo = (id: string) => {
+    // A question of a page not loaded: load back through it, then go there.
+    if (unloaded.has(id) && loadThrough) {
+      void loadThrough(id).then(() =>
+        requestAnimationFrame(() => scrollToEntry(id))
+      )
+      return
+    }
+    scrollToEntry(id)
+  }
+
+  const scrollToEntry = (id: string) => {
     const container = scrollContainerRef.current
     const node = container?.querySelector<HTMLElement>(
       `[data-user-msg-id="${CSS.escape(id)}"]`

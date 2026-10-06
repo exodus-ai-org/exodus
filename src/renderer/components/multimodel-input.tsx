@@ -107,9 +107,12 @@ function InputBox({
   }
 
   const submitForm = useCallback(() => {
-    // URL update is handled by Chat's onFinish to avoid interrupting the stream
+    // URL update is handled by Chat's onFinish to avoid interrupting the stream.
+    // The hash, not the path: the router is a hash router, and in the packaged
+    // app a path rewrite pointed `file://` at a file that does not exist, so a
+    // reload after a new chat's first message was ERR_FILE_NOT_FOUND.
     if (!id) {
-      window.history.replaceState({}, '', `/chat/${chatId}`)
+      window.history.replaceState({}, '', `#/chat/${chatId}`)
     }
 
     // A quote is sent with a question about it, not by itself.
@@ -148,7 +151,7 @@ function InputBox({
   }, [])
 
   // Someone outside the composer wrote `chatInputAtom` and asked for focus
-  // ("This is wrong" under a reply): take it, caret after the prefilled text.
+  // ("Fix in chat" on a used memory): take it, caret after the prefilled text.
   // Only a change counts — the atom outlives this chat's composer.
   const focusRequest = useAtomValue(chatInputFocusAtom)
   const handledFocusRequest = useRef(focusRequest)

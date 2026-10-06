@@ -25,6 +25,9 @@ export const TOOL_NAMES = {
   webFetch: 'web_fetch',
   writeFile: 'write_file',
   updateMemory: 'update_memory',
+  // The full stored output of an earlier call, or a numbered source's text
+  // (spec 2026-10-01 §B3): what an aged digest points back to.
+  recall: 'recall',
   // The MCP toolbox (`calling-tools/mcp-toolbox.ts`): MCP servers are not
   // bound tool by tool; the model lists a server's tools, then calls one.
   listMcpTools: 'list_mcp_tools',

@@ -11,6 +11,7 @@ import { initLan, stopLan, syncLan } from '../lan'
 import { logger } from '../logger'
 import {
   authGate,
+  compressLan,
   createOriginGate,
   errorHandler,
   lockGate,
@@ -68,7 +69,12 @@ export function createApp() {
   const app = new Hono<{ Variables: Variables; Bindings: Bindings }>()
 
   // Middleware
-  // Origin gate first, ahead of CORS: a rejected web origin gets a bare 403
+  // Compression wraps everything below it, so it is registered first: every
+  // response the LAN listener sends — refusals and errors included — goes
+  // out brotli/gzip-compressed (loopback is left alone).
+  app.use('*', compressLan)
+
+  // Origin gate next, ahead of CORS: a rejected web origin gets a bare 403
   // with no `Access-Control-Allow-Origin`, so its page can't read even that.
   app.use('*', createOriginGate({ devOrigin: devServerUrl }))
   app.use('*', cors())
@@ -122,6 +128,7 @@ export function createApp() {
   v1.route('/s3', s3UploaderRouter)
   v1.route('/mcp', mcpRouter)
   v1.route('/memory', memoryRouter)
+  v1.route('/health', healthRouter)
   v1.route('/usage', usageRouter)
   v1.route('/logs', logsRouter)
   v1.route('/backup', backupRouter)
@@ -130,7 +137,6 @@ export function createApp() {
   v1.route('/artifacts', artifactsRouter)
   v1.route('/media', mediaRouter)
   v1.route('/maps', mapsRouter)
-  v1.route('/health', healthRouter)
   v1.route('/analytics', analyticsRouter)
   v1.route('/pair', pairRouter)
   v1.route('/devices', devicesRouter)

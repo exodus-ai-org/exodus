@@ -399,6 +399,10 @@
         "label": "Mettre à jour la mémoire",
         "description": "Permet à l'assistant de corriger, d'ajouter ou de supprimer des mémoires lorsque vous lui indiquez qu'une information à votre sujet est inexacte."
       },
+      "recall": {
+        "label": "Rappel",
+        "description": "Permet à l'assistant de relire en entier un résultat de recherche ou la sortie d'un outil que les tours précédents ne contiennent plus qu'en bref — depuis ce qui est enregistré, sans relancer de recherche."
+      },
       "mapItinerary": {
         "label": "Itinéraire cartographique",
         "description": "Afficher des lieux, itinéraires et voyages multi-jours sur une carte interactive unique"
@@ -947,6 +951,7 @@
       "rebuild": "Recréer",
       "building": "Création…",
       "builtAt": "Créé {{when}}",
+      "stale": "Créé avant les tables actuelles — reconstruisez-le, sinon certains préréglages échoueront.",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (copiés depuis les fichiers journaux)",
       "logsMissing": "logs (aucun fichier journal trouvé)",
@@ -956,6 +961,7 @@
     },
     "presets": {
       "title": "Requêtes prédéfinies",
+      "cacheByRun": "Cache du prompt par tour",
       "messagesPerDay": "Messages par jour (30 jours)",
       "costByModel": "Tokens et coût par modèle",
       "toolCalls": "Appels d’outils",

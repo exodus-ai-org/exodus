@@ -1,6 +1,8 @@
 import type { Context, Next } from 'hono'
 
+import { syncLan } from '../../lan'
 import { authenticate } from '../../lan/devices'
+import { takeRevoked } from '../../lan/revoked'
 import { listenerOf } from '../types'
 
 const PAIR_PATH = '/api/v1/pair'
@@ -27,6 +29,9 @@ export async function authGate(c: Context, next: Next) {
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : ''
   const deviceId = await authenticate(token)
   if (!deviceId) {
+    // A device revoked here: this 401 is how it learns, and unpairs. Its
+    // record kept the listener up for this; without it the listener may go.
+    if (takeRevoked(token)) void syncLan()
     return deny(
       c,
       401,

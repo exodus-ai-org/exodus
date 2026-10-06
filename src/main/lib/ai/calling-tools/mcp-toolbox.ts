@@ -33,7 +33,16 @@ const callSchema = Type.Object({
 
 /** One line per connected server: name, tool count, description. */
 export function mcpDirectory(servers: McpTools[]): string {
+  // By name, not by when each connected: the directory is part of the system
+  // prompt, which the provider caches by its exact bytes.
   return servers
+    .toSorted((a, b) =>
+      a.mcpServerName < b.mcpServerName
+        ? -1
+        : a.mcpServerName > b.mcpServerName
+          ? 1
+          : 0
+    )
     .map(
       (s) =>
         `- ${s.mcpServerName} (${s.tools.length} tools)` +

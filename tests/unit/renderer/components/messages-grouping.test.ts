@@ -201,14 +201,16 @@ describe("a turn's blocks follow the run's order", () => {
     ).toEqual(['text:Checking.', 'tool:c1', 'text:It is sunny.'])
   })
 
-  it('a tool with no card does not split the text around it', () => {
+  // The text beside a search is the model at work — it is in the timeline
+  // (messages-narration.test.ts), and the answer is what follows.
+  it('a tool with no card leaves only the answer after it', () => {
     expect(
       blocksOf([
         step('a1', [text('Looking that up.'), call('c1', 'web_search')]),
         result('c1', 'web_search'),
         step('a2', [text('Here it is.')])
       ])
-    ).toEqual(['text:Looking that up.\n\nHere it is.'])
+    ).toEqual(['text:Here it is.'])
   })
 
   it('calls made in one step are neighbours, in call order, whichever answers first', () => {

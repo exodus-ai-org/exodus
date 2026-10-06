@@ -268,6 +268,28 @@ describe('buildCitationSources with a cache', () => {
     expect(second.get(turn2)).toEqual(SOURCES)
   })
 
+  // A chat opened on its newest page (spec 2026-10-01 §C4): the sources of
+  // the runs not loaded come first, so a citation of one still resolves.
+  it('lets every turn cite the sources of pages not loaded', () => {
+    const older = [
+      {
+        rank: 9,
+        link: 'https://old.example/',
+        title: 'Old',
+        content: '',
+        snippet: ''
+      }
+    ]
+    const sources = buildCitationSources(
+      groupIntoSegments(HISTORY),
+      undefined,
+      older
+    )
+    const [turn1, turn2] = [...sources.keys()]
+    expect(sources.get(turn1)?.[0]).toBe(older[0])
+    expect(sources.get(turn2)).toEqual([...older, ...SOURCES])
+  })
+
   it('rebuilds from the turn that changed onwards', () => {
     const segmentCache = new Map()
     const cache = { turns: [], sources: [] }

@@ -1,3 +1,4 @@
+import type { Message } from '@earendil-works/pi-ai'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
 import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
@@ -13,14 +14,16 @@ import { z } from 'zod'
 
 import { mcpDirectory } from '../../ai/calling-tools/mcp-toolbox'
 import { LcmManager, freshTailRuns } from '../../ai/context-management'
+import { ageToolOutput } from '../../ai/context-management/aging'
 import { decideApproval } from '../../ai/kernel/pending-approvals'
 import { RunRecorder } from '../../ai/kernel/record'
 import { runAgent } from '../../ai/kernel/run'
 import { getMcpTools } from '../../ai/mcp'
 import {
-  formatMemoriesForSystem,
-  loadRelevantMemories
+  loadRelevantMemories,
+  loadRunMemoryBlocks
 } from '../../ai/memory/manager'
+import { formatRunMemory, withRunMemory } from '../../ai/memory/run-memory'
 import {
   buildPersonalityPrompt,
   deepResearchBootPrompt,
@@ -33,15 +36,16 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
-import { highestSourceRank } from '../../ai/utils/web-sources'
 import {
-  applyAttempts,
   chooseAttempt,
   getChatAttempts,
   recordRegenerate,
   resolveRegenerateGroup,
   settleOpenComparison
 } from '../../chat/attempts'
+import { loadChatHistory } from '../../chat/history'
+import { loadChatPage, loadChatRow } from '../../chat/page'
+import { highestSourceRank } from '../../chat/sources'
 import type { MemoryRow } from '../../db/memory-queries'
 import {
   deleteChatById,
@@ -64,6 +68,7 @@ import {
 } from '../../search/resolve-search-provider'
 import {
   approvalDecisionSchema,
+  chatPageQuerySchema,
   chooseAttemptSchema,
   postRequestBodySchema,
   updateChatSchema
@@ -158,6 +163,41 @@ chat.post('/:chatId/choose', async (c) => {
   return successResponse(c, result)
 })
 
+/**
+ * The history a page at a time (spec 2026-10-01 §C3, `chat/page.ts`): the
+ * newest `runs` runs before `before` (a page's `olderCursor`), reaching back
+ * through `through` when given, compacted; with every source and question of
+ * the chat. `GET /:id` below stays: every row, whole.
+ */
+chat.get('/:id/page', async (c) => {
+  const id = validateSchema(
+    z.uuid(),
+    getRequiredParam(c, 'id'),
+    'Invalid chat id'
+  )
+  const query = validateSchema(
+    chatPageQuerySchema,
+    c.req.query(),
+    'Invalid page query'
+  )
+  return successResponse(c, await loadChatPage(id, query))
+})
+
+/** One row whole — what a page's `truncated` row stands for. */
+chat.get('/:id/messages/:messageId', async (c) => {
+  const id = validateSchema(
+    z.uuid(),
+    getRequiredParam(c, 'id'),
+    'Invalid chat id'
+  )
+  const messageId = validateSchema(
+    z.uuid(),
+    getRequiredParam(c, 'messageId'),
+    'Invalid message id'
+  )
+  return successResponse(c, await loadChatRow(id, messageId))
+})
+
 chat.get('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const messages = await handleDatabaseOperation(
@@ -168,23 +208,20 @@ chat.get('/:id', async (c) => {
 })
 
 chat.post('/', async (c) => {
-  const { id, messages, advancedTools, reasoningEffort } = validateSchema(
-    postRequestBodySchema,
-    await c.req.json(),
-    'Invalid request body'
-  )
+  const { id, message, messages, advancedTools, reasoningEffort, protocol } =
+    validateSchema(
+      postRequestBodySchema,
+      await c.req.json(),
+      'Invalid request body'
+    )
   bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
   const { model, apiKey } = getModelFromProvider(setting)
 
-  // `messages` is validated by a loose schema (unknown keys pass through so
-  // prior turns keep their toolResult `details` etc.); its inferred shape has
-  // an index signature that no longer narrows to ChatMessage directly.
-  const allMessages = messages as unknown as ChatMessage[]
-
-  // The last message is the new user message; everything before is context.
-  // Its id names the run every message it produces belongs to.
-  const last = allMessages.at(-1)!
+  // The new question: `message`, or the last of an older client's whole
+  // conversation (the rest of which is not used — the server reads its own,
+  // below). Its id names the run every message it produces belongs to.
+  const last = (message ?? messages?.at(-1)) as unknown as ChatMessage
   if (last.role !== 'user') {
     throw new ValidationError(
       ErrorCode.VALIDATION_NO_USER_MESSAGE,
@@ -202,8 +239,13 @@ chat.post('/', async (c) => {
   const regenerateOf = requestedGroup
     ? await resolveRegenerateGroup(id, requestedGroup)
     : null
+  // Stamped here, not by the client: every read orders by `createdAt`, and a
+  // phone whose clock was off sorted its question before earlier answers.
   const userMessage: ChatUserMessage = withRunId(
-    regenerateOf ? { ...prompt, alternateOf: regenerateOf } : prompt,
+    {
+      ...(regenerateOf ? { ...prompt, alternateOf: regenerateOf } : prompt),
+      timestamp: Date.now()
+    },
     last.id
   )
 
@@ -256,14 +298,12 @@ chat.post('/', async (c) => {
       messages: [toDbRow(userMessage, id)]
     })
   }
-  /** The conversation as the client sent it, with the prompt stamped and
-   *  every regenerate group's state as stored now. */
-  const priorMessages = allMessages.slice(0, -1)
+  /** The conversation as stored — every regenerate group's state settled
+   *  above — then the prompt, stamped. Read from the database, never from
+   *  what a client posts (spec 2026-10-01 §C1). A Regenerate's own row is
+   *  already saved; it is the prompt here, not history. */
   const history: ChatMessage[] = [
-    ...(regenerateOf ||
-    priorMessages.some((m) => m.role === 'user' && m.attempt)
-      ? applyAttempts(priorMessages, await getChatAttempts(id))
-      : priorMessages),
+    ...(await loadChatHistory(id)).filter((m) => m.id !== userMessage.id),
     userMessage
   ]
   // `index-message` only feeds Elasticsearch — the built-in PGlite search reads
@@ -284,20 +324,33 @@ chat.post('/', async (c) => {
   // at its question (`excludedRuns`). With LCM the assembler reads the states
   // from the database; without, they are the ones just put on `history`.
   const currentRun = { runId: userMessage.id, alternateOf: regenerateOf }
-  const lcmPromise = lcm
+  // Each path also says which message is which run's question (`heads`),
+  // where that run's memory block goes (`withRunMemory` below).
+  const lcmPromise: Promise<{
+    messages: Message[]
+    heads: (string | null)[]
+  }> = lcm
     ? lcm
         .trackNewMessages([
           { id: userMessage.id, content: userMessage.content }
         ])
         .then(() => lcm.assembleContext(currentRun))
-        .then((assembled) => assembled.messages.slice(0, -1))
+        .then((assembled) => ({
+          messages: assembled.messages.slice(0, -1),
+          heads: (assembled.runHeads ?? []).slice(0, -1)
+        }))
     : Promise.resolve(
         runsForContext(
           history.slice(0, -1),
           runAttemptInfos(history),
           currentRun
-        ).map(stripId)
-      )
+        )
+      ).then((runs) => ({
+        messages: runs.map(stripId),
+        heads: runs.map((m) =>
+          m.role === 'user' && m.id === m.runId ? m.runId : null
+        )
+      }))
 
   // Deep Research runs on its own boot prompt, which carries no
   // `<user_memory>` block — so it gets no read filter either: no LLM call,
@@ -321,15 +374,37 @@ chat.post('/', async (c) => {
         })
       : Promise.resolve([])
 
-  const mcpPromise = getMcpTools()
+  // The memory blocks of the runs before this one, as the entries read now.
+  const runMemoryPromise: Promise<Map<string, string>> =
+    memoryUseInChat && !isDeepResearch
+      ? loadRunMemoryBlocks(id).catch((err) => {
+          logger.warn('chat', 'Run memory loading failed, continuing without', {
+            error: err
+          })
+          return new Map<string, string>()
+        })
+      : Promise.resolve(new Map<string, string>())
 
-  const [contextMessages, memoryRows, , mcpTools] = await Promise.all([
-    lcmPromise,
-    memoryPromise,
-    saveUserMsgPromise,
-    mcpPromise
-  ])
-  const memoriesSection = formatMemoriesForSystem(memoryRows)
+  const mcpPromise = getMcpTools()
+  // Sources are numbered through the chat, not per run.
+  const sourceRankPromise = highestSourceRank(id)
+
+  const [assembledContext, memoryRows, , mcpTools, runMemory, sourceRankBase] =
+    await Promise.all([
+      lcmPromise,
+      memoryPromise,
+      saveUserMsgPromise,
+      mcpPromise,
+      runMemoryPromise,
+      sourceRankPromise
+    ])
+  // Each run's memory goes before its question, never into the system prompt:
+  // chosen afresh for every message, it changed the system prompt every time,
+  // and with it the whole cached prefix (`run-memory.ts`).
+  const promptWithMemory = withRunMemory(
+    userMessage,
+    formatRunMemory(memoryRows)
+  )
 
   const tools = bindCallingTools({
     advancedTools,
@@ -338,8 +413,18 @@ chat.post('/', async (c) => {
     apiKey,
     mcpTools,
     chatId: id,
-    // Sources are numbered through the chat, not per run.
-    sourceRankBase: highestSourceRank(history)
+    sourceRankBase
+  })
+  // The runs before this one carry a digest of each tool's output instead
+  // of all of it (`aging.ts`) — only while `recall`, which every digest
+  // names as the way back to the full form, is there to call.
+  const { heads } = assembledContext
+  const aged = tools.some((t) => t.name === TOOL_NAMES.recall)
+    ? ageToolOutput(assembledContext.messages, heads)
+    : assembledContext.messages
+  const contextMessages = aged.map((m, i) => {
+    const head = heads[i]
+    return head ? withRunMemory(m, runMemory.get(head) ?? '') : m
   })
   const personalityPrompt = buildPersonalityPrompt(setting)
   const skillsIndex = await getActiveSkillsIndex()
@@ -353,9 +438,7 @@ chat.post('/', async (c) => {
         mcpDirectory: mcpDirectory(mcpTools),
         workspaceDir: getChatWorkspaceDir(id),
         skillsIndex
-      }) +
-      personalityPrompt +
-      memoriesSection
+      }) + personalityPrompt
 
   // Deep Research forces a strong reasoning effort regardless of what the
   // composer's picker requested. pi's ThinkingLevel has every tier of the
@@ -384,8 +467,7 @@ chat.post('/', async (c) => {
         }
       : null,
     memoryCapture,
-    indexMessage,
-    priorMessages: history
+    indexMessage
   })
 
   // The run streams as SSE: every kernel event maps onto one wire event
@@ -410,7 +492,9 @@ chat.post('/', async (c) => {
       try {
         const events = runAgent({
           chatId: id,
-          userMessage,
+          // The kernel's copy carries this run's memory; the row saved and the
+          // history echoed in `done` are the question alone.
+          userMessage: promptWithMemory,
           systemPrompt: systemContent,
           contextMessages,
           tools,
@@ -474,10 +558,21 @@ chat.post('/', async (c) => {
                   })
                 })
               }
-              sse.send({
-                type: 'done',
-                messages: [...history, ...event.messages]
-              })
+              // Protocol 2: the run (its question as stored, then its
+              // answer) and every regenerate group's state, which the client
+              // merges. Otherwise the whole conversation, as before.
+              sse.send(
+                protocol === 2
+                  ? {
+                      type: 'done',
+                      messages: [userMessage, ...event.messages],
+                      attempts: await getChatAttempts(id)
+                    }
+                  : {
+                      type: 'done',
+                      messages: [...history, ...event.messages]
+                    }
+              )
               break
             case 'approval_required':
               // The path or command only — never contents. The run waits;

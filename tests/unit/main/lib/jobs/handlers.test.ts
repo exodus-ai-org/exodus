@@ -5,7 +5,11 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 vi.mock('@main/lib/db/db', () => ({ pglite: {}, db: {} }))
 
 const mockGetSettings = vi.fn()
-vi.mock('@main/lib/db/queries', () => ({ getSettings: mockGetSettings }))
+const mockGetMessagesByChatId = vi.fn()
+vi.mock('@main/lib/db/queries', () => ({
+  getSettings: mockGetSettings,
+  getMessagesByChatId: mockGetMessagesByChatId
+}))
 
 const mockElasticsearchIndexMessage = vi.fn()
 const mockResolveSearchProvider = vi.fn()
@@ -13,14 +17,12 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
   resolveSearchProvider: mockResolveSearchProvider
 }))
 
-const mockTrackNewMessages = vi.fn()
+const mockTrackContextMessages = vi.fn()
 const mockCompactAfterTurn = vi.fn()
 vi.mock('@main/lib/ai/context-management', () => ({
+  trackContextMessages: mockTrackContextMessages,
   LcmManager: vi.fn().mockImplementation(function () {
-    return {
-      trackNewMessages: mockTrackNewMessages,
-      compactAfterTurn: mockCompactAfterTurn
-    }
+    return { compactAfterTurn: mockCompactAfterTurn }
   })
 }))
 
@@ -107,9 +109,14 @@ describe('handlers.index-message', () => {
 })
 
 describe('handlers.lcm-post-turn', () => {
-  it('constructs an LcmManager with the key from settings and tracks then compacts', async () => {
-    mockTrackNewMessages.mockResolvedValue(undefined)
-    mockCompactAfterTurn.mockResolvedValue(undefined)
+  beforeEach(() => {
+    mockTrackContextMessages.mockReset().mockResolvedValue(undefined)
+    mockCompactAfterTurn.mockReset().mockResolvedValue(undefined)
+  })
+
+  // The run's rows enter the context when they are saved (RunRecorder); the
+  // job only compacts.
+  it('compacts with the key from settings', async () => {
     mockGetSettings.mockResolvedValue(withOpenAiKey())
     const { LcmManager } = await import('@main/lib/ai/context-management')
     vi.mocked(LcmManager).mockClear()
@@ -118,19 +125,18 @@ describe('handlers.lcm-post-turn', () => {
       chatId: 'chat-1',
       model: fakeModel,
       freshTailRuns: 6,
-      contextWindowPercent: 75,
-      newMessages: [{ id: 'msg-1', content: 'hi' }]
+      contextWindowPercent: 75
     })
 
-    expect(mockTrackNewMessages).toHaveBeenCalledWith([
-      { id: 'msg-1', content: 'hi' }
-    ])
+    expect(mockTrackContextMessages).not.toHaveBeenCalled()
     expect(mockCompactAfterTurn).toHaveBeenCalledTimes(1)
     expect(vi.mocked(LcmManager).mock.calls[0][2]).toBe('sk-from-settings')
   })
 
-  it('skips the job when the key is no longer saved for that host', async () => {
-    mockTrackNewMessages.mockClear()
+  // A job an earlier build queued still carries its run: it is tracked —
+  // with or without a key, since tracking needs none. Skipping it when the
+  // key was gone left the run out of the context for good.
+  it('tracks the run a job queued by an earlier build carries, key or not', async () => {
     mockGetSettings.mockResolvedValue(
       withOpenAiKey({ openaiBaseUrl: 'https://elsewhere.example.net/v1' })
     )
@@ -139,15 +145,45 @@ describe('handlers.lcm-post-turn', () => {
       model: fakeModel,
       freshTailRuns: 6,
       contextWindowPercent: 75,
-      newMessages: []
+      newMessages: [{ id: 'msg-1', content: 'hi' }]
     })
-    expect(mockTrackNewMessages).not.toHaveBeenCalled()
+    expect(mockTrackContextMessages).toHaveBeenCalledWith('chat-1', [
+      { id: 'msg-1', content: 'hi' }
+    ])
+    expect(mockCompactAfterTurn).not.toHaveBeenCalled()
   })
 })
 
 describe('handlers.memory-consolidate', () => {
-  it('calls runMemoryConsolidation with the payload and the key from settings', async () => {
-    mockRunMemoryConsolidation.mockResolvedValue(undefined)
+  beforeEach(() => {
+    mockRunMemoryConsolidation.mockReset().mockResolvedValue(undefined)
+    mockGetMessagesByChatId.mockReset()
+  })
+
+  it('reads the conversation from the database when it runs', async () => {
+    mockGetSettings.mockResolvedValue(withOpenAiKey())
+    mockGetMessagesByChatId.mockResolvedValue([
+      { role: 'user', content: 'hi', details: { big: true } },
+      { role: 'assistant', content: [{ type: 'text', text: 'yo' }] }
+    ])
+
+    await handlers['memory-consolidate']({
+      chatId: 'chat-1',
+      model: fakeModel
+    })
+
+    expect(mockGetMessagesByChatId).toHaveBeenCalledWith({ id: 'chat-1' })
+    expect(mockRunMemoryConsolidation).toHaveBeenCalledWith(
+      [
+        { role: 'user', content: 'hi' },
+        { role: 'assistant', content: [{ type: 'text', text: 'yo' }] }
+      ],
+      fakeModel,
+      'sk-from-settings'
+    )
+  })
+
+  it('still takes the conversation a job queued by an earlier build carries', async () => {
     mockGetSettings.mockResolvedValue(withOpenAiKey())
 
     await handlers['memory-consolidate']({
@@ -155,6 +191,7 @@ describe('handlers.memory-consolidate', () => {
       model: fakeModel
     })
 
+    expect(mockGetMessagesByChatId).not.toHaveBeenCalled()
     expect(mockRunMemoryConsolidation).toHaveBeenCalledWith(
       [{ role: 'user', content: 'hi' }],
       fakeModel,
@@ -163,7 +200,6 @@ describe('handlers.memory-consolidate', () => {
   })
 
   it('ignores a key a previous build left in the payload', async () => {
-    mockRunMemoryConsolidation.mockClear()
     mockGetSettings.mockResolvedValue({ id: 'global', providers: {} })
 
     await handlers['memory-consolidate']({

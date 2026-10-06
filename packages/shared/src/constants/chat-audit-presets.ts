@@ -12,6 +12,30 @@ export interface ChatAuditPreset {
 
 export const CHAT_AUDIT_PRESETS: ChatAuditPreset[] = [
   {
+    // The prompt cache of each run's first model call — the one that pays for
+    // the whole history. A stable prefix (tools → system → messages) reads it
+    // at 0.1×; a prefix that changed writes it at 1.25× (Anthropic's prices,
+    // input = 1). Docs: docs/superpowers/specs/2026-10-01-chat-history-and-context-design.md §A.
+    id: 'cacheByRun',
+    sql: `WITH firsts AS (
+  SELECT chat_id, run_id, model, created_at,
+    coalesce(input_tokens, 0) AS uncached,
+    coalesce(cache_read_tokens, 0) AS cache_read,
+    coalesce(cache_write_tokens, 0) AS cache_write,
+    row_number() OVER (PARTITION BY run_id ORDER BY created_at, id) AS step
+  FROM messages
+  WHERE role = 'assistant' AND run_id IS NOT NULL
+)
+SELECT c.title, f.created_at, f.model, f.cache_read, f.cache_write, f.uncached,
+  round(100.0 * f.cache_read / nullif(f.cache_read + f.cache_write + f.uncached, 0), 1) AS hit_pct,
+  round(f.uncached + 1.25 * f.cache_write + 0.1 * f.cache_read)::BIGINT AS input_cost_units
+FROM firsts f
+JOIN chats c ON c.id = f.chat_id
+WHERE f.step = 1
+ORDER BY f.created_at DESC
+LIMIT 200`
+  },
+  {
     id: 'messagesPerDay',
     sql: `SELECT created_at::DATE AS day,
   count(*) FILTER (WHERE role = 'user') AS user_messages,

@@ -6,6 +6,7 @@ import type {
   ToolNoticeLevel
 } from '@exodus/shared/types/chat'
 import type { UsedMemory } from '@exodus/shared/types/memory'
+import { mergeRun } from '@exodus/shared/utils/run-merge'
 import { sileo } from 'sileo'
 
 import {
@@ -154,7 +155,11 @@ async function consumeStream(stream: ActiveStream, response: Response) {
           // that subscribers used to receive.
           stream.subscriber?.onMessages(stream.messages)
         } else if (event.type === 'done') {
-          stream.messages = event.messages
+          // Protocol 2: the run as stored and the regenerate states, merged
+          // into the conversation already held; otherwise the whole of it.
+          stream.messages = event.attempts
+            ? mergeRun(stream.messages, event.messages, event.attempts)
+            : event.messages
           stream.subscriber?.onMessages(stream.messages)
         } else if (event.type === 'title') {
           stream.chatTitle = event.title

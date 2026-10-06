@@ -1,9 +1,9 @@
 import type { Model } from '@earendil-works/pi-ai'
 
-import { LcmManager } from '../ai/context-management'
+import { LcmManager, trackContextMessages } from '../ai/context-management'
 import { runMemoryConsolidation } from '../ai/memory/manager'
 import { getKnowledgeDocById, setIndexStatus } from '../db/knowledge-queries'
-import { getSettings } from '../db/queries'
+import { getMessagesByChatId, getSettings } from '../db/queries'
 import type { Message } from '../db/schema'
 import { runDiscoverRefresh } from '../discover/manager'
 import { contentHash } from '../knowledge-base/reconcile'
@@ -30,13 +30,17 @@ interface LcmPostTurnPayload {
   model: Model<string>
   freshTailRuns: number
   contextWindowPercent: number
-  newMessages: Array<{ id: string; content: unknown }>
+  /** Only in a job an earlier build queued: the run's rows enter the
+   *  context as they are saved now (`RunRecorder.persist`). */
+  newMessages?: Array<{ id: string; content: unknown }>
 }
 
-interface MemoryConsolidatePayload {
-  messages: Array<{ role: string; content: unknown }>
-  model: Model<string>
-}
+/** `chatId` now; `messages` (the whole conversation) in a job an earlier
+ *  build queued. */
+type MemoryConsolidatePayload = { model: Model<string> } & (
+  | { chatId: string; messages?: undefined }
+  | { messages: Array<{ role: string; content: unknown }>; chatId?: undefined }
+)
 
 async function keyFor(
   queue: QueueName,
@@ -68,13 +72,17 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 
     'lcm-post-turn': async (payload) => {
       const p = payload as LcmPostTurnPayload
+      // Tracking needs no key; skipping it with the key gone left the run out
+      // of the context for good.
+      if (p.newMessages?.length) {
+        await trackContextMessages(p.chatId, p.newMessages)
+      }
       const apiKey = await keyFor('lcm-post-turn', p.model)
       if (!apiKey) return
       const lcm = new LcmManager(p.chatId, p.model, apiKey, {
         freshTailRuns: p.freshTailRuns,
         contextWindowPercent: p.contextWindowPercent
       })
-      await lcm.trackNewMessages(p.newMessages)
       await lcm.compactAfterTurn()
     },
 
@@ -82,7 +90,13 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
       const p = payload as MemoryConsolidatePayload
       const apiKey = await keyFor('memory-consolidate', p.model)
       if (!apiKey) return
-      await runMemoryConsolidation(p.messages, p.model, apiKey)
+      const messages =
+        p.messages ??
+        (await getMessagesByChatId({ id: p.chatId })).map((m) => ({
+          role: m.role,
+          content: m.content
+        }))
+      await runMemoryConsolidation(messages, p.model, apiKey)
     },
 
     'kb-sync': async (payload) => {

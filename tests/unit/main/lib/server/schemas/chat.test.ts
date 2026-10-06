@@ -2,6 +2,11 @@ import { postRequestBodySchema } from '@main/lib/server/schemas/chat'
 import { describe, expect, it } from 'vitest'
 
 const CHAT_ID = '11111111-1111-4111-8111-111111111111'
+const QUESTION = {
+  id: '22222222-2222-4222-8222-222222222222',
+  role: 'user',
+  content: 'hi'
+}
 
 describe('postRequestBodySchema — message passthrough', () => {
   it('keeps toolResult fields (details, toolCallId, toolName, isError) on history messages', () => {
@@ -70,7 +75,7 @@ describe('postRequestBodySchema — reasoningEffort', () => {
     const parsed = postRequestBodySchema.parse({
       id: CHAT_ID,
       advancedTools: [],
-      messages: []
+      message: QUESTION
     })
     expect(parsed.reasoningEffort).toBeUndefined()
   })
@@ -80,7 +85,7 @@ describe('postRequestBodySchema — reasoningEffort', () => {
       const parsed = postRequestBodySchema.parse({
         id: CHAT_ID,
         advancedTools: [],
-        messages: [],
+        message: QUESTION,
         reasoningEffort: level
       })
       expect(parsed.reasoningEffort, level).toBe(level)
@@ -92,8 +97,46 @@ describe('postRequestBodySchema — reasoningEffort', () => {
       postRequestBodySchema.parse({
         id: CHAT_ID,
         advancedTools: [],
-        messages: [],
+        message: QUESTION,
         reasoningEffort: 'ultra'
+      })
+    ).toThrow()
+  })
+})
+
+// The server owns the conversation (spec 2026-10-01 §C1): a send is the new
+// question; an older client's whole conversation still parses.
+describe('postRequestBodySchema — the new question', () => {
+  it('takes a send that carries only the question, with protocol 2', () => {
+    const parsed = postRequestBodySchema.parse({
+      id: CHAT_ID,
+      advancedTools: [],
+      message: { ...QUESTION, alternateOf: null },
+      protocol: 2
+    })
+    expect(parsed.message?.id).toBe(QUESTION.id)
+    expect(parsed.protocol).toBe(2)
+  })
+
+  it('refuses a send with no question at all', () => {
+    expect(() =>
+      postRequestBodySchema.parse({ id: CHAT_ID, advancedTools: [] })
+    ).toThrow()
+    expect(() =>
+      postRequestBodySchema.parse({
+        id: CHAT_ID,
+        advancedTools: [],
+        messages: []
+      })
+    ).toThrow()
+  })
+
+  it('refuses a question that is not a user message', () => {
+    expect(() =>
+      postRequestBodySchema.parse({
+        id: CHAT_ID,
+        advancedTools: [],
+        message: { ...QUESTION, role: 'assistant' }
       })
     ).toThrow()
   })

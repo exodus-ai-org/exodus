@@ -12,12 +12,9 @@ vi.mock('@main/lib/logger', () => ({
 }))
 
 const { FAUX_PROMPT_MARKERS } = await import('@main/lib/ai/kernel/faux-boot')
-const {
-  CONSOLIDATE_SYSTEM,
-  INSTRUCTION_SYSTEM,
-  READ_FILTER_SYSTEM,
-  formatMemoriesForSystem
-} = await import('@main/lib/ai/memory/manager')
+const { CONSOLIDATE_SYSTEM, INSTRUCTION_SYSTEM, READ_FILTER_SYSTEM } =
+  await import('@main/lib/ai/memory/manager')
+const { formatRunMemory } = await import('@main/lib/ai/memory/run-memory')
 const { titleGenerationPrompt } = await import('@main/lib/ai/prompts')
 
 describe('faux-boot prompt markers', () => {
@@ -37,8 +34,8 @@ describe('faux-boot prompt markers', () => {
     expect(CONSOLIDATE_SYSTEM).toContain(FAUX_PROMPT_MARKERS.consolidate)
   })
 
-  it('the user-memory marker is in the block the chat prompt carries', () => {
-    const block = formatMemoriesForSystem([
+  it('the user-memory marker is in the block a run’s question carries', () => {
+    const block = formatRunMemory([
       {
         id: '11111111-1111-4111-8111-111111111111',
         section: 'topic',

@@ -107,6 +107,44 @@ export const message = pgTable(
 export type DBMessage = InferSelectModel<typeof message>
 export type Message = DBMessage
 
+// The numbered sources of a chat — every result of its `web_search` calls and
+// every page `web_fetch` read — one row per (call, rank), written when the
+// run is saved and filled in from the stored messages for a chat older than
+// the table (`chat/sources.ts`). Derived data: the `message` rows stay the
+// record. It answers `recall({ source })`, the number a new run counts on
+// from, and the clients' citation map. `content` is the text the model was
+// given: a search result's extract, a fetched page in full. Ranks repeat in
+// a chat numbered before 2026-09-29 (every run started at 1), hence the
+// call in the key; the newest row of a rank is that rank.
+export const chatSource = pgTable(
+  'chat_source',
+  {
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id, { onDelete: 'cascade' }),
+    rank: integer('rank').notNull(),
+    toolCallId: varchar('toolCallId').notNull(),
+    runId: uuid('runId').notNull(),
+    toolName: varchar('toolName').notNull(),
+    link: text('link').notNull(),
+    title: text('title').notNull(),
+    siteName: text('siteName'),
+    hostname: text('hostname'),
+    favicon: text('favicon'),
+    snippet: text('snippet'),
+    thumbnail: text('thumbnail'),
+    age: text('age'),
+    content: text('content').notNull(),
+    createdAt: timestamp('createdAt').notNull()
+  },
+  (table) => [
+    primaryKey({ columns: [table.chatId, table.toolCallId, table.rank] }),
+    index('chat_source_chat_rank_idx').on(table.chatId, table.rank)
+  ]
+)
+
+export type ChatSource = InferSelectModel<typeof chatSource>
+
 export const vote = pgTable(
   'vote',
   {

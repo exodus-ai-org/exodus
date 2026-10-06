@@ -14,6 +14,7 @@ export const CHAT_AUDIT_SCHEMA = {
   messages: {
     id: 'VARCHAR',
     chat_id: 'VARCHAR',
+    run_id: 'VARCHAR',
     role: 'VARCHAR',
     provider: 'VARCHAR',
     model: 'VARCHAR',
@@ -49,3 +50,24 @@ export const CHAT_AUDIT_SCHEMA = {
 } as const
 
 export type ChatAuditTable = keyof typeof CHAT_AUDIT_SCHEMA
+
+/**
+ * A short fingerprint of the tables and their columns. A snapshot records the
+ * one it was built with (`SnapshotMeta.schemaVersion`); one built before a
+ * column was added cannot run the presets that read it, so the page asks for
+ * a rebuild when the two differ.
+ */
+export function schemaFingerprint(
+  schema: Record<string, Record<string, string>>
+): string {
+  const text = Object.entries(schema)
+    .map(([table, columns]) => `${table}(${Object.keys(columns).join(',')})`)
+    .join(';')
+  let hash = 5381
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) + hash + (text.codePointAt(i) ?? 0)) >>> 0
+  }
+  return hash.toString(36)
+}
+
+export const CHAT_AUDIT_SCHEMA_VERSION = schemaFingerprint(CHAT_AUDIT_SCHEMA)

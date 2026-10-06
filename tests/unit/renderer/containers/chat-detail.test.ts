@@ -2,7 +2,8 @@
 // A chat reopened from history is seeded once, when <Chat> mounts — so what
 // it is seeded with has to be what the database holds now, not what this
 // window fetched the last time the chat was open: runs sent since, and the
-// state of a regenerate group, would be missing until a reload.
+// state of a regenerate group, would be missing until a reload. It opens on
+// its newest page (spec 2026-10-01 §C3).
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -19,9 +20,11 @@ vi.mock('@exodus/shared/utils/http', () => ({
 }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t: (key: string) => key } }))
 vi.mock('sileo', () => ({ sileo: { success: vi.fn(), error: vi.fn() } }))
+const fetchChatPage = vi.fn()
 vi.mock('@/services/chat', () => ({
   deleteChat: vi.fn(),
-  updateChat: vi.fn()
+  updateChat: vi.fn(),
+  fetchChatPage: (...args: unknown[]) => fetchChatPage(...args)
 }))
 
 // What <Chat> was mounted with, per mount.
@@ -42,6 +45,13 @@ const { ChatDetail } = await import('@/containers/chat-detail')
 const { historyKeys } = await import('@/hooks/use-chat-history')
 
 const CHAT = '5b30d978-ebe8-4da6-9e73-02c6fc42b771'
+const pageOf = (messages: unknown[]) => ({
+  messages,
+  sources: [],
+  questions: [],
+  hasOlder: false,
+  olderCursor: null
+})
 const row = (id: string) => ({
   id,
   chatId: CHAT,
@@ -83,6 +93,8 @@ async function open() {
 beforeEach(() => {
   mounts.length = 0
   fetcherMock.mockReset()
+  fetcherMock.mockResolvedValue([])
+  fetchChatPage.mockReset()
   queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } }
   })
@@ -99,17 +111,17 @@ afterEach(() => {
 describe('<ChatDetail>', () => {
   it('seeds the chat with what the database holds now, not with what it fetched before', async () => {
     // The last visit's fetch: one run. One more has been sent since.
-    queryClient.setQueryData(historyKeys.detail(CHAT), [row('u1')])
+    queryClient.setQueryData(historyKeys.page(CHAT), pageOf([row('u1')]))
     const messages = pending<unknown>()
-    fetcherMock.mockImplementation((url: string) =>
-      url === `/api/v1/chat/${CHAT}` ? messages.promise : Promise.resolve([])
+    fetchChatPage.mockImplementation((id: string) =>
+      id === CHAT ? messages.promise : Promise.resolve(pageOf([]))
     )
 
     await open()
     // Nothing is seeded from the stale copy while the fresh one is on its way.
     expect(mounts).toEqual([])
 
-    await act(async () => messages.resolve([row('u1'), row('u2')]))
+    await act(async () => messages.resolve(pageOf([row('u1'), row('u2')])))
 
     await vi.waitFor(() => expect(mounts).toEqual([['u1', 'u2']]))
     expect(host.querySelector('[data-chat]')?.getAttribute('data-chat')).toBe(
@@ -118,9 +130,7 @@ describe('<ChatDetail>', () => {
   })
 
   it('seeds a chat opened for the first time as soon as its messages arrive', async () => {
-    fetcherMock.mockImplementation((url: string) =>
-      Promise.resolve(url === `/api/v1/chat/${CHAT}` ? [row('u1')] : [])
-    )
+    fetchChatPage.mockResolvedValue(pageOf([row('u1')]))
 
     await open()
     await vi.waitFor(() => expect(mounts).toEqual([['u1']]))

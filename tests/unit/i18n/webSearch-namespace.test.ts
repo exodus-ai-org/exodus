@@ -30,7 +30,6 @@ describe('webSearch namespace (en)', () => {
   it('has the image lightbox keys', () => {
     expect(webSearch.imageLightbox).toMatchObject({
       imageUnavailable: 'Image unavailable',
-      previewOnly: 'Showing preview — full image unavailable',
       previousImage: 'Previous image',
       nextImage: 'Next image',
       goToImage: 'Go to image {{index}}'

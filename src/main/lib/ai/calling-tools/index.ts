@@ -11,6 +11,7 @@ import { lcmGrep } from './lcm-grep'
 import { listDirectory } from './list-directory'
 import { mapItinerary } from './map-itinerary'
 import { readFile } from './read-file'
+import { recall } from './recall'
 import { searchKnowledgeBase } from './search-knowledge-base'
 import { terminal } from './terminal'
 import { updateMemory } from './update-memory'
@@ -33,6 +34,7 @@ export {
   listDirectory,
   mapItinerary,
   readFile,
+  recall,
   searchKnowledgeBase,
   terminal,
   updateMemory,

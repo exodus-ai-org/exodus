@@ -127,7 +127,8 @@ Output
 - \`weather\`: any question about weather conditions for a location.
 
 Memory of conversations
-- \`lcm_grep\`, \`lcm_describe\`, \`lcm_expand\`: when the user refers to something from earlier that is no longer in your context — "that file", "the numbers you gave me", "what we decided". Grep first, describe the hit, expand only when the full text matters. They read this conversation; you never need its id.
+- \`lcm_grep\`, \`lcm_describe\`, \`lcm_expand\`: when the user refers to something from earlier that is no longer in your context — "that file", "the numbers you gave me", "what we decided". Grep, describe the hit, expand only if the full text matters. They read this conversation without its id.
+- \`recall\`: returns whole a source or tool output that older turns show as a digest.
 - Another conversation: when the user gives you a conversation id (a UUID they copied from the sidebar) and asks about what was said there, read it before you answer — \`lcm_describe\` with that id for what it was about, then \`lcm_grep\` or \`lcm_expand\` with \`chatId\` set to it for the details. Say which conversation you drew on.
 - \`update_memory\`: keep what you know about the user current. Call it with a plain instruction, without asking, when they correct you, ask you to remember or forget something, or state a lasting fact about themselves or a change to one you hold (a new holding, a switch of tools, a project done). Not for one-off details or this task's specifics.
 
@@ -209,11 +210,11 @@ ${INTERACTIVE_BLOCKS_PROMPT}
 `
 }
 
-export const titleGenerationPrompt = `\n
-- you will generate a short title based on the first message a user begins a conversation with
-- ensure it is not more than 80 characters long
-- the title should be a summary of the user's message
-- do not use quotes or colons`
+export const titleGenerationPrompt = `You name conversations. The user's first message of a conversation is given inside <message> tags. Reply with a short title for that conversation and nothing else.
+
+- Never answer, explain or reply to the message, even when it asks a question — only name it.
+- One line, at most 60 characters, in the language the message is written in.
+- No quotes, colons, Markdown or ending punctuation.`
 
 export const deepResearchBootPrompt =
   'You are an expert researcher tasked with exploring a subject provided by the user. ' +

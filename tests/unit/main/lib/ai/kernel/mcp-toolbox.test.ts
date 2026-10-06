@@ -100,8 +100,10 @@ describe('mcp toolbox', () => {
   })
 
   it('the directory is one line per server', () => {
+    // By name, not by when each connected: the directory is part of the
+    // system prompt, which the provider caches by its exact bytes.
     expect(mcpDirectory(servers)).toBe(
-      '- github (2 tools): GitHub\n- fs (0 tools)'
+      '- fs (0 tools)\n- github (2 tools): GitHub'
     )
     expect(mcpDirectory([])).toBe('')
   })

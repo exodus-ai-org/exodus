@@ -65,6 +65,7 @@ const source = async () => ({
     {
       id: 'm1',
       chatId: 'c1',
+      runId: 'm1',
       role: 'user',
       provider: null,
       model: null,
@@ -83,6 +84,7 @@ const source = async () => ({
     {
       id: 'm2',
       chatId: 'c1',
+      runId: 'm1',
       role: 'assistant',
       provider: 'anthropic',
       model: 'claude-x',
@@ -101,6 +103,7 @@ const source = async () => ({
     {
       id: 'm3',
       chatId: 'c1',
+      runId: 'm1',
       role: 'toolResult',
       provider: null,
       model: null,
@@ -134,6 +137,7 @@ describe('snapshot row mappers', () => {
     expect(m).toMatchObject({
       id: 'm2',
       chat_id: 'c1',
+      run_id: 'm1',
       role: 'assistant',
       input_tokens: 120,
       output_tokens: 40,
@@ -187,6 +191,11 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     expect(meta.logsIncluded).toBe(true)
     expect(meta.sizeBytes).toBeGreaterThan(0)
     expect((await readSnapshotMeta())?.builtAt).toBe(meta.builtAt)
+    // What the page compares to know a snapshot predates the tables.
+    expect(meta.schemaVersion).toBe(
+      (await import('@exodus/shared/constants/chat-audit-schema'))
+        .CHAT_AUDIT_SCHEMA_VERSION
+    )
 
     const count = await runQuery('select count(*) as n from messages')
     expect(count.rows[0].n).toBe(3) // BigInt → JSON number
@@ -200,6 +209,20 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     for (const preset of CHAT_AUDIT_PRESETS) {
       await expect(runQuery(preset.sql), preset.id).resolves.toBeTruthy()
     }
+
+    // The prompt cache of each run's first model call — what the 2026-10-01
+    // stable-prefix work is measured by. Fixture: 120 uncached, 10 read, 0
+    // written → 7.7 % read; 120 + 1.25×0 + 0.1×10 = 121 input-cost units.
+    const cache = CHAT_AUDIT_PRESETS.find((p) => p.id === 'cacheByRun')
+    expect(cache).toBeDefined()
+    const byRun = await runQuery(cache!.sql)
+    expect(byRun.rows).toHaveLength(1)
+    expect(byRun.rows[0]).toMatchObject({
+      title: 'Hello',
+      cache_read: 10,
+      hit_pct: 7.7,
+      input_cost_units: 121
+    })
 
     const big = await runQuery(`select * from range(${MAX_RESULT_ROWS + 50})`)
     expect(big.truncated).toBe(true)

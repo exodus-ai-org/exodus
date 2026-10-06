@@ -40,6 +40,11 @@
     "moreImages": "{{count}} weitere anzeigen",
     "showMore": "Mehr anzeigen"
   },
+  "history": {
+    "olderFailed": "Frühere Nachrichten konnten nicht geladen werden",
+    "loadingOlder": "Frühere Nachrichten werden geladen",
+    "loading": "Unterhaltung wird geladen"
+  },
   "toolPreview": {
     "mapItineraryDayCount_one": "{{count}} Tag",
     "mapItineraryDayCount_other": "{{count}} Tage",

@@ -23,13 +23,13 @@ vi.mock('@main/lib/db/db', async () => {
   const { drizzle } = await import('drizzle-orm/pglite')
   const { createMigratedPglite } =
     await import('../../../../helpers/migrated-pglite')
-  const pglite = await createMigratedPglite('0011')
+  const pglite = await createMigratedPglite('0012')
   return { pglite, db: drizzle(pglite) }
 })
 vi.mock('@main/lib/ai/mcp', () => ({ getMcpTools: vi.fn(async () => []) }))
 vi.mock('@main/lib/ai/memory/manager', () => ({
-  loadRelevantMemories: vi.fn(async () => []),
-  formatMemoriesForSystem: vi.fn(() => '')
+  loadRunMemoryBlocks: vi.fn(async () => new Map()),
+  loadRelevantMemories: vi.fn(async () => [])
 }))
 vi.mock('@main/lib/ai/prompts', () => ({
   buildPersonalityPrompt: vi.fn(() => ''),
@@ -49,22 +49,13 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
     typeof m.content === 'string' ? m.content : ''
   )
 }))
-// The job queue is not under test, but one job is part of the story: after a
-// run, `lcm-post-turn` adds the run's messages to what LCM tracks (and then
-// compacts, which a chat this short never needs).
+// The job queue is not under test. A run's messages enter what LCM tracks as
+// they are saved (`RunRecorder.persist`); the `lcm-post-turn` job only
+// compacts, which a chat this short never needs.
 const jobs = vi.hoisted(() => ({ running: [] as Promise<unknown>[] }))
 vi.mock('@main/lib/jobs/worker', () => ({
-  enqueueAndProcess: vi.fn((queue: string, payload: unknown) => {
-    const job = (async () => {
-      if (queue !== 'lcm-post-turn') return
-      const { LcmManager } = await import('@main/lib/ai/context-management')
-      const { chatId, model, newMessages } = payload as {
-        chatId: string
-        model: never
-        newMessages: Array<{ id: string; content: unknown }>
-      }
-      await new LcmManager(chatId, model, 'k').trackNewMessages(newMessages)
-    })()
+  enqueueAndProcess: vi.fn(() => {
+    const job = Promise.resolve()
     jobs.running.push(job)
     return job
   }),

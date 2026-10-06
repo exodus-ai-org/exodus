@@ -39,3 +39,18 @@ export const SILENT_TOOL_NAMES = new Set<string>(
 export function hasToolCard(toolName: string): boolean {
   return !SILENT_TOOL_NAMES.has(toolName)
 }
+
+/**
+ * Whether the text the model writes beside a call to this tool stays in the
+ * answer. Beside a tool that only fetches something (a search, a file read) it
+ * is the model working — "I'll pull the photos." — and goes into the timeline;
+ * beside one that draws something or changes the memory it is often the answer
+ * itself, written before the card or the update (owner, 2026-09-30).
+ */
+export function keepsTextInAnswer(toolName: string): boolean {
+  return (
+    hasToolCard(toolName) ||
+    toolName === TOOL_NAMES.imageGeneration ||
+    toolName === TOOL_NAMES.updateMemory
+  )
+}

@@ -399,6 +399,10 @@
         "label": "Aggiorna memoria",
         "description": "Consente all'assistente di correggere, aggiungere o rimuovere voci di memoria quando gli dici che qualcosa su di te è sbagliato."
       },
+      "recall": {
+        "label": "Richiama",
+        "description": "Consente all'assistente di rileggere per intero un risultato di ricerca o l'output di uno strumento che i turni precedenti riportano ormai solo in breve, da quanto salvato e senza cercare di nuovo."
+      },
       "mapItinerary": {
         "label": "Itinerario mappa",
         "description": "Visualizza luoghi, percorsi e viaggi di più giorni in un'unica scheda mappa interattiva"
@@ -947,6 +951,7 @@
       "rebuild": "Ricrea",
       "building": "Creazione…",
       "builtAt": "Creato {{when}}",
+      "stale": "Creato prima delle tabelle attuali: ricostruiscilo, altrimenti alcuni preset non funzioneranno.",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (copiati dai file di log)",
       "logsMissing": "logs (nessun file di log trovato)",
@@ -956,6 +961,7 @@
     },
     "presets": {
       "title": "Query predefinite",
+      "cacheByRun": "Cache del prompt per turno",
       "messagesPerDay": "Messaggi al giorno (30 giorni)",
       "costByModel": "Token e costo per modello",
       "toolCalls": "Chiamate agli strumenti",

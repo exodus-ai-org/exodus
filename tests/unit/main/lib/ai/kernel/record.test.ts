@@ -12,6 +12,12 @@ vi.mock('@main/lib/jobs/worker', () => ({
   logEnqueueFailure: vi.fn()
 }))
 
+const order: string[] = []
+const trackContextMessages = vi.fn(async () => {
+  order.push('track')
+})
+vi.mock('@main/lib/ai/context-management', () => ({ trackContextMessages }))
+
 const { RunRecorder } = await import('@main/lib/ai/kernel/record')
 
 const RUN_ID = '11111111-1111-4111-8111-111111111111'
@@ -26,9 +32,6 @@ function recorder(
     lcm: { freshTailRuns: 6, contextWindowPercent: 75 },
     memoryCapture: true,
     indexMessage: vi.fn(),
-    priorMessages: [
-      { id: RUN_ID, runId: RUN_ID, role: 'user', content: 'hi', timestamp: 1 }
-    ],
     ...over
   })
 }
@@ -56,6 +59,11 @@ const assistant: ChatAssistantMessage = {
 beforeEach(() => {
   saveMessages.mockClear()
   enqueueAndProcess.mockClear()
+  trackContextMessages.mockClear()
+  order.length = 0
+  enqueueAndProcess.mockImplementation(async (queue: string) => {
+    order.push(queue)
+  })
 })
 
 describe('RunRecorder', () => {
@@ -78,23 +86,43 @@ describe('RunRecorder', () => {
     )[0].messages
     expect(rows[0]).toMatchObject({ id: 'a1', runId: RUN_ID, durationMs: 1234 })
     expect(indexMessage).toHaveBeenCalledWith(rows[0])
-    expect(enqueueAndProcess).toHaveBeenCalledWith(
-      'lcm-post-turn',
-      expect.objectContaining({
-        chatId: 'c',
-        freshTailRuns: 6,
-        newMessages: [{ id: 'a1', content: assistant.content }]
-      })
-    )
-    expect(enqueueAndProcess).toHaveBeenCalledWith(
-      'memory-consolidate',
-      expect.objectContaining({
-        messages: [
-          { role: 'user', content: 'hi' },
-          { role: 'assistant', content: assistant.content }
-        ]
-      })
-    )
+    // The run enters the chat's context as it is saved — a follow-up sent a
+    // second later sees it — and only compaction is left to the queue. It
+    // used to be tracked by the queued job, which a quick follow-up did not
+    // wait for, and which skipped tracking altogether when it found no key
+    // (audit, 2026-10-01).
+    expect(trackContextMessages).toHaveBeenCalledWith('c', [
+      { id: 'a1', content: assistant.content }
+    ])
+    expect(order.indexOf('track')).toBeLessThan(order.indexOf('lcm-post-turn'))
+    const lcmPayload = (
+      enqueueAndProcess.mock.calls.find(
+        ([queue]) => queue === 'lcm-post-turn'
+      ) as unknown as [string, Record<string, unknown>]
+    )[1]
+    expect(lcmPayload).toMatchObject({ chatId: 'c', freshTailRuns: 6 })
+    expect(lcmPayload).not.toHaveProperty('newMessages')
+    // The memory job reads the conversation from the database when it runs:
+    // the queue no longer carries a whole conversation every turn.
+    const memoryPayload = (
+      enqueueAndProcess.mock.calls.find(
+        ([queue]) => queue === 'memory-consolidate'
+      ) as unknown as [string, Record<string, unknown>]
+    )[1]
+    expect(memoryPayload).toMatchObject({ chatId: 'c' })
+    expect(memoryPayload).not.toHaveProperty('messages')
+  })
+
+  it('tracks nothing when LCM is off', async () => {
+    const r = recorder({ lcm: null })
+    r.observe({
+      type: 'run_end',
+      runId: RUN_ID,
+      messages: [assistant],
+      durationMs: 1
+    })
+    await r.persist()
+    expect(trackContextMessages).not.toHaveBeenCalled()
   })
 
   it('keeps the rows of a run in order even when two share a millisecond', async () => {

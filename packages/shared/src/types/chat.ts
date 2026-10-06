@@ -139,13 +139,20 @@ export type ChatSseEvent =
       toolName: string
       isError: boolean
     }
-  | { type: 'done'; messages: ChatMessage[] }
+  | {
+      type: 'done'
+      /** Protocol 2: the run — its question as stored, then its answer.
+       *  Otherwise the whole conversation. */
+      messages: ChatMessage[]
+      /** Protocol 2 only: every regenerate group's stored state, by run. */
+      attempts?: Record<string, Attempt>
+    }
   | { type: 'title'; title: string }
   | { type: 'error'; error: string }
   | { type: 'notice'; level: ToolNoticeLevel; message: string }
-  // Which memories were selected into this run's system prompt, sent once
-  // right after the stream opens (before any kernel event). A client that
-  // doesn't know this event type ignores it (exodus-ios).
+  // Which memories the read filter chose for this run (put before its
+  // question, `run-memory.ts`), sent once right after the stream opens
+  // (before any kernel event), and only when it chose something.
   | { type: 'memories_used'; runId: string; memories: UsedMemory[] }
   // A tool call that touches a secret outside Exodus is paused until the
   // user answers (`POST /api/v1/chat/approval`). `summary` is the path or
@@ -194,7 +201,11 @@ export interface SendMessageOptions {
 }
 
 export interface TimelineStep {
-  type: 'thinking' | 'toolCall' | 'toolResult'
+  /**
+   * `narration` is text the model wrote beside a call that only fetches
+   * something — it is working, not answering (`keepsTextInAnswer()`).
+   */
+  type: 'thinking' | 'narration' | 'toolCall' | 'toolResult'
   text: string
   isError?: boolean
   toolName?: string

@@ -22,23 +22,43 @@ describe('collectGalleryImages', () => {
         { kind: 'video', title: 'V', url: 'v1', sourceUrl: 'sv' }
       ]),
       res([
-        { kind: 'image', title: 'A dup', url: 'u1', sourceUrl: 's1' },
-        { kind: 'image', title: 'B', url: 'u2', sourceUrl: 's2' }
+        {
+          kind: 'image',
+          title: 'A dup',
+          url: 'u1',
+          sourceUrl: 's1',
+          thumbnailUrl: 't1b'
+        },
+        {
+          kind: 'image',
+          title: 'B',
+          url: 'u2',
+          sourceUrl: 's2',
+          thumbnailUrl: 't2'
+        }
       ])
     ])
     expect(out.map((i) => i.url)).toEqual(['u1', 'u2'])
     expect(out[0].thumbnailUrl).toBe('t1')
   })
 
-  it('falls back thumbnailUrl→url and drops url-less entries', () => {
+  // Only the copy Brave fetched is ever shown: a site's own file may refuse
+  // to be hotlinked, be gone, or not answer (owner, 2026-09-30). An image
+  // with no thumbnail is not shown at all.
+  it('drops an image the search gave no thumbnail for', () => {
     const out = collectGalleryImages([
       res([
         { kind: 'image', title: 'C', url: 'u3', sourceUrl: 's3' },
-        { kind: 'image', title: 'no-url', url: '', sourceUrl: 's4' }
+        {
+          kind: 'image',
+          title: 'no-url',
+          url: '',
+          sourceUrl: 's4',
+          thumbnailUrl: 't4'
+        }
       ])
     ])
-    expect(out).toHaveLength(1)
-    expect(out[0].thumbnailUrl).toBe('u3')
+    expect(out).toEqual([])
   })
 
   it('handles missing media', () => {

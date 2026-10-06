@@ -15,9 +15,11 @@ vi.mock('@exodus/shared/utils/http', async (importOriginal) => ({
 }))
 const updateChatService = vi.fn()
 const deleteChatService = vi.fn()
+const fetchChatPageService = vi.fn()
 vi.mock('@/services/chat', () => ({
   updateChat: (...args: unknown[]) => updateChatService(...args),
-  deleteChat: (...args: unknown[]) => deleteChatService(...args)
+  deleteChat: (...args: unknown[]) => deleteChatService(...args),
+  fetchChatPage: (...args: unknown[]) => fetchChatPageService(...args)
 }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t: (key: string) => key } }))
 const report = vi.fn()
@@ -36,7 +38,7 @@ vi.mock('sileo', () => ({
 const {
   historyKeys,
   useChatHistory,
-  useChatMessages,
+  useChatPage,
   useUpdateChat,
   useDeleteChat
 } = await import('@/hooks/use-chat-history')
@@ -182,29 +184,35 @@ describe('useChatHistory on window focus', () => {
   })
 })
 
-describe('useChatMessages', () => {
+describe('useChatPage', () => {
   afterEach(() => {
-    fetcherMock.mockReset()
+    fetchChatPageService.mockReset()
   })
 
-  it('fetches one chat and caches it at historyKeys.detail(id)', async () => {
-    const rows = [{ id: 'm1' }]
-    fetcherMock.mockResolvedValue(rows)
-    const { queryClient, api } = await mountHook(() => useChatMessages('c1'))
+  it('fetches a chat’s newest page and caches it at historyKeys.page(id)', async () => {
+    const page = {
+      messages: [{ id: 'm1' }],
+      sources: [],
+      questions: [],
+      hasOlder: false,
+      olderCursor: null
+    }
+    fetchChatPageService.mockResolvedValue(page)
+    const { queryClient, api } = await mountHook(() => useChatPage('c1'))
 
     await act(async () => {
-      await vi.waitFor(() => expect(api().data).toEqual(rows))
+      await vi.waitFor(() => expect(api().data).toEqual(page))
     })
 
-    expect(fetcherMock).toHaveBeenCalledTimes(1)
-    expect(fetcherMock).toHaveBeenCalledWith('/api/v1/chat/c1')
-    expect(queryClient.getQueryData(historyKeys.detail('c1'))).toEqual(rows)
+    expect(fetchChatPageService).toHaveBeenCalledTimes(1)
+    expect(fetchChatPageService).toHaveBeenCalledWith('c1')
+    expect(queryClient.getQueryData(historyKeys.page('c1'))).toEqual(page)
   })
 
   it('does not fetch, and is not loading, without an id', async () => {
-    const { api } = await mountHook(() => useChatMessages(undefined))
+    const { api } = await mountHook(() => useChatPage(undefined))
 
-    expect(fetcherMock).not.toHaveBeenCalled()
+    expect(fetchChatPageService).not.toHaveBeenCalled()
     expect(api().isLoading).toBe(false)
     expect(api().data).toBeUndefined()
   })

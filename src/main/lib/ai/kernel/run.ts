@@ -107,6 +107,9 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
       messages: input.contextMessages as AgentMessage[]
     },
     streamFn,
+    // One conversation, one cache: OpenAI routes a chat's requests to the
+    // same prompt cache by this key (pi sends it as `prompt_cache_key`).
+    sessionId: input.chatId,
     getApiKey: () => input.apiKey,
     convertToLlm: (messages) => {
       const llm = messages.filter((m): m is Message =>

@@ -29,12 +29,8 @@ vi.mock('@main/lib/ai/kernel/models', () => ({
   })
 }))
 
-const {
-  CONSOLIDATE_SYSTEM,
-  runMemoryConsolidation,
-  loadRelevantMemories,
-  formatMemoriesForSystem
-} = await import('@main/lib/ai/memory/manager')
+const { CONSOLIDATE_SYSTEM, runMemoryConsolidation, loadRelevantMemories } =
+  await import('@main/lib/ai/memory/manager')
 
 const model = { id: 'm' } as unknown as Model<string>
 
@@ -240,33 +236,5 @@ describe('loadRelevantMemories', () => {
     expect(result).toEqual([])
     expect(mockCompleteSimple).not.toHaveBeenCalled()
     expect(mockTouchMemories).not.toHaveBeenCalled()
-  })
-})
-
-describe('formatMemoriesForSystem', () => {
-  it('renders a <user_memory> block with headings and bullets', () => {
-    const out = formatMemoriesForSystem([
-      {
-        id: 'a',
-        userId: 'u',
-        section: 'topic',
-        key: 'Classical Music',
-        summary: 'Likes classical music',
-        details: ['Berlin Philharmonic', 'Musikverein'],
-        confidence: 0.8,
-        source: 'implicit',
-        createdAt: null,
-        updatedAt: null,
-        lastUsedAt: null,
-        isActive: true
-      }
-    ])
-    expect(out).toContain('<user_memory>')
-    expect(out).toContain('## Classical Music (topic)')
-    expect(out).toContain('- Berlin Philharmonic')
-  })
-
-  it('returns an empty string for no memories', () => {
-    expect(formatMemoriesForSystem([])).toBe('')
   })
 })

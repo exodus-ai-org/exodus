@@ -7,6 +7,7 @@ import { afterAll, describe, expect, it, vi } from 'vitest'
 // the `usage` of the assistant messages in it — so from a chat's second
 // request on, a message rebuilt without `usage` fails the request before it
 // is sent ("Cannot read properties of undefined (reading 'totalTokens')").
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 vi.mock('@main/lib/db/db', async () => {
   const { drizzle } = await import('drizzle-orm/pglite')
   const { createMigratedPglite } =
@@ -97,5 +98,76 @@ describe('assembleContext hands pi assistant messages it can read', () => {
     const assistants = context.messages.filter((m) => m.role === 'assistant')
     for (const m of assistants) expect(m.usage.totalTokens).toBe(0)
     expect(clampMaxTokensToContext(model, context, 8192)).toBe(8192)
+  })
+})
+
+// The route puts each run's memory block before that run's question (the
+// prompt cache needs it there, not in the system prompt), so it has to know
+// which assembled message is which run's question.
+describe('assembleContext says which message opens which run', () => {
+  it('marks each run’s user message with its run, and nothing else', async () => {
+    const chatId = await seedFollowUp(USAGE)
+    const { messages, runHeads } = await assembleContext(chatId, 100_000, 6)
+
+    expect(runHeads).toHaveLength(messages.length)
+    const heads = messages.flatMap((m, i) =>
+      runHeads[i] ? [[m.role, runHeads[i]] as const] : []
+    )
+    expect(heads.map(([role]) => role)).toEqual(['user', 'user'])
+    // Assistant rows and tool results open nothing.
+    messages.forEach((m, i) => {
+      if (m.role !== 'user') expect(runHeads[i]).toBeNull()
+    })
+  })
+})
+
+// pi compares an assistant message's api / provider / model with the model it
+// is sending to: rebuilt without them, every earlier answer looked like
+// another model's, and pi turned its thinking into plain text and dropped
+// its signatures (audit, 2026-10-01).
+describe('assembleContext keeps who wrote each answer', () => {
+  it('carries api, provider, model and stop reason onto assistant messages', async () => {
+    const chatId = await seedFollowUp(USAGE)
+    await pglite.exec(
+      `UPDATE "message" SET "api"='anthropic-messages', "provider"='anthropic', "model"='claude-x', "stopReason"='stop' WHERE "chatId"='${chatId}' AND "role"='assistant'`
+    )
+    const { messages } = await assembleContext(chatId, 100_000, 6)
+    const assistants = messages.filter((m) => m.role === 'assistant')
+    expect(assistants.length).toBeGreaterThan(0)
+    for (const m of assistants) {
+      expect(m).toMatchObject({
+        api: 'anthropic-messages',
+        provider: 'anthropic',
+        model: 'claude-x',
+        stopReason: 'stop'
+      })
+    }
+  })
+})
+
+// A chat begun with LCM off has rows and no context items. The route tracks
+// the new question before it assembles, so the assembler found one item and
+// never bootstrapped — the whole history was silently left out (audit,
+// 2026-10-01). Tracking now seeds an untracked chat from its rows first.
+describe('a chat that had LCM off keeps its history when LCM is switched on', () => {
+  it('seeds the earlier runs before tracking the new question', async () => {
+    const { trackContextMessages } =
+      await import('@main/lib/ai/context-management')
+    const chatId = await seedFollowUp(USAGE)
+    const { rows } = await pglite.query<{ id: string; content: unknown }>(
+      `SELECT "id","content" FROM "message" WHERE "chatId"='${chatId}' AND "role"='user' ORDER BY "createdAt" DESC LIMIT 1`
+    )
+
+    await trackContextMessages(chatId, [rows[0]])
+    await trackContextMessages(chatId, [rows[0]]) // twice: still once
+
+    const { messages } = await assembleContext(chatId, 100_000, 6)
+    expect(messages.map((m) => m.role)).toEqual([
+      'user',
+      'assistant',
+      'toolResult',
+      'assistant',
+      'user'
+    ])
   })
 })

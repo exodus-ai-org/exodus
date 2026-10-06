@@ -404,3 +404,76 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
     expect(pinnedMock).toHaveBeenCalledTimes(1)
   })
 })
+
+// An image search's pictures used to be hung on the first source, so the
+// model cited that page for every picture — a whitehouse.gov photo of 2025
+// came out as 【21-source】, a Reuters page (owner's report, 2026-09-30).
+describe('fetchWebSearch — a picture belongs to the page it came from', () => {
+  function mockSearch() {
+    fetchMock.mockImplementation((url: string) => {
+      const path = new URL(url).pathname
+      if (path.endsWith('/images/search'))
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            results: [
+              {
+                url: 'https://a.com/story',
+                title: 'At the lunch',
+                source: 'a.com',
+                properties: { url: 'https://a.com/up/lunch-1140x815.jpg' }
+              },
+              {
+                url: 'https://a.com/story',
+                title: 'At the lunch',
+                source: 'a.com',
+                properties: { url: 'https://a.com/up/lunch-120x86.jpg' }
+              },
+              {
+                url: 'https://c.com/2025/old',
+                title: 'Oval Office, 2025',
+                source: 'c.com',
+                properties: { url: 'https://c.com/old.jpg' }
+              }
+            ]
+          })
+        } as Response)
+      return Promise.resolve(
+        ctxResponse([
+          { url: 'https://a.com/story/', title: 'A', snippets: ['a'] },
+          { url: 'https://b.com/x', title: 'B', snippets: ['b'] }
+        ])
+      )
+    })
+  }
+
+  it('hangs a picture on the source it came from, not on the first one', async () => {
+    mockSearch()
+    const results = await fetchWebSearch({
+      query: 'q',
+      braveApiKey: 'k',
+      media: 'image'
+    })
+    const byLink = new Map(results?.map((r) => [r.link, r]))
+    expect(
+      byLink.get('https://a.com/story/')?.media?.map((m) => m.url)
+    ).toEqual(['https://a.com/up/lunch-1140x815.jpg'])
+    expect(byLink.get('https://b.com/x')?.media).toBeUndefined()
+  })
+
+  it('gives a picture from a page it did not read a number of its own', async () => {
+    mockSearch()
+    const results = await fetchWebSearch({
+      query: 'q',
+      braveApiKey: 'k',
+      media: 'image'
+    })
+    const own = results?.find((r) => r.link === 'https://c.com/2025/old')
+    expect(own?.rank).toBe(3)
+    expect(own?.title).toBe('Oval Office, 2025')
+    expect(own?.media?.map((m) => m.url)).toEqual(['https://c.com/old.jpg'])
+    // Said to the model plainly: the page itself was not read.
+    expect(own?.content).toContain('not read')
+  })
+})

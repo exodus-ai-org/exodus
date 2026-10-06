@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import { pairing, syncLan } from '../../lan'
-import { registerDevice } from '../../lan/devices'
+import { leaveDevice, registerDevice } from '../../lan/devices'
 import { logger } from '../../logger'
 import type { Variables } from '../types'
 import { successResponse, validateSchema } from '../utils'
@@ -48,6 +48,21 @@ pairRouter.post('/', async (c) => {
   logger.info('lan', 'Device paired', { deviceId: device.deviceId, deviceName })
   await syncLan()
   return successResponse(c, device)
+})
+
+/**
+ * A paired device unpairing itself: it says so before it forgets its token,
+ * so it leaves Settings → Devices here too. Only a device can ask — authGate
+ * has matched its token on the LAN listener; on loopback there is no device,
+ * and no route.
+ */
+pairRouter.delete('/', async (c) => {
+  const deviceId = c.get('deviceId')
+  if (!deviceId) return c.notFound()
+  await leaveDevice(deviceId)
+  logger.info('lan', 'Device unpaired itself', { deviceId })
+  await syncLan()
+  return successResponse(c, { ok: true })
 })
 
 export default pairRouter

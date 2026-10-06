@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from 'crypto'
+import { randomBytes, timingSafeEqual } from 'crypto'
 
 import {
   deleteAllDevices,
@@ -8,16 +8,16 @@ import {
   touchDevice
 } from '../db/device-queries'
 import type { PairedDevice } from '../db/schema'
+import { clearRevoked, rememberRevoked } from './revoked'
+import { hashToken } from './token-hash'
+
+export { hashToken }
 
 const SEEN_WRITE_INTERVAL_MS = 60_000
 
 /** 256 bits: unguessable, so a plain SHA-256 is all its storage needs. */
 export function mintToken(): string {
   return randomBytes(32).toString('base64url')
-}
-
-export function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex')
 }
 
 // The gate runs on every LAN request; the table is a handful of rows that only
@@ -72,14 +72,31 @@ export async function authenticate(token: string): Promise<string | null> {
   return match.id
 }
 
+/**
+ * Revoked from the computer: the device does not know yet, so a record of it
+ * waits for its next request (`revoked.ts`, answered by `authGate`).
+ */
 export async function revokeDevice(id: string): Promise<void> {
-  await deleteDevice(id)
-  cache = null
-  lastSeenWrite.delete(id)
+  const device = (await rows()).find((d) => d.id === id)
+  await leaveDevice(id)
+  if (device) rememberRevoked([device.tokenHash])
 }
 
+/**
+ * Every device, at once: Settings → Devices → Reset all, which also replaces
+ * the certificate. No phone can finish a TLS handshake to be told after that,
+ * so no record is kept, and the ones waiting are dropped.
+ */
 export async function revokeAllDevices(): Promise<void> {
   await deleteAllDevices()
   cache = null
   lastSeenWrite.clear()
+  clearRevoked()
+}
+
+/** The device unpaired itself (`DELETE /api/v1/pair`): nothing to tell it. */
+export async function leaveDevice(id: string): Promise<void> {
+  await deleteDevice(id)
+  cache = null
+  lastSeenWrite.delete(id)
 }

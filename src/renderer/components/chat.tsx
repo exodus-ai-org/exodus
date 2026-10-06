@@ -1,6 +1,7 @@
 import { QUICK_CHAT_KEY } from '@exodus/shared/constants/misc'
 import { BASE_URL } from '@exodus/shared/constants/systems'
 import { ChatMessage } from '@exodus/shared/types/chat'
+import type { ChatPage } from '@exodus/shared/types/chat-page'
 import { useSetAtom } from 'jotai'
 import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -11,6 +12,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { useChooseAttempt } from '@/hooks/use-attempts'
 import { useChat } from '@/hooks/use-chat'
+import { useOlderPages } from '@/hooks/use-older-pages'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
@@ -23,11 +25,19 @@ import MultimodalInput from './multimodel-input'
 interface Props {
   id: string
   initialMessages: ChatMessage[]
+  /** The page `initialMessages` came from; older ones load on scroll. */
+  history?: ChatPage
   chatTitle: string
   showDiscover?: boolean
 }
 
-export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
+export function Chat({
+  id,
+  initialMessages,
+  history,
+  chatTitle,
+  showDiscover
+}: Props) {
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
@@ -70,10 +80,14 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
     api: `${BASE_URL}/api/v1/chat`,
     messages: initialMessages,
     generateId: uuidV4,
+    // Only the new question: the server reads the conversation from its own
+    // rows, and answers `done` with the run to merge (protocol 2, spec
+    // 2026-10-01 §C1–C2) — a send no longer uploads the whole chat.
     prepareBody: ({ id, messages, body }) => ({
       ...body,
       id,
-      messages,
+      message: messages.at(-1),
+      protocol: 2,
       advancedTools: getAdvancedTools(),
       reasoningEffort: getReasoningEffort()
     }),
@@ -93,6 +107,7 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
   })
 
   const { choose: chooseAttempt } = useChooseAttempt(id, setMessages)
+  const older = useOlderPages({ chatId: id, initial: history, setMessages })
 
   useEffect(() => {
     setChatStatus(status)
@@ -114,7 +129,7 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
     setChatInput(pendingQuickChat)
     // Use replaceState for immediate URL update; React Router navigate
     // happens in onFinish after the stream completes.
-    window.history.replaceState({}, '', `/chat/${id}`)
+    window.history.replaceState({}, '', `#/chat/${id}`)
     sendMessage({ text: pendingQuickChat })
     setChatInput('')
     window.localStorage.removeItem(QUICK_CHAT_KEY)
@@ -139,6 +154,12 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
           chooseAttempt={chooseAttempt}
           showDiscover={showDiscover}
           runError={runError}
+          hasOlder={older.hasOlder}
+          loadingOlder={older.loadingOlder}
+          loadOlder={older.loadOlder}
+          olderSources={older.olderSources}
+          olderQuestions={older.olderQuestions}
+          historyIds={older.historyIds}
         />
 
         {messages.length === 0 ? (

@@ -1,14 +1,15 @@
-import type { Message, Model } from '@earendil-works/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 import type { CurrentRun } from '@exodus/shared/utils/attempts'
 
 import { logger } from '../../logger'
 import { runFullCompaction } from './compaction'
-import { assembleContext } from './context-assembler'
+import { assembleContext, bootstrapContextItems } from './context-assembler'
+import type { AssembledContext } from './context-assembler'
 import { lcmStatusBus } from './lcm-status-bus'
 import { appendContextItem, getContextItems } from './queries'
 import { estimateMessageTokens } from './token-counter'
 
-export type { AssembledContext } from './context-assembler'
+export type { AssembledContext }
 
 // Default context window sizes by provider pattern (tokens)
 // Used when the setting doesn't specify an explicit limit
@@ -46,6 +47,40 @@ export function freshTailRuns(
  *   await lcm.trackNewMessages(newMessages)
  *   await lcm.compactAfterTurn()  // non-blocking: call without await
  */
+/**
+ * Appends messages to a chat's context items, skipping any already there —
+ * safe to call twice for the same run. Needs no model or key: the run's rows
+ * enter the context as they are saved (`RunRecorder.persist`), so the next
+ * message sees them however quickly it is sent.
+ */
+export async function trackContextMessages(
+  chatId: string,
+  messages: Array<{ id: string; content: unknown }>
+): Promise<void> {
+  if (messages.length === 0) return
+  let items = await getContextItems(chatId)
+  // A chat begun with LCM off has rows and no items. Tracking the new
+  // question first used to make the assembler skip its bootstrap (it saw one
+  // item), so the whole history was left out: seed from the rows first.
+  if (items.length === 0) {
+    await bootstrapContextItems(chatId)
+    items = await getContextItems(chatId)
+  }
+  const tracked = new Set(
+    items.filter((i) => i.kind === 'message').map((i) => i.refId)
+  )
+  for (const msg of messages) {
+    if (tracked.has(msg.id)) continue
+    tracked.add(msg.id)
+    await appendContextItem(
+      chatId,
+      'message',
+      msg.id,
+      estimateMessageTokens(msg.content)
+    )
+  }
+}
+
 export class LcmManager {
   private chatId: string
   private model: Model<string>
@@ -85,11 +120,7 @@ export class LcmManager {
    * Bootstraps context tracking on first call. `current` is the run being
    * answered: a regenerate sees no other run of its group.
    */
-  async assembleContext(current?: CurrentRun): Promise<{
-    messages: Message[]
-    totalTokens: number
-    trackedMessageIds: Set<string>
-  }> {
+  async assembleContext(current?: CurrentRun): Promise<AssembledContext> {
     return assembleContext(
       this.chatId,
       this.tokenBudget,
@@ -105,10 +136,7 @@ export class LcmManager {
   async trackNewMessages(
     messages: Array<{ id: string; content: unknown }>
   ): Promise<void> {
-    for (const msg of messages) {
-      const tokens = estimateMessageTokens(msg.content)
-      await appendContextItem(this.chatId, 'message', msg.id, tokens)
-    }
+    await trackContextMessages(this.chatId, messages)
   }
 
   /**

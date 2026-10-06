@@ -30,7 +30,12 @@ function ContentHeader() {
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >
-      <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+      {/* While the sidebar is open its toggle sits in the sidebar's own top
+          row, by the traffic lights (as Notes and ChatGPT keep it); it comes
+          here only once the sidebar is away, so it can be brought back. */}
+      {!open && (
+        <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+      )}
       <div className="no-drag flex min-w-0 flex-1 self-stretch">
         <ChatTabs />
       </div>

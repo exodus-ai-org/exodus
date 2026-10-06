@@ -399,6 +399,10 @@
         "label": "Gedächtnis aktualisieren",
         "description": "Erlaubt dem Assistenten, Gedächtniseinträge zu korrigieren, hinzuzufügen oder zu entfernen, wenn Sie ihm sagen, dass etwas über Sie nicht stimmt."
       },
+      "recall": {
+        "label": "Abrufen",
+        "description": "Lässt den Assistenten ein früheres Suchergebnis oder eine Werkzeugausgabe, die ältere Runden nur noch gekürzt enthalten, vollständig nachlesen – aus dem Gespeicherten, ohne erneut zu suchen."
+      },
       "mapItinerary": {
         "label": "Reiseroute",
         "description": "Orte, Routen und mehrtägige Reisen auf einer interaktiven Kartenkarte darstellen"
@@ -947,6 +951,7 @@
       "rebuild": "Neu erstellen",
       "building": "Wird erstellt…",
       "builtAt": "Erstellt {{when}}",
+      "stale": "Vor den aktuellen Tabellen erstellt – neu erstellen, sonst schlagen einige Vorlagen fehl.",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (aus den Logdateien kopiert)",
       "logsMissing": "logs (keine Logdateien gefunden)",
@@ -956,6 +961,7 @@
     },
     "presets": {
       "title": "Vorlagen",
+      "cacheByRun": "Prompt-Cache pro Durchlauf",
       "messagesPerDay": "Nachrichten pro Tag (30 Tage)",
       "costByModel": "Tokens & Kosten pro Modell",
       "toolCalls": "Tool-Aufrufe",

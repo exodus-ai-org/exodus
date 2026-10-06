@@ -17,6 +17,7 @@ vi.mock('@main/lib/ai/kernel/run', () => ({
 }))
 
 vi.mock('@main/lib/ai/context-management', () => ({
+  trackContextMessages: vi.fn(async () => {}),
   freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
@@ -30,8 +31,8 @@ vi.mock('@main/lib/ai/mcp', () => ({
 }))
 
 vi.mock('@main/lib/ai/memory/manager', () => ({
-  loadRelevantMemories: vi.fn(async () => []),
-  formatMemoriesForSystem: vi.fn(() => '')
+  loadRunMemoryBlocks: vi.fn(async () => new Map()),
+  loadRelevantMemories: vi.fn(async () => [])
 }))
 
 vi.mock('@main/lib/ai/prompts', () => ({
@@ -68,6 +69,11 @@ vi.mock('@main/lib/chat/attempts', () => ({
   getChatAttempts: vi.fn(async () => ({})),
   recordRegenerate: vi.fn(async () => {}),
   settleOpenComparison: vi.fn(async () => {})
+}))
+vi.mock('@main/lib/chat/sources', () => ({
+  highestSourceRank: () => Promise.resolve(0),
+  saveChatSources: () => Promise.resolve(),
+  sourcesOfRows: () => []
 }))
 vi.mock('@main/lib/db/queries', () => ({
   deleteChatById: vi.fn(async () => {}),

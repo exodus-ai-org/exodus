@@ -1,4 +1,5 @@
 import type { ApprovalOutcome, Attempt } from '@exodus/shared/types/chat'
+import type { ChatPage, ChatPageRow } from '@exodus/shared/types/chat-page'
 import { fetcher } from '@exodus/shared/utils/http'
 
 import { presenceHeaders } from '@/lib/presence'
@@ -34,3 +35,23 @@ export const chooseAttempt = (chatId: string, runId: string) =>
     `/api/v1/chat/${chatId}/choose`,
     { method: 'POST', body: { runId } }
   )
+
+/**
+ * A page of a chat's history (spec 2026-10-01 §C3): the newest runs, or the
+ * ones before `before` (a page's `olderCursor`), reaching back through
+ * `through` when given.
+ */
+export const fetchChatPage = (
+  chatId: string,
+  query: { before?: string; through?: string } = {}
+) => {
+  const params = new URLSearchParams()
+  if (query.before) params.set('before', query.before)
+  if (query.through) params.set('through', query.through)
+  const qs = params.size ? `?${params}` : ''
+  return fetcher<ChatPage>(`/api/v1/chat/${chatId}/page${qs}`)
+}
+
+/** One row whole: what a page's `truncated` row stands for. */
+export const fetchChatRow = (chatId: string, messageId: string) =>
+  fetcher<ChatPageRow>(`/api/v1/chat/${chatId}/messages/${messageId}`)

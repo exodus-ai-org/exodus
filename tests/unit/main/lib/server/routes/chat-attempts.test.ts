@@ -21,10 +21,11 @@ vi.mock('@main/lib/db/db', async () => {
   const { drizzle } = await import('drizzle-orm/pglite')
   const { createMigratedPglite } =
     await import('../../../../helpers/migrated-pglite')
-  const pglite = await createMigratedPglite('0011')
+  const pglite = await createMigratedPglite('0012')
   return { pglite, db: drizzle(pglite) }
 })
 vi.mock('@main/lib/ai/context-management', () => ({
+  trackContextMessages: vi.fn(async () => {}),
   freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
@@ -34,8 +35,8 @@ vi.mock('@main/lib/ai/context-management', () => ({
 }))
 vi.mock('@main/lib/ai/mcp', () => ({ getMcpTools: vi.fn(async () => []) }))
 vi.mock('@main/lib/ai/memory/manager', () => ({
-  loadRelevantMemories: vi.fn(async () => []),
-  formatMemoriesForSystem: vi.fn(() => '')
+  loadRunMemoryBlocks: vi.fn(async () => new Map()),
+  loadRelevantMemories: vi.fn(async () => [])
 }))
 vi.mock('@main/lib/ai/prompts', () => ({
   buildPersonalityPrompt: vi.fn(() => ''),
@@ -340,5 +341,75 @@ describe('GET /api/v1/chat/:id', () => {
       expect(r.attempt).toBeNull()
       expect(r.alternateOf).toBeNull()
     }
+  })
+})
+
+// The history a page at a time (spec 2026-10-01 §C3); `chat/page.ts` has the
+// paging rules, this is the route.
+describe('GET /api/v1/chat/:id/page', () => {
+  it('answers the newest runs and the chat’s outline', async () => {
+    const app = buildApp()
+    const chatId = randomUUID()
+    const first = await send(app, chatId, [])
+    const second = await send(app, chatId, first.messages)
+
+    const res = await app.request(`/api/v1/chat/${chatId}/page?runs=1`)
+    expect(res.status).toBe(200)
+    const page = (await res.json()) as {
+      messages: Wire[]
+      questions: { runId: string }[]
+      hasOlder: boolean
+      olderCursor: string | null
+    }
+    expect(new Set(page.messages.map((m) => m.runId))).toEqual(
+      new Set([second.runId])
+    )
+    expect(page.questions.map((q) => q.runId)).toEqual([
+      first.runId,
+      second.runId
+    ])
+    expect(page.hasOlder).toBe(true)
+    expect(page.olderCursor).toBe(second.runId)
+
+    const older = await app.request(
+      `/api/v1/chat/${chatId}/page?runs=1&before=${page.olderCursor}`
+    )
+    const olderPage = (await older.json()) as { messages: Wire[] }
+    expect(new Set(olderPage.messages.map((m) => m.runId))).toEqual(
+      new Set([first.runId])
+    )
+  })
+
+  it('400 for a bad page size or cursor; 404 for a run not in the chat', async () => {
+    const app = buildApp()
+    const chatId = randomUUID()
+    await send(app, chatId, [])
+    expect(
+      (await app.request(`/api/v1/chat/${chatId}/page?runs=0`)).status
+    ).toBe(400)
+    expect(
+      (await app.request(`/api/v1/chat/${chatId}/page?before=nope`)).status
+    ).toBe(400)
+    expect(
+      (await app.request(`/api/v1/chat/${chatId}/page?before=${randomUUID()}`))
+        .status
+    ).toBe(404)
+  })
+})
+
+describe('GET /api/v1/chat/:id/messages/:messageId', () => {
+  it('answers one row whole, and 404 for another chat’s', async () => {
+    const app = buildApp()
+    const chatId = randomUUID()
+    const first = await send(app, chatId, [])
+    const res = await app.request(
+      `/api/v1/chat/${chatId}/messages/${first.runId}`
+    )
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as Wire).id).toBe(first.runId)
+    const elsewhere = await app.request(
+      `/api/v1/chat/${randomUUID()}/messages/${first.runId}`
+    )
+    expect(elsewhere.status).toBe(404)
   })
 })

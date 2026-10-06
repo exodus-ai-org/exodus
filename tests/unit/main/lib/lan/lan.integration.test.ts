@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { mkdtempSync, rmSync } from 'fs'
 import http from 'http'
+import { brotliDecompressSync } from 'node:zlib'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import tls from 'tls'
@@ -63,8 +64,14 @@ const { loadOrCreateCertificate } = await import('@main/lib/lan/certificate')
 const { revokeDevice } = await import('@main/lib/lan/devices')
 const { createLanListener } = await import('@main/lib/lan/listener')
 
+const { compressLan } = await import('@main/lib/server/middlewares/compress')
+
+const BIG = { rows: Array.from({ length: 300 }, (_, i) => `result ${i}`) }
+
 const app = new Hono<{ Variables: { deviceId?: string } }>()
+app.use('*', compressLan)
 app.use('/api/*', authGate)
+app.get('/big', (c) => c.json(BIG))
 app.route('/api/v1/pair', pairRouter)
 app.get('/api/v1/history', (c) => c.json({ device: c.get('deviceId') }))
 app.onError(errorHandler)
@@ -135,6 +142,33 @@ async function call(
   })
 }
 
+/** The raw bytes of a response, as a client that asks for brotli gets them. */
+async function callRaw(path: string, acceptEncoding: string) {
+  const socket = await pinnedSocket(pin)
+  return new Promise<{ headers: http.IncomingHttpHeaders; body: Buffer }>(
+    (resolve, reject) => {
+      const req = http.request(
+        {
+          createConnection: () => socket,
+          host: '127.0.0.1',
+          port,
+          path,
+          headers: { connection: 'close', 'accept-encoding': acceptEncoding }
+        },
+        (res) => {
+          const chunks: Buffer[] = []
+          res.on('data', (d: Buffer) => chunks.push(d))
+          res.on('end', () =>
+            resolve({ headers: res.headers, body: Buffer.concat(chunks) })
+          )
+        }
+      )
+      req.on('error', reject)
+      req.end()
+    }
+  )
+}
+
 beforeAll(async () => {
   pin = (await loadOrCreateCertificate()).fingerprint
   await listener.sync()
@@ -148,6 +182,16 @@ afterAll(() => {
 })
 
 describe('LAN access, end to end', () => {
+  // What the phone gets over Wi-Fi or Tailscale: brotli, decoded by the
+  // client, the length on the wire the compressed one.
+  it('sends a large response brotli-compressed over the pinned TLS listener', async () => {
+    const { headers, body } = await callRaw('/big', 'gzip, deflate, br')
+    expect(headers['content-encoding']).toBe('br')
+    expect(Number(headers['content-length'])).toBe(body.length)
+    expect(JSON.parse(brotliDecompressSync(body).toString())).toEqual(BIG)
+    expect(body.length).toBeLessThan(JSON.stringify(BIG).length / 3)
+  })
+
   it('presents exactly the certificate whose fingerprint goes into the QR code', async () => {
     await expect(call('/api/v1/history')).resolves.toMatchObject({
       status: 401

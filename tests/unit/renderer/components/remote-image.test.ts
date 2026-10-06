@@ -223,6 +223,23 @@ describe('<RemoteImage>', () => {
     )
   })
 
+  // A network image loads through LazyLoadImage (owner, 2026-09-30); a
+  // data: URL is already here and is drawn directly.
+  it('loads a network image through LazyLoadImage, a data: URL directly', async () => {
+    const remote = render(
+      'https://other.example/photo.png',
+      'a pic',
+      allowedImageUrls(SOURCES)
+    )
+    await act(async () => remote.root.render(remote.tree))
+    expect(remote.host.querySelector('[data-slot="skeleton"]')).not.toBeNull()
+
+    const inline = render('data:image/png;base64,iVBORw0KGgo=', 'x')
+    await act(async () => inline.root.render(inline.tree))
+    expect(inline.host.querySelector('img')).not.toBeNull()
+    expect(inline.host.querySelector('[data-slot="skeleton"]')).toBeNull()
+  })
+
   it("renders a placeholder for another URL on a search result's host", async () => {
     const { host, root, tree } = render(
       'https://other.example/pixel.png?d=chat-data',

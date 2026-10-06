@@ -95,6 +95,12 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     descriptionKey: 'tools.registry.updateMemory.description',
     group: 'AI & Data'
   },
+  {
+    key: TOOL_NAMES.recall,
+    labelKey: 'tools.registry.recall.label',
+    descriptionKey: 'tools.registry.recall.description',
+    group: 'AI & Data'
+  },
 
   // Maps
   {

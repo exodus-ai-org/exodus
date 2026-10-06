@@ -25,6 +25,13 @@ export const chooseAttemptSchema = z.object({
   runId: z.uuid()
 })
 
+/** `GET /api/v1/chat/:id/page` (`chat/page.ts`): 10 runs unless asked. */
+export const chatPageQuerySchema = z.object({
+  runs: z.coerce.number().int().min(1).max(50).default(10),
+  before: z.uuid().optional(),
+  through: z.uuid().optional()
+})
+
 // pi-ai user message content
 const textContentSchema = z.object({
   type: z.literal('text'),
@@ -39,10 +46,13 @@ const imageContentSchema = z.object({
 
 const userContentSchema = z.union([textContentSchema, imageContentSchema])
 
-const userMessageSchema = z.object({
+/** The new question of a send: a user message, its id the run's id. */
+const userMessageSchema = z.looseObject({
   id: z.uuid('v4'),
   role: z.literal('user'),
-  content: z.union([z.string(), z.array(userContentSchema)])
+  content: z.union([z.string(), z.array(userContentSchema)]),
+  // A Regenerate names the group it re-asks (spec 2026-09-26).
+  alternateOf: z.uuid().nullable().optional()
 })
 
 // For all messages (permissive — handles user, assistant, toolResult). Must be
@@ -64,13 +74,23 @@ const messageSchema = z.looseObject({
   content: z.any()
 })
 
-export const postRequestBodySchema = z.object({
-  id: z.uuid('v4'),
-  // Either a single new message or all messages (for tool approvals)
-  message: userMessageSchema.optional(),
-  messages: z.array(messageSchema),
-  advancedTools: z.array(z.enum(AdvancedTools)),
-  reasoningEffort: EffortLevelSchema.optional()
-})
+export const postRequestBodySchema = z
+  .object({
+    id: z.uuid('v4'),
+    // The new question. The server reads the rest of the conversation from
+    // the database (spec 2026-10-01 §C1).
+    message: userMessageSchema.optional(),
+    // An older client's whole conversation: only its last message — the new
+    // question — is used.
+    messages: z.array(messageSchema).optional(),
+    advancedTools: z.array(z.enum(AdvancedTools)),
+    reasoningEffort: EffortLevelSchema.optional(),
+    // 2: `done` carries the run and the attempt states, for the client to
+    // merge, instead of the whole conversation.
+    protocol: z.literal(2).optional()
+  })
+  .refine((b) => b.message !== undefined || (b.messages?.length ?? 0) > 0, {
+    message: 'A send carries the new message'
+  })
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>

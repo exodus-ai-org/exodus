@@ -9,6 +9,7 @@ vi.mock('@main/lib/ai/kernel/models', () => ({
 vi.mock('@main/lib/ai/prompts', () => ({ titleGenerationPrompt: 'TITLE' }))
 vi.mock('@main/lib/ai/utils/model-util', () => ({}))
 vi.mock('@main/lib/ai/utils/tool-binding-util', () => ({}))
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
 const { completeSimple, LlmRequestError } =
   await import('@main/lib/ai/utils/complete')

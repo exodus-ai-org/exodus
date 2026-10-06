@@ -38,7 +38,7 @@ const UUID_RE =
 // the live prompt, so a rewording that drops a marker fails a unit test
 // instead of misrouting an e2e call.
 export const FAUX_PROMPT_MARKERS = {
-  title: 'you will generate a short title',
+  title: 'You name conversations',
   readFilter: 'You select which memory entries are directly relevant',
   instruction: "You edit the user's long-term memory from a direct instruction",
   consolidate: 'You maintain a durable, long-term memory of the user',
@@ -161,10 +161,9 @@ function respondToChatCall(ctx: Context): AssistantMessage {
     return fauxAssistantMessage([fauxText(compareAnswer(compareTakes))])
   }
 
-  // The read filter already chose an entry for this turn (its result is
-  // folded into the system prompt before the agent loop runs): just answer,
-  // no tool call.
-  if ((ctx.systemPrompt ?? '').includes(USER_MEMORY_MARKER)) {
+  // The read filter already chose an entry for this turn (its block goes
+  // before this run's question, `run-memory.ts`): just answer, no tool call.
+  if (last?.role === 'user' && textOf(last).includes(USER_MEMORY_MARKER)) {
     return fauxAssistantMessage([fauxText(FAUX_MEMORY_USED_ANSWER)])
   }
 

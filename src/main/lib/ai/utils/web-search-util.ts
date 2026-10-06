@@ -638,6 +638,29 @@ function normalizeMediaUrl(url: string | undefined): string {
   }
 }
 
+/** A page, for telling whether two links are one: host and path, without a
+ *  trailing slash, query or fragment. */
+function pageKey(url: string): string {
+  try {
+    const u = new URL(url)
+    return `${u.host}${u.pathname}`.replace(/\/+$/u, '').toLowerCase()
+  } catch {
+    return url
+  }
+}
+
+/** One picture whatever its rendition: a CMS serves `photo-1140x815.jpg`
+ *  and `photo-120x86.jpg` of the same shot, and a search returns both. */
+function pictureKey(sourceUrl: string, imageUrl: string): string {
+  try {
+    const u = new URL(imageUrl)
+    const path = u.pathname.replace(/-\d+x\d+(?=\.\w+$)/u, '')
+    return `${pageKey(sourceUrl)}|${u.host}${path}`
+  } catch {
+    return imageUrl
+  }
+}
+
 function imageResultsToMedia(
   resp: BraveImageSearchResponse | null,
   passesDomainFilter: (url: string) => boolean
@@ -651,8 +674,10 @@ function imageResultsToMedia(
     const sourceUrl = normalizeMediaUrl(r.url)
     if (!imageUrl || !sourceUrl) continue
     if (!passesDomainFilter(sourceUrl)) continue
-    if (seen.has(imageUrl)) continue
-    seen.add(imageUrl)
+    // The first rendition a search returns is the largest.
+    const key = pictureKey(sourceUrl, imageUrl)
+    if (seen.has(key)) continue
+    seen.add(key)
 
     media.push({
       kind: 'image',
@@ -711,6 +736,50 @@ function videoResultsToMedia(
  * Prefers a relative phrase; falls back to the ISO date; else the last/first
  * entry; `undefined` when absent.
  */
+/**
+ * Hangs each picture or video on the page it came from, so the model cites
+ * that page for it. They used to all hang on the first source, and the model
+ * cited it for every one — a 2025 whitehouse.gov photo as a Reuters page
+ * (2026-09-30). A picture from a page the search did not read becomes a
+ * source of its own, numbered after the rest (or keeping the number that page
+ * already has in this conversation), and says it was not read.
+ */
+function attachMedia(
+  results: WebSearchResult[],
+  media: WebSearchMediaResult[],
+  baseRank: number,
+  webSources?: Map<string, WebSearchResult>
+): void {
+  const byPage = new Map(results.map((r) => [pageKey(r.link), r]))
+  const earlier = new Map(
+    [...(webSources?.values() ?? [])].map((r) => [pageKey(r.link), r])
+  )
+  for (const m of media) {
+    const key = pageKey(m.sourceUrl)
+    let owner = byPage.get(key)
+    if (!owner) {
+      let host: string | undefined
+      try {
+        host = new URL(m.sourceUrl).hostname
+      } catch {
+        host = undefined
+      }
+      owner = {
+        rank: earlier.get(key)?.rank ?? baseRank + results.length + 1,
+        link: m.sourceUrl,
+        title: m.title,
+        snippet: '',
+        content: `${m.kind === 'video' ? 'Video' : 'Image'}: ${m.title}\n(Found by a media search; the page itself was not read.)`,
+        siteName: m.source,
+        hostname: host
+      }
+      results.push(owner)
+      byPage.set(key, owner)
+    }
+    owner.media = [...(owner.media ?? []), m]
+  }
+}
+
 export function pickAgeLabel(age?: string[]): string | undefined {
   if (!age || age.length === 0) return undefined
   const relative = age.find((a) => /\bago\b|^today$|^yesterday$/i.test(a))
@@ -963,23 +1032,7 @@ export async function fetchWebSearch({
       })
     }
 
-    if (mediaResults.length > 0) {
-      if (results.length > 0) {
-        results[0] = {
-          ...results[0],
-          media: mediaResults
-        }
-      } else {
-        results.push({
-          rank: baseRank + 1,
-          link: mediaResults[0].sourceUrl,
-          title: `Media results for ${query}`,
-          snippet: '',
-          content: '',
-          media: mediaResults
-        })
-      }
-    }
+    attachMedia(results, mediaResults, baseRank, webSources)
 
     return results.length > 0 ? results : null
   } catch {

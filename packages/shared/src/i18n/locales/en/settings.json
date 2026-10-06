@@ -399,6 +399,10 @@
         "label": "Update Memory",
         "description": "Lets the assistant correct, add or remove memories when you tell it something about you is wrong."
       },
+      "recall": {
+        "label": "Recall",
+        "description": "Lets the assistant read back, in full, an earlier search result or tool output that older turns now carry only in short — from what is stored, without searching again."
+      },
       "mapItinerary": {
         "label": "Map Itinerary",
         "description": "Render places, routes, and multi-day trips on a single interactive map card"
@@ -947,6 +951,7 @@
       "rebuild": "Rebuild",
       "building": "Building…",
       "builtAt": "Built {{when}}",
+      "stale": "Built before the current tables — rebuild it, or some presets will fail.",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (copied from the log files)",
       "logsMissing": "logs (no log files found)",
@@ -956,6 +961,7 @@
     },
     "presets": {
       "title": "Presets",
+      "cacheByRun": "Prompt cache by run",
       "messagesPerDay": "Messages per day (30 days)",
       "costByModel": "Tokens & cost by model",
       "toolCalls": "Tool calls",

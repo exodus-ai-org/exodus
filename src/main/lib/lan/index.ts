@@ -11,11 +11,13 @@ import {
   type PairingWindow,
   randomPairingCode
 } from './pairing'
+import { hasPendingRevocations } from './revoked'
 
 /**
  * LAN access, wired together: one pairing window and one HTTPS listener for the
- * process. The listener is wanted while a window is open or a device is paired;
- * everything that changes either calls `syncLan()`.
+ * process. The listener is wanted while a window is open, a device is paired,
+ * or a revoked device has yet to be told (`revoked.ts`); everything that
+ * changes one of those calls `syncLan()`.
  */
 export const pairing = createPairing({
   now: Date.now,
@@ -29,7 +31,10 @@ export function initLan(
 ): void {
   listener = createLanListener({
     fetch,
-    wanted: async () => pairing.current() !== null || (await hasDevices()),
+    wanted: async () =>
+      pairing.current() !== null ||
+      (await hasDevices()) ||
+      hasPendingRevocations(),
     certificate: loadOrCreateCertificate,
     serve
   })

@@ -399,6 +399,10 @@
         "label": "更新記憶",
         "description": "當你告訴助理你的某些資訊有誤時，助理可以修正、新增或刪除記憶。"
       },
+      "recall": {
+        "label": "回溯",
+        "description": "讓助理從已儲存的內容完整讀回較早回合中只剩摘要的搜尋結果或工具輸出，無須重新搜尋。"
+      },
       "mapItinerary": {
         "label": "地圖行程",
         "description": "在單一互動式地圖卡片上顯示地點、路線與多日行程"
@@ -941,6 +945,7 @@
       "rebuild": "重新建立",
       "building": "建立中…",
       "builtAt": "建立於{{when}}",
+      "stale": "這個快照建立於目前的資料表之前——請重建，否則部分預設查詢會失敗。",
       "engine": "DuckDB {{version}}",
       "logsIncluded": "logs (從記錄檔複製)",
       "logsMissing": "logs (找不到記錄檔)",
@@ -950,6 +955,7 @@
     },
     "presets": {
       "title": "預設查詢",
+      "cacheByRun": "每輪的提示快取",
       "messagesPerDay": "每日訊息數 (30 天)",
       "costByModel": "各模型的 Token 與費用",
       "toolCalls": "工具呼叫",

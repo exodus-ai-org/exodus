@@ -10,7 +10,7 @@ export function SettingsLayout() {
       <main className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* Frameless-window drag strip in place of a titlebar. */}
         <div className="draggable h-16 shrink-0" />
-        <div className="flex-1 overflow-y-auto px-8 pb-10">
+        <div className="relative flex-1 overflow-y-auto px-8 pb-10">
           <SettingsForm />
         </div>
       </main>

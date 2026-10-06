@@ -4,13 +4,13 @@ import type {
   ProviderId,
   StopReason,
   ToolResultMessage,
+  Usage,
   UserMessage
 } from '@earendil-works/pi-ai'
 import type { ChatMessage } from '@exodus/shared/types/chat'
+import type { ChatPageRow } from '@exodus/shared/types/chat-page'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-import type { Message as DBMessage } from '@/types/db'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -25,8 +25,9 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
   })
 }
 
+/** Stored rows — `GET /api/v1/chat/:id`'s, or a page's — as chat messages. */
 export function convertToUIMessages(
-  messages: Array<DBMessage>
+  messages: ReadonlyArray<ChatPageRow>
 ): Array<ChatMessage> {
   return messages.map((dbMsg) => {
     const timestamp = new Date(dbMsg.createdAt).getTime()
@@ -49,7 +50,7 @@ export function convertToUIMessages(
         runId: dbMsg.runId,
         role: 'assistant' as const,
         content: dbMsg.content as AssistantMessage['content'],
-        usage: dbMsg.usage!,
+        usage: dbMsg.usage as Usage,
         api: (dbMsg.api ?? '') as Api,
         provider: (dbMsg.provider ?? '') as ProviderId,
         model: dbMsg.model ?? '',

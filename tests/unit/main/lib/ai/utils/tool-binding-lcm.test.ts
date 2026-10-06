@@ -21,6 +21,7 @@ vi.mock('@main/lib/ai/calling-tools', () => ({
   listDirectory: stub('list_directory'),
   mapItinerary: () => stub('map_itinerary'),
   readFile: stub('read_file'),
+  recall: () => stub('recall'),
   searchKnowledgeBase: () => stub('search_knowledge_base'),
   terminal: () => stub('terminal'),
   updateMemory: () => stub('update_memory'),

@@ -16,18 +16,26 @@ vi.mock('electron', () => ({
   app: { getPath: () => '/tmp', isPackaged: false }
 }))
 
+/** What the mocked LCM hands the route; a test can put a history in it. */
+const lcmState = vi.hoisted(() => ({
+  assembled: { messages: [], runHeads: [] } as {
+    messages: unknown[]
+    runHeads: (string | null)[]
+  }
+}))
 vi.mock('@main/lib/ai/context-management', () => ({
+  trackContextMessages: vi.fn(async () => {}),
   freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
-    assembleContext = vi.fn(async () => ({ messages: [] }))
+    assembleContext = vi.fn(async () => lcmState.assembled)
     compactAfterTurn = vi.fn(async () => {})
   }
 }))
 vi.mock('@main/lib/ai/mcp', () => ({ getMcpTools: vi.fn(async () => []) }))
 vi.mock('@main/lib/ai/memory/manager', () => ({
   loadRelevantMemories: vi.fn(async () => []),
-  formatMemoriesForSystem: vi.fn(() => '')
+  loadRunMemoryBlocks: vi.fn(async () => new Map())
 }))
 vi.mock('@main/lib/ai/prompts', () => ({
   buildPersonalityPrompt: vi.fn(() => ''),
@@ -68,6 +76,11 @@ vi.mock('@main/lib/chat/attempts', () => ({
   recordRegenerate: vi.fn(async () => {}),
   settleOpenComparison: vi.fn(async () => {})
 }))
+vi.mock('@main/lib/chat/sources', () => ({
+  highestSourceRank: () => Promise.resolve(0),
+  saveChatSources: () => Promise.resolve(),
+  sourcesOfRows: () => []
+}))
 vi.mock('@main/lib/db/queries', () => ({
   deleteChatById: vi.fn(async () => {}),
   getChatById: vi.fn(async () => ({ id: 'existing' })),
@@ -93,7 +106,9 @@ const { default: chat } = await import('@main/lib/server/routes/chat')
 const { enqueueAndProcess } = await import('@main/lib/jobs/worker')
 const { SETTINGS_SECRET_PATHS } = await import('@main/lib/secrets/registry')
 const { registerFauxProvider } = await import('@main/lib/ai/kernel/faux')
-const { loadRelevantMemories } = await import('@main/lib/ai/memory/manager')
+const { loadRelevantMemories, loadRunMemoryBlocks } =
+  await import('@main/lib/ai/memory/manager')
+const { getMessagesByChatId } = await import('@main/lib/db/queries')
 
 const CHAT_ID = '11111111-1111-4111-8111-111111111111'
 const USER_ID = '22222222-2222-4222-8222-222222222222'
@@ -104,6 +119,20 @@ function buildApp() {
     c.set('settings', {
       id: 'settings-1',
       memory: { lcmEnabled: true, autoCapture: true, useInChat: false }
+    } as never)
+    await next()
+  })
+  app.route('/', chat)
+  return app
+}
+
+/** Same as `buildApp()`, with LCM off: the context is the history itself. */
+function buildAppLcmOff() {
+  const app = new Hono()
+  app.use('*', async (c, next) => {
+    c.set('settings', {
+      id: 'settings-1',
+      memory: { lcmEnabled: false, autoCapture: true, useInChat: false }
     } as never)
     await next()
   })
@@ -241,6 +270,246 @@ describe('POST /api/v1/chat on the faux provider', () => {
       runId: USER_ID,
       memories: [{ id: 'mem-1', key: 'Classical Music', section: 'topic' }]
     })
+  })
+
+  // The memory chosen for a message used to close the system prompt — chosen
+  // afresh every message, so the prompt cache (tools → system → messages)
+  // missed on every turn (2026-10-01). Each run now carries its own block.
+  it('puts each run’s memory before its question, never in the system prompt', async () => {
+    const OLD_RUN = '33333333-3333-4333-8333-333333333333'
+    const faux = registerFauxProvider()
+    let seen: { system?: string; messages: unknown[] } = { messages: [] }
+    faux.setResponses([
+      (ctx) => {
+        seen = { system: ctx.systemPrompt, messages: ctx.messages }
+        return fauxAssistantMessage([fauxText('Sunny.')])
+      }
+    ])
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: 'k'
+    })
+    vi.mocked(loadRelevantMemories).mockResolvedValue([
+      {
+        id: 'mem-1',
+        key: 'Classical Music',
+        section: 'topic',
+        summary: 'Into Bach',
+        details: [],
+        isActive: true
+      } as never
+    ])
+    vi.mocked(loadRunMemoryBlocks).mockResolvedValue(
+      new Map([[OLD_RUN, '<user_memory>OLD RUN MEMORY</user_memory>']])
+    )
+    // The assembled history ends with this run's own question (the route
+    // drops it and sends the prompt itself); the run before it is OLD_RUN.
+    lcmState.assembled = {
+      messages: [
+        { role: 'user', content: 'earlier question', timestamp: 0 },
+        {
+          role: 'assistant',
+          content: [{ type: 'text', text: 'earlier answer' }],
+          api: 'a',
+          provider: 'p',
+          model: 'm',
+          usage: {
+            input: 0,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            totalTokens: 0,
+            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
+          },
+          stopReason: 'stop',
+          timestamp: 0
+        },
+        { role: 'user', content: 'hi', timestamp: 1 }
+      ],
+      runHeads: [OLD_RUN, null, USER_ID]
+    }
+
+    const app = buildAppMemoryOn()
+    await (
+      await app.request('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: CHAT_ID,
+          messages: [
+            { id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }
+          ],
+          advancedTools: []
+        })
+      })
+    ).text()
+
+    expect(seen.system).toBe('SYSTEM')
+    const users = seen.messages.filter(
+      (m) => (m as { role: string }).role === 'user'
+    ) as Array<{ content: Array<{ type: string; text: string }> }>
+    expect(users).toHaveLength(2)
+    expect(users[0].content[0].text).toBe(
+      '<user_memory>OLD RUN MEMORY</user_memory>'
+    )
+    expect(users[0].content[1].text).toBe('earlier question')
+    expect(users[1].content[0].text).toContain('## Classical Music (topic)')
+    expect(users[1].content.at(-1)?.text).toBe('hi')
+    lcmState.assembled = { messages: [], runHeads: [] }
+  })
+
+  // The server owns the conversation (spec 2026-10-01 §C1): a client sends
+  // what is new, and the model's context is read from the database — not
+  // from whatever history a client posts.
+  describe('history is the server’s', () => {
+    const OLD_RUN = '44444444-4444-4444-8444-444444444444'
+    const usage = {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      totalTokens: 0,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
+    }
+    const stored = [
+      {
+        id: OLD_RUN,
+        chatId: CHAT_ID,
+        runId: OLD_RUN,
+        role: 'user',
+        content: 'stored question',
+        createdAt: new Date(1000)
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        chatId: CHAT_ID,
+        runId: OLD_RUN,
+        role: 'assistant',
+        content: [{ type: 'text', text: 'stored answer' }],
+        usage,
+        api: 'a',
+        provider: 'p',
+        model: 'm',
+        stopReason: 'stop',
+        createdAt: new Date(2000)
+      }
+    ]
+
+    async function send(body: Record<string, unknown>) {
+      const faux = registerFauxProvider()
+      let seen: unknown[] = []
+      faux.setResponses([
+        (ctx) => {
+          seen = ctx.messages
+          return fauxAssistantMessage([fauxText('Sunny.')])
+        }
+      ])
+      getModelFromProviderMock.mockReturnValue({
+        model: faux.getModel(),
+        apiKey: 'k'
+      })
+      vi.mocked(getMessagesByChatId).mockResolvedValue(stored as never)
+      const response = await buildAppLcmOff().request('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: CHAT_ID, advancedTools: [], ...body })
+      })
+      const events = sseEvents(await response.text())
+      vi.mocked(getMessagesByChatId).mockResolvedValue([])
+      return { seen, events, status: response.status }
+    }
+
+    const texts = (messages: unknown[]) =>
+      messages.map((m) => {
+        const c = (m as { content: unknown }).content
+        return typeof c === 'string'
+          ? c
+          : (c as Array<{ text?: string }>).map((p) => p.text ?? '').join('')
+      })
+
+    it('takes the context from the database, not from what was posted', async () => {
+      const { seen } = await send({
+        messages: [
+          {
+            id: '66666666-6666-4666-8666-666666666666',
+            role: 'user',
+            content: 'a history the client made up',
+            timestamp: 1
+          },
+          { id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }
+        ]
+      })
+      expect(texts(seen)).toEqual(['stored question', 'stored answer', 'hi'])
+    })
+
+    it('takes a send that carries only the new message', async () => {
+      const { seen, status } = await send({
+        message: { id: USER_ID, role: 'user', content: 'hi' }
+      })
+      expect(status).toBe(200)
+      expect(texts(seen)).toEqual(['stored question', 'stored answer', 'hi'])
+    })
+
+    // A client that says protocol 2 merges: `done` carries this run and the
+    // stored regenerate states, not the whole conversation again.
+    it('answers protocol 2 with the run and the attempt states only', async () => {
+      const { events } = await send({
+        message: { id: USER_ID, role: 'user', content: 'hi' },
+        protocol: 2
+      })
+      const done = events.find((e) => e.type === 'done') as {
+        messages: Array<{ role: string; runId: string }>
+        attempts: Record<string, unknown>
+      }
+      expect(done.messages.every((m) => m.runId === USER_ID)).toBe(true)
+      expect(done.messages.some((m) => m.role === 'user')).toBe(true)
+      expect(done.attempts).toEqual({})
+    })
+
+    // An old client still gets the whole conversation back — now read from
+    // the database.
+    it('echoes the whole conversation to a client that does not say', async () => {
+      const { events } = await send({
+        messages: [{ id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }]
+      })
+      const done = events.find((e) => e.type === 'done') as {
+        messages: Array<{ id: string }>
+      }
+      expect(done.messages[0].id).toBe(OLD_RUN)
+    })
+  })
+
+  // Every read orders by createdAt; a phone whose clock is off sorted its
+  // question before earlier answers (audit, 2026-10-01).
+  it('stamps the question with the server’s clock, not the client’s', async () => {
+    const faux = registerFauxProvider()
+    faux.setResponses([fauxAssistantMessage([fauxText('Sunny.')])])
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: 'k'
+    })
+    const before = Date.now()
+    await (
+      await buildApp().request('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: CHAT_ID,
+          messages: [
+            { id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }
+          ],
+          advancedTools: []
+        })
+      })
+    ).text()
+    const rows = saveMessages.mock.calls.flatMap(
+      (call) =>
+        (
+          call as unknown as [{ messages: { id: string; createdAt: Date }[] }]
+        )[0].messages
+    )
+    const question = rows.find((r) => r.id === USER_ID)
+    expect(question?.createdAt.getTime()).toBeGreaterThanOrEqual(before)
   })
 
   it('in Deep Research mode runs no read filter and sends no memories_used — its prompt carries no memories', async () => {

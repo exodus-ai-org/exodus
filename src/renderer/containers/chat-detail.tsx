@@ -3,13 +3,15 @@ import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
 
 import { Chat } from '@/components/chat'
-import { useChatHistory, useChatMessages } from '@/hooks/use-chat-history'
+import { TranscriptSkeleton } from '@/components/chat/transcript-skeleton'
+import { useChatHistory, useChatPage } from '@/hooks/use-chat-history'
 import { convertToUIMessages } from '@/lib/utils'
 import { openTabsAtom } from '@/stores/chat'
 
 export function ChatDetail() {
   const { id } = useParams()
-  const { data: messagesFromDb, isFresh } = useChatMessages(id)
+  // The newest page; older ones load as the user scrolls up (`useOlderPages`).
+  const { data: page, isFresh } = useChatPage(id)
   const { data: history } = useChatHistory()
   const setOpenTabs = useSetAtom(openTabsAtom)
 
@@ -25,19 +27,21 @@ export function ChatDetail() {
   }, [id, history, setOpenTabs])
 
   const initialMessages = useMemo(
-    () => convertToUIMessages(messagesFromDb ?? []),
-    [messagesFromDb]
+    () => convertToUIMessages(page?.messages ?? []),
+    [page]
   )
 
   const chatRecord = history?.find((c) => c.id === id)
 
-  if (!id || !isFresh || !messagesFromDb) return null
+  if (!id) return null
+  if (!isFresh || !page) return <TranscriptSkeleton />
 
   return (
     <Chat
       key={id}
       id={id}
       initialMessages={initialMessages}
+      history={page}
       chatTitle={chatRecord?.title ?? 'New chat'}
     />
   )

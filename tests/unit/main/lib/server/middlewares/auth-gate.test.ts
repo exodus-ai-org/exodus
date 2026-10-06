@@ -7,6 +7,11 @@ vi.mock('@main/lib/lan/devices', () => ({
   )
 }))
 
+const takeRevoked = vi.fn((token: string) => token === 'revoked')
+vi.mock('@main/lib/lan/revoked', () => ({ takeRevoked }))
+const syncLan = vi.fn(async () => {})
+vi.mock('@main/lib/lan', () => ({ syncLan }))
+
 const { authGate } = await import('@main/lib/server/middlewares/auth-gate')
 
 const app = new Hono<{ Variables: { deviceId?: string } }>()
@@ -39,6 +44,21 @@ describe('authGate', () => {
     const res = await app.request('/api/v1/history', init, lan)
     expect(res.status).toBe(401)
     expect((await res.json()).error.code).toBe('UNAUTHORIZED')
+  })
+
+  // Revoked on the computer: this 401 is how the phone learns it and unpairs.
+  // The record is used up, and the listener checks whether it is still wanted.
+  it('tells a revoked device once, and lets the listener go', async () => {
+    const res = await app.request('/api/v1/history', bearer('revoked'), lan)
+    expect(res.status).toBe(401)
+    expect(takeRevoked).toHaveBeenCalledWith('revoked')
+    expect(syncLan).toHaveBeenCalled()
+  })
+
+  it('does not touch the listener for an unknown token', async () => {
+    syncLan.mockClear()
+    await app.request('/api/v1/history', bearer('nope'), lan)
+    expect(syncLan).not.toHaveBeenCalled()
   })
 
   it('serves a paired device and records who it is', async () => {

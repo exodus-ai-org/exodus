@@ -91,6 +91,13 @@ describe('skills-manager (seam)', () => {
     expect(index).not.toContain('empty') // blank body skipped
     expect(index).not.toContain('missing') // no SKILL.md on disk
     expect(lines).toHaveLength(3)
+    // By slug, whatever order the lockfile holds them in: the index is part
+    // of the system prompt, which the provider caches by its exact bytes.
+    expect(lines.map((l) => l.slice(2, l.indexOf(':')))).toEqual([
+      'alpha',
+      'bare',
+      'folded'
+    ])
 
     // By-slug ignores the active flag (a Philharmonic agent's explicit pick)
     // and preserves the requested order.

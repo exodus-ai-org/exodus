@@ -93,6 +93,15 @@ export function getSecretsReentryPath(): string {
   return join(getExodusHome(), 'secrets-reentry.json')
 }
 
+/**
+ * Devices revoked on the computer that have not been told yet, as token
+ * hashes (`lan/revoked.ts`): the LAN listener stays up for them, so the phone
+ * gets its 401 and unpairs instead of finding nothing there.
+ */
+export function getRevokedDevicesPath(): string {
+  return join(getExodusHome(), 'lan-revoked.json')
+}
+
 /** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
 export function getAnalyticsDir(): string {
   const dir = join(getExodusHome(), 'analytics')

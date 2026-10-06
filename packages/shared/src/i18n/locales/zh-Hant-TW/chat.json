@@ -40,6 +40,11 @@
     "moreImages": "顯示其餘 {{count}} 張",
     "showMore": "顯示更多"
   },
+  "history": {
+    "olderFailed": "無法載入較早的訊息",
+    "loadingOlder": "正在載入較早的訊息",
+    "loading": "正在載入對話"
+  },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}} 天",
     "mapItineraryStopCount_other": "{{count}} 個停留點",

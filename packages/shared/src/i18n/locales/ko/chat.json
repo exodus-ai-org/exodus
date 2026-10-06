@@ -40,6 +40,11 @@
     "moreImages": "{{count}}개 더 보기",
     "showMore": "더 보기"
   },
+  "history": {
+    "olderFailed": "이전 메시지를 불러오지 못했습니다",
+    "loadingOlder": "이전 메시지를 불러오는 중",
+    "loading": "대화를 불러오는 중"
+  },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}}일",
     "mapItineraryStopCount_other": "{{count}}개 경유지",

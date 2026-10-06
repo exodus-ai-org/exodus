@@ -4,9 +4,11 @@ import type {
   ChatMessage
 } from '@exodus/shared/types/chat'
 
+import { saveChatSources, sourcesOfRows } from '../../chat/sources'
 import { saveMessages } from '../../db/queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { toDbRow } from '../../server/routes/chat-persistence'
+import { trackContextMessages } from '../context-management'
 import type { KernelEvent } from './events'
 
 export interface RecorderDeps {
@@ -19,8 +21,6 @@ export interface RecorderDeps {
   memoryCapture: boolean
   /** Search indexing for one saved row (a no-op unless Elasticsearch is on). */
   indexMessage: (row: ReturnType<typeof toDbRow>) => void
-  /** The conversation before this run, for the memory job's payload. */
-  priorMessages: ChatMessage[]
 }
 
 /**
@@ -53,8 +53,7 @@ export class RunRecorder {
   async persist(): Promise<void> {
     if (this.persisted || this.done.length === 0) return
     this.persisted = true
-    const { chatId, model, lcm, memoryCapture, indexMessage, priorMessages } =
-      this.deps
+    const { chatId, model, lcm, memoryCapture, indexMessage } = this.deps
 
     // "Worked for X seconds" reads the last assistant message of the run.
     for (let i = this.done.length - 1; i >= 0; i--) {
@@ -77,26 +76,32 @@ export class RunRecorder {
       }
     }
     await saveMessages({ messages: rows })
+    // The run's numbered sources, for `recall` and the next run's numbering.
+    await saveChatSources(sourcesOfRows(rows))
     for (const row of rows) indexMessage(row)
 
     if (lcm) {
+      // Into the context now, not from the queue: a follow-up sent a second
+      // later must see this run, and tracking needs no model or key. Only
+      // compaction waits for the queue.
+      await trackContextMessages(
+        chatId,
+        this.done.map((m) => ({ id: m.id, content: m.content }))
+      )
       enqueueAndProcess('lcm-post-turn', {
         chatId,
         model,
         freshTailRuns: lcm.freshTailRuns,
-        contextWindowPercent: lcm.contextWindowPercent,
-        newMessages: this.done.map((m) => ({ id: m.id, content: m.content }))
+        contextWindowPercent: lcm.contextWindowPercent
       }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
     }
 
     if (memoryCapture) {
-      enqueueAndProcess('memory-consolidate', {
-        messages: [...priorMessages, ...this.done].map((m) => ({
-          role: m.role,
-          content: m.content
-        })),
-        model
-      }).catch((error) => logEnqueueFailure('memory-consolidate', error))
+      // The handler reads the conversation when it runs; a job no longer
+      // carries a whole conversation through the queue every turn.
+      enqueueAndProcess('memory-consolidate', { chatId, model }).catch(
+        (error) => logEnqueueFailure('memory-consolidate', error)
+      )
     }
   }
 }

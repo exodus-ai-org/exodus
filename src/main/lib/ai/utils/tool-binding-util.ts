@@ -21,6 +21,7 @@ import {
   listDirectory,
   mapItinerary,
   readFile,
+  recall,
   searchKnowledgeBase,
   terminal,
   updateMemory,
@@ -125,6 +126,10 @@ export function bindCallingTools({
       tools.push(lcmExpand(chatModel, apiKey, chatId))
     }
   }
+
+  // What an aged digest of an earlier run points back to (`aging.ts`): a
+  // chat's own stored calls and sources. Philharmonic keeps no such rows.
+  if (chatId && enabled(TOOL_NAMES.recall)) tools.push(recall(chatId))
 
   // Only for a chat (needs a model + key to run the instruction engine, and
   // a chatId so this isn't Philharmonic, which keeps its own agent memory).

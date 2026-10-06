@@ -138,7 +138,12 @@ function clip(text: string): string {
 export async function getActiveSkillsIndex(): Promise<string> {
   const lock = await readLockfile()
   const lines: string[] = []
-  for (const [slug, info] of Object.entries(lock.skills)) {
+  // By slug: the index is part of the system prompt, which the provider
+  // caches by its exact bytes — the lockfile's order is install order.
+  const entries = Object.entries(lock.skills).toSorted(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0
+  )
+  for (const [slug, info] of entries) {
     if (!info.isActive) continue
     const file = join(info.installPath, 'SKILL.md')
     let content: string

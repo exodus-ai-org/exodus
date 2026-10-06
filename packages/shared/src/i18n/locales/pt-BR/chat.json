@@ -40,6 +40,11 @@
     "moreImages": "Mostrar mais {{count}}",
     "showMore": "Mostrar mais"
   },
+  "history": {
+    "olderFailed": "Não foi possível carregar as mensagens anteriores",
+    "loadingOlder": "Carregando mensagens anteriores",
+    "loading": "Carregando a conversa"
+  },
   "toolPreview": {
     "mapItineraryDayCount_one": "{{count}} dia",
     "mapItineraryDayCount_other": "{{count}} dias",

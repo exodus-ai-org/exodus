@@ -10,6 +10,7 @@ import {
   createMemory,
   getActiveMemories,
   getAllMemories,
+  getMemoryUsageByChat,
   hardDeleteMemory,
   logMemoryUsage,
   softDeleteMemory,
@@ -20,6 +21,7 @@ import {
 } from '../../db/memory-queries'
 import { logger } from '../../logger'
 import { completeSimple } from '../utils/complete'
+import { runMemoryBlocks } from './run-memory'
 
 export const LOCAL_USER_ID = '00000000-0000-0000-0000-000000000001'
 
@@ -462,11 +464,16 @@ export async function loadRelevantMemories(
   }
 }
 
-export function formatMemoriesForSystem(memories: MemoryRow[]): string {
-  if (memories.length === 0) return ''
-  const blocks = memories.map((m) => {
-    const bullets = m.details.map((d) => `- ${d}`).join('\n')
-    return `## ${m.key} (${m.section})\n${m.summary}${bullets ? `\n${bullets}` : ''}`
-  })
-  return `\n\n<user_memory>\nThe user's saved memory:\n\n${blocks.join('\n\n')}\n</user_memory>`
+/**
+ * Every past run's memory block for a chat (`run-memory.ts`): what the read
+ * filter chose for each run, rendered with the entries as they are now.
+ */
+export async function loadRunMemoryBlocks(
+  chatId: string
+): Promise<Map<string, string>> {
+  const [usage, current] = await Promise.all([
+    getMemoryUsageByChat(chatId),
+    getAllMemories(LOCAL_USER_ID)
+  ])
+  return runMemoryBlocks(usage, current)
 }

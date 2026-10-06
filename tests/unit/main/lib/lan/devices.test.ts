@@ -37,10 +37,15 @@ vi.mock('@main/lib/db/device-queries', () => ({
   touchDevice
 }))
 
+const rememberRevoked = vi.fn()
+const clearRevoked = vi.fn()
+vi.mock('@main/lib/lan/revoked', () => ({ rememberRevoked, clearRevoked }))
+
 const {
   authenticate,
   hashToken,
   hasDevices,
+  leaveDevice,
   listDevices,
   mintToken,
   registerDevice,
@@ -105,6 +110,32 @@ describe('devices', () => {
 
     expect(await authenticate(token)).toBeNull()
     expect(await hasDevices()).toBe(false)
+  })
+
+  // The device is told on its next request (authGate answers the revoked
+  // token), which keeps the LAN listener up until then.
+  it('keeps a record of a revoked device until it is told', async () => {
+    const { deviceId, token } = await registerDevice('iPhone')
+    await revokeDevice(deviceId)
+    expect(rememberRevoked).toHaveBeenCalledWith([hashToken(token)])
+  })
+
+  // A reset also replaces the certificate: no phone can complete a TLS
+  // handshake to be told, so records would only hold the listener up.
+  it('keeps no record after a reset, and drops the ones it had', async () => {
+    await registerDevice('iPhone')
+    vi.clearAllMocks()
+    await revokeAllDevices()
+    expect(rememberRevoked).not.toHaveBeenCalled()
+    expect(clearRevoked).toHaveBeenCalled()
+  })
+
+  // The phone unpairing itself already knows: nothing to tell it.
+  it('keeps no record of a device that left by itself', async () => {
+    const { deviceId, token } = await registerDevice('iPhone')
+    await leaveDevice(deviceId)
+    expect(await authenticate(token)).toBeNull()
+    expect(rememberRevoked).not.toHaveBeenCalled()
   })
 
   it('reads the table once for many requests', async () => {

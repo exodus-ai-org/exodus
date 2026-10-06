@@ -4,7 +4,12 @@ import type { Model } from '@earendil-works/pi-ai'
 
 import type { LcmContextItem } from '../../db/schema'
 import { completeSimple } from '../utils/complete'
-import { contextRuns, type RunGroup } from './context-assembler'
+import { digestAll } from './aging'
+import {
+  contextRuns,
+  dbMessageToLlmMessage,
+  type RunGroup
+} from './context-assembler'
 import { getSummaryPromptForDepth } from './prompts'
 import {
   getContextItems,
@@ -179,18 +184,20 @@ export async function runLeafPass(
 
   if (chunkItems.length === 0) return false
 
-  // Build conversation text
-  const chunkMessages: Array<{ role: string; text: string; ts: Date }> = []
+  // Build conversation text. Tool output goes in as its digest (`aging.ts`):
+  // a search dump is not paid for a second time, and sources stay cited by
+  // number, which `recall` resolves.
+  const rows = []
   for (const item of chunkItems) {
     const msg = await getMessageById(item.refId)
-    if (msg) {
-      chunkMessages.push({
-        role: msg.role,
-        text: extractText(msg.content),
-        ts: msg.createdAt
-      })
-    }
+    if (msg) rows.push(msg)
   }
+  const digested = digestAll(rows.map(dbMessageToLlmMessage))
+  const chunkMessages = rows.map((msg, i) => ({
+    role: msg.role,
+    text: extractText(digested[i].content),
+    ts: msg.createdAt
+  }))
 
   const userContent = chunkMessages
     .map((m) => `[${m.role.toUpperCase()} @ ${m.ts.toISOString()}]\n${m.text}`)

@@ -77,6 +77,8 @@ test.describe('regenerate compares two answers', () => {
   }) => {
     await electronApp.evaluate(({ BrowserWindow }) => {
       const [win] = BrowserWindow.getAllWindows()
+      // Below the window's own minimum (1280), which would ignore the size.
+      win?.setMinimumSize(800, 600)
       win?.setSize(900, 800)
     })
 
@@ -91,10 +93,13 @@ test.describe('regenerate compares two answers', () => {
     // The newer answer is the tab on show; the earlier one is a tab away.
     const tabs = mainWindow.getByTestId(TEST_IDS.chat.compare.tab)
     await expect(tabs).toHaveCount(2, { timeout: ANSWER_TIMEOUT })
-    await expect(mainWindow.getByText(/^Take \d+:/)).toHaveCount(1)
-    const shown = await mainWindow.getByText(/^Take \d+:/).textContent()
+    // The tab not on show stays mounted, hidden: what is read is what shows.
+    const onShow = mainWindow.getByText(/^Take \d+:/).filter({ visible: true })
+    await expect(onShow).toHaveCount(1)
+    const shown = await onShow.textContent()
     await tabs.first().click()
-    await expect(mainWindow.getByText(/^Take \d+:/)).not.toHaveText(shown!)
+    await expect(onShow).toHaveCount(1)
+    await expect(onShow).not.toHaveText(shown!)
 
     // A new message settles the comparison: the newer answer is kept.
     await composer.fill('thanks')

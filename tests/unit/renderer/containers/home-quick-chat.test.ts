@@ -28,6 +28,16 @@ vi.mock('@/hooks/use-chat', () => ({
 vi.mock('@/hooks/use-attempts', () => ({
   useChooseAttempt: () => ({ choose: () => {}, isPending: false })
 }))
+vi.mock('@/hooks/use-older-pages', () => ({
+  useOlderPages: () => ({
+    hasOlder: false,
+    loadingOlder: false,
+    loadOlder: () => Promise.resolve(),
+    olderSources: [],
+    olderQuestions: [],
+    historyIds: new Set()
+  })
+}))
 vi.mock('@/components/messages', () => ({ default: () => null }))
 vi.mock('@/components/multimodel-input', () => ({ default: () => null }))
 vi.mock('@/components/chat/lcm-status-card', () => ({

@@ -665,6 +665,16 @@ html:lang(ko) {
   #root {
     height: 100%;
   }
+  /* The main window's shell never scrolls — every page scrolls in a region of
+     its own. An absolutely positioned element with no positioned ancestor
+     (a SecretInput's sr-only label on a long Settings page) otherwise grew
+     the document, and the whole window, sidebar and all, scrolled up
+     (2026-09-30). Only the main window: the artifact sandbox shares this
+     sheet and its pages scroll. */
+  .app-shell,
+  .app-shell body {
+    overflow: hidden;
+  }
   body {
     @apply text-foreground bg-transparent;
   }

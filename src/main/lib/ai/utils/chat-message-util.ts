@@ -1,6 +1,7 @@
 import type { Model, TextContent } from '@earendil-works/pi-ai'
 import type { ChatMessage } from '@exodus/shared/types/chat'
 
+import { logger } from '../../logger'
 import { titleGenerationPrompt } from '../prompts'
 import { completeSimple } from './complete'
 
@@ -13,6 +14,10 @@ export {
 export { bindCallingTools } from './tool-binding-util'
 
 const TITLE_FALLBACK_CHARS = 60
+/** Longer than this, what came back is not a title — the model answered. */
+const TITLE_MAX_CHARS = 80
+/** The opening of the message is enough to name it. */
+const TITLE_INPUT_CHARS = 4000
 
 function extractText(content: Array<{ type: string; text?: string }>): string {
   return content
@@ -55,7 +60,13 @@ export async function generateTitleFromUserMessage({
         messages: [
           {
             role: 'user',
-            content: [{ type: 'text', text: userText }],
+            // In tags, so a question reads as something to name, not to answer
+            content: [
+              {
+                type: 'text',
+                text: `<message>\n${userText.slice(0, TITLE_INPUT_CHARS)}\n</message>`
+              }
+            ],
             timestamp: Date.now()
           }
         ]
@@ -63,12 +74,38 @@ export async function generateTitleFromUserMessage({
       { apiKey }
     )
 
-    const title = extractText(result.content)
-      .replace(/^[#*"\s]+/, '')
-      .replace(/["]+$/, '')
-      .trim()
+    const title = cleanTitle(extractText(result.content))
+    if (title === null) {
+      logger.warn(
+        'chat',
+        'Title request answered the message; using its opening',
+        {
+          length: extractText(result.content).length
+        }
+      )
+      return fallback
+    }
     return title || fallback
   } catch {
     return fallback
   }
+}
+
+/**
+ * The title in what the model sent back, or `null` when it is not one: more
+ * than one line, or longer than `TITLE_MAX_CHARS` — the model answered the
+ * message instead of naming it (a question in the first message invites that).
+ */
+export function cleanTitle(raw: string): string | null {
+  const lines = raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (lines.length > 1) return null
+  const title = (lines[0] ?? '')
+    .replace(/^[#*"'“”「『\s]+/, '')
+    .replace(/[*"'“”」』\s]+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return title.length > TITLE_MAX_CHARS ? null : title
 }

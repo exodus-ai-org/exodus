@@ -27,6 +27,12 @@ export interface AssembledContext {
   totalTokens: number
   /** IDs of messages already tracked in lcm_context_items (for deduplication when appending) */
   trackedMessageIds: Set<string>
+  /**
+   * Aligned with `messages`: the run id where that message is the run's own
+   * user message (its question), else null — a summary, an answer, a tool
+   * result. The route puts each run's memory block before its question.
+   */
+  runHeads: (string | null)[]
 }
 
 /**
@@ -124,17 +130,21 @@ export async function assembleContext(
   )
 
   if (items.length === 0) {
-    return { messages: [], totalTokens: 0, trackedMessageIds }
+    return { messages: [], totalTokens: 0, trackedMessageIds, runHeads: [] }
   }
 
   const rows = await getMessagesByIds(Array.from(trackedMessageIds))
   const rowById = new Map(rows.map((m) => [m.id, m]))
   const runs = contextRuns(items, rows, current)
 
-  const materialize = async (
-    group: RunGroup
-  ): Promise<{ messages: Message[]; tokens: number }> => {
+  type Materialized = {
+    messages: Message[]
+    heads: (string | null)[]
+    tokens: number
+  }
+  const materialize = async (group: RunGroup): Promise<Materialized> => {
     const out: Message[] = []
+    const heads: (string | null)[] = []
     let tokens = 0
     for (const item of group.items) {
       if (item.kind === 'message') {
@@ -142,14 +152,18 @@ export async function assembleContext(
         if (!row) continue
         tokens += item.tokenCount ?? estimateMessageTokens(row.content)
         out.push(dbMessageToLlmMessage(row))
+        heads.push(
+          row.role === 'user' && row.id === row.runId ? row.runId : null
+        )
       } else {
         const [summary] = await getSummariesByIds([item.refId])
         if (!summary) continue
         tokens += item.tokenCount ?? estimateTokens(summary.content)
         out.push(summaryToMessage(summary, await getParentIds(summary.id)))
+        heads.push(null)
       }
     }
-    return { messages: out, tokens }
+    return { messages: out, heads, tokens }
   }
 
   // Fresh tail: the most recent N runs, always included whole.
@@ -162,39 +176,52 @@ export async function assembleContext(
   // Back-fill whole runs, newest first; the first that does not fit ends it —
   // a run is never trimmed to fit.
   let remaining = tokenBudget - freshTokens
-  const prefix: Message[][] = []
+  const prefix: Materialized[] = []
   let prefixTokens = 0
   for (let i = evictableRuns.length - 1; i >= 0; i--) {
     const run = await materialize(evictableRuns[i])
     if (run.tokens > remaining) break
     remaining -= run.tokens
     prefixTokens += run.tokens
-    prefix.unshift(run.messages)
+    prefix.unshift(run)
   }
 
+  const all = [...prefix, ...fresh]
   return {
-    messages: [...prefix.flat(), ...fresh.flatMap((r) => r.messages)],
+    messages: all.flatMap((r) => r.messages),
     totalTokens: prefixTokens + freshTokens,
-    trackedMessageIds
+    trackedMessageIds,
+    runHeads: all.flatMap((r) => r.heads)
   }
 }
 
 /** Convert a DB message row to a pi-ai Message (handling all roles) */
-function dbMessageToLlmMessage(msg: MessageRow): Message {
+export function dbMessageToLlmMessage(msg: MessageRow): Message {
   if (msg.role === 'toolResult') {
     return {
       role: 'toolResult',
       content: msg.content as Message['content'],
       toolCallId: msg.toolCallId ?? '',
       toolName: msg.toolName ?? '',
+      // Not sent to the provider; a past search's digest is made from it
+      // (`aging.ts`).
+      details: msg.details,
       isError: msg.isError ?? false,
       timestamp: msg.createdAt.getTime()
     } as Message
   }
   if (msg.role === 'assistant') {
+    // Who wrote it: pi compares these with the model it sends to, and an
+    // answer without them reads as another model's — its thinking turned to
+    // plain text, its signatures dropped.
     return {
       role: 'assistant',
       content: msg.content as Message['content'],
+      api: msg.api ?? undefined,
+      provider: msg.provider ?? undefined,
+      model: msg.model ?? undefined,
+      stopReason: msg.stopReason ?? 'stop',
+      ...(msg.errorMessage ? { errorMessage: msg.errorMessage } : {}),
       usage: storedUsage(msg.usage),
       timestamp: msg.createdAt.getTime()
     } as Message
@@ -207,7 +234,7 @@ function dbMessageToLlmMessage(msg: MessageRow): Message {
 }
 
 /** Seed lcm_context_items from existing messages in the DB for a chat */
-async function bootstrapContextItems(chatId: string): Promise<void> {
+export async function bootstrapContextItems(chatId: string): Promise<void> {
   const messages = await db
     .select()
     .from(messageTable)

@@ -286,6 +286,23 @@ describe('runAgent', () => {
     ])
   })
 
+  // OpenAI routes a conversation's requests to one prompt cache by this key
+  // (pi sends it as prompt_cache_key); without it, the cache is a lottery.
+  it('tells the provider which conversation this is', async () => {
+    const faux = registerFauxProvider()
+    let sessionId: string | undefined
+    faux.setResponses([
+      (_ctx, options) => {
+        sessionId = options?.sessionId
+        return fauxAssistantMessage([fauxText('ok')])
+      }
+    ])
+    await collect(
+      runAgent(input({ model: faux.getModel(), chatId: 'chat-42' }))
+    )
+    expect(sessionId).toBe('chat-42')
+  })
+
   it('convertToLlm drops a broken run from the context instead of sending it', async () => {
     const faux = registerFauxProvider()
     faux.setResponses([

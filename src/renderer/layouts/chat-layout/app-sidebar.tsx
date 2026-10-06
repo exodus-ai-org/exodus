@@ -12,7 +12,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
+  SidebarTrigger
 } from '@/components/ui/sidebar'
 import { WorkspaceSwitcher } from '@/components/workspace-switcher'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
@@ -38,14 +39,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )}
       {...props}
     >
-      <SidebarHeader
-        className={cn(
-          'draggable gap-2 pt-11 transition-[padding] duration-200 ease-out',
-          {
-            ['pt-2']: isFullscreen
-          }
-        )}
-      >
+      <SidebarHeader className="draggable gap-2 pt-2">
+        {/* The title bar's row: the sidebar toggle to the right of the traffic
+            lights, where Notes and ChatGPT keep it — at the same spot it takes
+            in the content header once the sidebar is away, so it does not
+            jump; in fullscreen the lights are gone and it moves to the edge. */}
+        <div
+          className={cn(
+            'flex h-7 items-center transition-[padding] duration-200 ease-out mt-px',
+            isFullscreen ? 'pl-2' : 'pl-21'
+          )}
+        >
+          <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+        </div>
         <div className="flex items-center px-1">
           <WorkspaceSwitcher />
         </div>

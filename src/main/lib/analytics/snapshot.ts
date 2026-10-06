@@ -4,7 +4,10 @@ import { join } from 'path'
 
 import type { DuckDBConnection } from '@duckdb/node-api'
 import type { Usage } from '@earendil-works/pi-ai'
-import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
+import {
+  CHAT_AUDIT_SCHEMA,
+  CHAT_AUDIT_SCHEMA_VERSION
+} from '@exodus/shared/constants/chat-audit-schema'
 import type { SnapshotMeta } from '@exodus/shared/types/analytics'
 
 import { db } from '../db/db'
@@ -34,6 +37,7 @@ export interface ChatSource {
 export interface MessageSource {
   id: string
   chatId: string
+  runId: string | null
   role: string
   provider: string | null
   model: string | null
@@ -77,6 +81,7 @@ export function toMessageRow(m: MessageSource) {
   return {
     id: m.id,
     chat_id: m.chatId,
+    run_id: m.runId,
     role: m.role,
     provider: m.provider,
     model: m.model,
@@ -156,6 +161,7 @@ async function readSource(): Promise<SourceRows> {
       .select({
         id: message.id,
         chatId: message.chatId,
+        runId: message.runId,
         role: message.role,
         provider: message.provider,
         model: message.model,
@@ -320,7 +326,8 @@ export async function buildSnapshot(
       { name: 'messages', rows: staged.messages.rows.length }
     ],
     logsIncluded,
-    sizeBytes: statSync(getAnalyticsDbPath()).size
+    sizeBytes: statSync(getAnalyticsDbPath()).size,
+    schemaVersion: CHAT_AUDIT_SCHEMA_VERSION
   }
   await writeFile(join(dir, META_FILE), JSON.stringify(meta, null, 2), 'utf-8')
   logger.info('analytics', 'snapshot built', {

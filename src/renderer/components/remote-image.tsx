@@ -5,6 +5,7 @@ import { ImageIcon } from 'lucide-react'
 import { createContext, useContext, useReducer } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import { cn } from '@/lib/utils'
 
 /**
@@ -153,7 +154,10 @@ export function RemoteImage({
     src !== undefined &&
     (loadsAutomatically(src, allowedUrls) || loadedRemoteImages.has(src))
 
-  if (!src || loaded) {
+  // Already here (a `data:` URL): drawn directly. From the network:
+  // `LazyLoadImage` (owner, 2026-09-30), at the picture's own size, holding
+  // room for its skeleton until it is in.
+  if (!src || (loaded && src.toLowerCase().startsWith('data:'))) {
     return (
       <img
         {...rest}
@@ -161,6 +165,18 @@ export function RemoteImage({
         alt={alt ?? ''}
         loading="lazy"
         className={cn('mb-3', className)}
+      />
+    )
+  }
+  if (loaded) {
+    return (
+      <LazyLoadImage
+        src={src}
+        alt={alt ?? ''}
+        className={cn('mb-3 inline-flex size-auto max-w-full', className)}
+        loadingClassName="h-48 w-80"
+        skeletonClassName="rounded-lg"
+        imgClassName="size-auto max-w-full object-contain"
       />
     )
   }

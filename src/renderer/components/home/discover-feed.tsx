@@ -10,6 +10,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import { SourceFavicon } from '@/components/source-favicon'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,28 +40,27 @@ function articleAge(article: DiscoverArticle): string | null {
  * height) and falls back to the source favicon on a muted tile.
  */
 function DiscoverThumb({ article }: { article: DiscoverArticle }) {
-  const [failed, setFailed] = useState(false)
-  const showImg = !!article.thumbnail && !failed
+  const favicon = (
+    <div className="flex size-full items-center justify-center">
+      <SourceFavicon
+        link={article.url}
+        favicon={article.favicon}
+        className="size-5 opacity-40 grayscale"
+      />
+    </div>
+  )
 
   return (
     <div className="bg-muted relative h-[4.5rem] w-28 shrink-0 overflow-hidden rounded-lg">
-      {showImg ? (
-        <img
+      {article.thumbnail ? (
+        <LazyLoadImage
           src={article.thumbnail}
           alt={article.title}
-          loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setFailed(true)}
-          className="size-full object-cover"
+          fallback={favicon}
         />
       ) : (
-        <div className="flex size-full items-center justify-center">
-          <SourceFavicon
-            link={article.url}
-            favicon={article.favicon}
-            className="size-5 opacity-40 grayscale"
-          />
-        </div>
+        favicon
       )}
     </div>
   )

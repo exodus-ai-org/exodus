@@ -8,6 +8,7 @@ import {
   useRef
 } from 'react'
 
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import { cn } from '@/lib/utils'
 
 import { buildPlacePhotoUrl, type ItineraryPlace } from './types'
@@ -165,12 +166,7 @@ const ThumbnailPin = memo(function ThumbnailPin({
               focused && 'ring-primary-ink ring-2'
             )}
           >
-            <img
-              src={photoUrl}
-              alt=""
-              loading="lazy"
-              className="size-full object-cover"
-            />
+            <LazyLoadImage src={photoUrl} alt="" />
           </div>
         ) : (
           <div

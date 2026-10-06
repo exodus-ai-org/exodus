@@ -17,6 +17,7 @@ vi.mock('@main/lib/logger/trace-context', () => ({
 }))
 
 vi.mock('@main/lib/ai/context-management', () => ({
+  trackContextMessages: vi.fn(async () => {}),
   freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
@@ -26,8 +27,8 @@ vi.mock('@main/lib/ai/context-management', () => ({
 }))
 vi.mock('@main/lib/ai/mcp', () => ({ getMcpTools: vi.fn(async () => []) }))
 vi.mock('@main/lib/ai/memory/manager', () => ({
-  loadRelevantMemories: vi.fn(async () => []),
-  formatMemoriesForSystem: vi.fn(() => '')
+  loadRunMemoryBlocks: vi.fn(async () => new Map()),
+  loadRelevantMemories: vi.fn(async () => [])
 }))
 vi.mock('@main/lib/ai/prompts', () => ({
   buildPersonalityPrompt: vi.fn(() => ''),
@@ -57,6 +58,11 @@ vi.mock('@main/lib/chat/attempts', () => ({
   settleOpenComparison: vi.fn(async () => {})
 }))
 const saveMessages = vi.fn<(arg: unknown) => Promise<void>>(async () => {})
+vi.mock('@main/lib/chat/sources', () => ({
+  highestSourceRank: () => Promise.resolve(0),
+  saveChatSources: () => Promise.resolve(),
+  sourcesOfRows: () => []
+}))
 vi.mock('@main/lib/db/queries', () => ({
   deleteChatById: vi.fn(async () => {}),
   getChatById: vi.fn(async () => ({ id: 'existing' })),

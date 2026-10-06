@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Mock modules that transitively import Electron
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
-// Mock queries + compaction so we never hit the DB or LLM.
+// Mock queries + compaction so we never hit the DB or LLM — and the database
+// module itself: imported for real, it starts a PGlite whose unfinished
+// boot outlives the file and rejects as an unhandled ErrnoError.
+vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
 vi.mock('@main/lib/ai/context-management/queries', () => ({
   getContextItems: vi.fn(),
   appendContextItem: vi.fn()

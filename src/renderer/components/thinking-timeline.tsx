@@ -7,6 +7,7 @@ import type {
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
   BrainIcon,
+  MessageSquareTextIcon,
   CheckIcon,
   ChevronDownIcon,
   CircleCheckBigIcon,
@@ -88,6 +89,8 @@ function StepIcon({
   if (step.toolName === TOOL_NAMES.webSearch)
     return <GlobeIcon size={15} className={cls} />
   if (step.type === 'thinking') return <BrainIcon size={15} className={cls} />
+  if (step.type === 'narration')
+    return <MessageSquareTextIcon size={15} className={cls} />
   return <ClockFadingIcon size={15} className={cls} />
 }
 
@@ -359,6 +362,9 @@ export function ThinkingTimeline({
                         'text-destructive'
                     )}
                   >
+                    {/* Narration is a sentence the model said while working:
+                        drawn as the other rows are, not as Markdown, whose
+                        paragraph size and colour would stand it apart. */}
                     {step.type === 'thinking' ? (
                       <Markdown src={step.text} />
                     ) : (

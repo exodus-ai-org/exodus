@@ -183,7 +183,12 @@ test.describe('LAN pairing', () => {
       .click()
     await expect(row).toHaveCount(0)
 
-    // Last device gone: the listener goes with it.
+    // The revoked phone has to be told, or it stays "paired" against a
+    // listener that is gone (`lan/revoked.ts`): the listener stays up for
+    // it, answers its token 401 once — and only then goes, the last device
+    // gone.
+    expect(await canConnect('127.0.0.1', LAN_PORT)).toBe(true)
+    expect((await pinned(pin, '/api/v1/history', { token })).status).toBe(401)
     await expect.poll(() => canConnect('127.0.0.1', LAN_PORT)).toBe(false)
   })
 

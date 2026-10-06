@@ -442,6 +442,7 @@ export async function resetAllData() {
     'memory',
     'agent_memory',
     'agent',
+    'chat_source',
     'message',
     'chat'
   ]

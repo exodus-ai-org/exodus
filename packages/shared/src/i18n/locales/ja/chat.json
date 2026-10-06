@@ -40,6 +40,11 @@
     "moreImages": "さらに{{count}}件を表示",
     "showMore": "もっと見る"
   },
+  "history": {
+    "olderFailed": "以前のメッセージを読み込めませんでした",
+    "loadingOlder": "以前のメッセージを読み込んでいます",
+    "loading": "会話を読み込んでいます"
+  },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}}日間",
     "mapItineraryStopCount_other": "{{count}}件の立ち寄り先",

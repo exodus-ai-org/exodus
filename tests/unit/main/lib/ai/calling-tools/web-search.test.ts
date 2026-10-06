@@ -151,3 +151,23 @@ describe('webSearch tool', () => {
     expect(output.content[0].text).toContain('https://example.com/image.jpg')
   })
 })
+
+// The providers cache a request by its prefix — tools, then system, then
+// messages. A description that changed on every request (it ended with the
+// millisecond time) re-wrote the whole cache on every message, at 1.25×,
+// instead of reading it at 0.1× (2026-10-01). The date is in the system
+// prompt, at day granularity.
+describe('webSearch — a description that caches', () => {
+  it('is the same on every request', () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-10-01T08:00:00.000Z'))
+      const first = webSearch(settings).description
+      vi.setSystemTime(new Date('2026-10-01T08:03:17.456Z'))
+      const second = webSearch(settings).description
+      expect(second).toBe(first)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
