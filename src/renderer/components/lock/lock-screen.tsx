@@ -76,6 +76,8 @@ export function LockScreen({
 
   return (
     <div className="bg-background text-foreground fixed inset-0 z-[100] flex flex-col items-center justify-center gap-10">
+      {/* Frameless-window drag strip: the window can be moved while locked. */}
+      <div className="draggable absolute inset-x-0 top-0 h-16" />
       <div className="text-center">
         <div className="text-5xl font-extralight tabular-nums">
           {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -106,7 +108,7 @@ export function LockScreen({
           size="sm"
           data-testid={TEST_IDS.lock.touchIdButton}
           onClick={tryTouchId}
-          className="text-muted-foreground"
+          className="no-drag text-muted-foreground"
         >
           <FingerprintIcon size={18} /> {t('screen.unlockWithTouchId')}
         </Button>
