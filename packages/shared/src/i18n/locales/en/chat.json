@@ -217,15 +217,6 @@
       "copyId": "Copy conversation ID",
       "idCopied": "Conversation ID copied"
     },
-    "projects": {
-      "title": "Projects",
-      "newProject": "New project",
-      "editProject": "Edit project",
-      "createTitle": "Create Project",
-      "namePlaceholder": "Project name",
-      "deleteTitle": "Delete project?",
-      "deleteDescription": "This will permanently delete \"{{name}}\" and all its chats. This action cannot be undone."
-    },
     "renameDialog": {
       "title": "Rename Chat",
       "submit": "Submit"
@@ -238,38 +229,6 @@
       "placeholder": "Search Chat...",
       "ariaLabel": "Search chat messages",
       "noContents": "No contents"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "Project name",
-    "descriptionPlaceholder": "Add a description...",
-    "saveChanges": "Save changes",
-    "tabs": {
-      "chats": "Chats ({{count}})",
-      "instructions": "Instructions",
-      "knowledgeComingSoon": "Knowledge (Phase 2)"
-    },
-    "newChatButton": "New Chat in Project",
-    "emptyChats": "No chats in this project yet. Start a new chat to get going.",
-    "customInstructionsLabel": "Custom Instructions",
-    "instructionsPlaceholder": "Tell the AI how to behave in this project...",
-    "useStructuredLabel": "Use structured instructions",
-    "structuredFields": {
-      "role": "Role",
-      "tone": "Tone",
-      "responseFormat": "Response Format",
-      "constraints": "Constraints"
-    },
-    "structuredPlaceholders": {
-      "role": "e.g., Senior engineer, Writing tutor",
-      "tone": "e.g., Formal, Casual, Technical",
-      "responseFormat": "e.g., Bullet points, Detailed paragraphs",
-      "constraints": "e.g., Keep responses under 200 words"
-    },
-    "toast": {
-      "createdTitle": "Project created",
-      "updatedTitle": "Project updated",
-      "deletedTitle": "Project deleted"
     }
   },
   "run": {

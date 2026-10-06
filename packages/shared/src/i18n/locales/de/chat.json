@@ -217,15 +217,6 @@
       "copyId": "Unterhaltungs-ID kopieren",
       "idCopied": "Unterhaltungs-ID kopiert"
     },
-    "projects": {
-      "title": "Projekte",
-      "newProject": "Neues Projekt",
-      "editProject": "Projekt bearbeiten",
-      "createTitle": "Projekt erstellen",
-      "namePlaceholder": "Projektname",
-      "deleteTitle": "Projekt löschen?",
-      "deleteDescription": "Dadurch werden „{{name}}“ und alle zugehörigen Chats dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
-    },
     "renameDialog": {
       "title": "Chat umbenennen",
       "submit": "Speichern"
@@ -238,38 +229,6 @@
       "placeholder": "Chat durchsuchen…",
       "ariaLabel": "Chat-Nachrichten durchsuchen",
       "noContents": "Keine Inhalte"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "Projektname",
-    "descriptionPlaceholder": "Beschreibung hinzufügen…",
-    "saveChanges": "Änderungen speichern",
-    "tabs": {
-      "chats": "Chats ({{count}})",
-      "instructions": "Anweisungen",
-      "knowledgeComingSoon": "Wissen (Phase 2)"
-    },
-    "newChatButton": "Neuer Chat im Projekt",
-    "emptyChats": "Noch keine Chats in diesem Projekt. Starten Sie einen neuen Chat, um loszulegen.",
-    "customInstructionsLabel": "Benutzerdefinierte Anweisungen",
-    "instructionsPlaceholder": "Beschreiben Sie, wie sich die KI in diesem Projekt verhalten soll…",
-    "useStructuredLabel": "Strukturierte Anweisungen verwenden",
-    "structuredFields": {
-      "role": "Rolle",
-      "tone": "Ton",
-      "responseFormat": "Antwortformat",
-      "constraints": "Einschränkungen"
-    },
-    "structuredPlaceholders": {
-      "role": "z. B. Senior-Entwickler, Schreibtutor",
-      "tone": "z. B. Formell, Locker, Technisch",
-      "responseFormat": "z. B. Stichpunkte, ausführliche Absätze",
-      "constraints": "z. B. Antworten auf maximal 200 Wörter begrenzen"
-    },
-    "toast": {
-      "createdTitle": "Projekt erstellt",
-      "updatedTitle": "Projekt aktualisiert",
-      "deletedTitle": "Projekt gelöscht"
     }
   },
   "run": {

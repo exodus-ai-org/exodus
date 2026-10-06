@@ -47,8 +47,8 @@ each searchable chat message, Exodus writes:
 | `searchText` | string          | The actual message text — **this is the field your analyzer choice affects** |
 | `createdAt`  | date (ISO 8601) | When the message was created                                                 |
 
-`chatId` is only ever used for exact-match deletion (when a chat or
-project is deleted), never for full-text search — its mapping doesn't
+`chatId` is only ever used for exact-match deletion (when a chat is
+deleted), never for full-text search — its mapping doesn't
 matter for search quality. `searchText` is the field to get right.
 
 ## Step 1: Create the index with an explicit mapping

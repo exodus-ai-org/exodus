@@ -942,7 +942,7 @@
     "snapshot": {
       "title": "Snapshot",
       "none": "No snapshot yet",
-      "noneHint": "Build one to copy your chats, messages and projects into a DuckDB file.",
+      "noneHint": "Build one to copy your chats and messages into a DuckDB file.",
       "build": "Build snapshot",
       "rebuild": "Rebuild",
       "building": "Building…",
@@ -969,7 +969,7 @@
       "title": "Query",
       "run": "Run query",
       "running": "Running…",
-      "tables": "Tables: chats, messages, projects, logs"
+      "tables": "Tables: chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}} row",

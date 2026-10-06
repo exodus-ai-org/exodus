@@ -38,7 +38,6 @@ export function ChatDetail() {
       key={id}
       id={id}
       initialMessages={initialMessages}
-      projectId={chatRecord?.projectId ?? undefined}
       chatTitle={chatRecord?.title ?? 'New chat'}
     />
   )

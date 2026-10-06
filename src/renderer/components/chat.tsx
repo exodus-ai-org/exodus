@@ -5,13 +5,12 @@ import { useSetAtom } from 'jotai'
 import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChooseAttempt } from '@/hooks/use-attempts'
 import { useChat } from '@/hooks/use-chat'
-import { useProject } from '@/hooks/use-projects'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
@@ -20,38 +19,14 @@ import { SelectionAsk } from './chat/selection-ask'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
-function ProjectBreadcrumb({ projectId }: { projectId: string }) {
-  const { data: project } = useProject(projectId)
-
-  if (!project) return null
-
-  return (
-    <div className="flex items-center px-4 pt-3 pb-1">
-      <Link
-        to={`/project/${projectId}`}
-        className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-      >
-        {project.name} /
-      </Link>
-    </div>
-  )
-}
-
 interface Props {
   id: string
   initialMessages: ChatMessage[]
-  projectId?: string
   chatTitle: string
   showDiscover?: boolean
 }
 
-export function Chat({
-  id,
-  initialMessages,
-  projectId,
-  chatTitle,
-  showDiscover
-}: Props) {
+export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
@@ -73,10 +48,6 @@ export function Chat({
   const getReasoningEffort = useAtomCallback(
     useCallback((get) => get(reasoningEffortAtom), [])
   )
-  const projectIdRef = useRef(projectId)
-  useEffect(() => {
-    projectIdRef.current = projectId
-  }, [projectId])
 
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
@@ -103,8 +74,7 @@ export function Chat({
       id,
       messages,
       advancedTools: getAdvancedTools(),
-      reasoningEffort: getReasoningEffort(),
-      projectId: projectIdRef.current
+      reasoningEffort: getReasoningEffort()
     }),
     onFinish: () => {
       if (!routeId) {
@@ -159,7 +129,6 @@ export function Chat({
 
   return (
     <>
-      {projectId && <ProjectBreadcrumb projectId={projectId} />}
       <div className="relative flex min-h-0 flex-1 flex-col">
         <Messages
           chatId={id}

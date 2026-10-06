@@ -9,8 +9,6 @@ export const CHAT_AUDIT_SCHEMA = {
     id: 'VARCHAR',
     title: 'VARCHAR',
     favorite: 'BOOLEAN',
-    project_id: 'VARCHAR',
-    project_name: 'VARCHAR',
     created_at: 'TIMESTAMP'
   },
   messages: {
@@ -35,13 +33,6 @@ export const CHAT_AUDIT_SCHEMA = {
     duration_ms: 'BIGINT',
     created_at: 'TIMESTAMP',
     content: 'JSON'
-  },
-  projects: {
-    id: 'VARCHAR',
-    name: 'VARCHAR',
-    description: 'VARCHAR',
-    created_at: 'TIMESTAMP',
-    updated_at: 'TIMESTAMP'
   },
   /** A view over ~/.exodus/logs/*.jsonl; typed so ragged `attributes` never break inference. */
   logs: {

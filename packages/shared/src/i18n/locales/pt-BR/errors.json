@@ -29,7 +29,6 @@
     "AGENT_NOT_FOUND": "Agente ou departamento não encontrado.",
     "TASK_NOT_FOUND": "Tarefa não encontrada.",
     "MEMORY_NOT_FOUND": "Memória {{id}} não encontrada.",
-    "PROJECT_NOT_FOUND": "Projeto não encontrado.",
     "SKILL_NOT_FOUND": "Habilidade não encontrada.",
     "AUDIO_NOT_FOUND": "Arquivo de áudio não encontrado.",
     "VALIDATION_FAILED": "Falha na validação da entrada.",

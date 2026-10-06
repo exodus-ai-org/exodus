@@ -936,7 +936,7 @@
     "snapshot": {
       "title": "快照",
       "none": "尚未建立快照",
-      "noneHint": "建立快照會把對話、訊息和專案複製到一個 DuckDB 檔案。",
+      "noneHint": "建立快照會把對話和訊息複製到一個 DuckDB 檔案。",
       "build": "建立快照",
       "rebuild": "重新建立",
       "building": "建立中…",
@@ -963,7 +963,7 @@
       "title": "查詢",
       "run": "執行查詢",
       "running": "執行中…",
-      "tables": "資料表：chats、messages、projects、logs"
+      "tables": "資料表：chats、messages、logs"
     },
     "results": {
       "rowCount_one": "{{count}} 列",

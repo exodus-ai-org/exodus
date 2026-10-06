@@ -217,15 +217,6 @@
       "copyId": "Copiar ID da conversa",
       "idCopied": "ID da conversa copiado"
     },
-    "projects": {
-      "title": "Projetos",
-      "newProject": "Novo projeto",
-      "editProject": "Editar projeto",
-      "createTitle": "Criar Projeto",
-      "namePlaceholder": "Nome do projeto",
-      "deleteTitle": "Excluir projeto?",
-      "deleteDescription": "Isso excluirá permanentemente \"{{name}}\" e todos os seus chats. Esta ação não pode ser desfeita."
-    },
     "renameDialog": {
       "title": "Renomear Chat",
       "submit": "Enviar"
@@ -238,38 +229,6 @@
       "placeholder": "Pesquisar chat...",
       "ariaLabel": "Pesquisar mensagens do chat",
       "noContents": "Nenhum conteúdo"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "Nome do projeto",
-    "descriptionPlaceholder": "Adicione uma descrição...",
-    "saveChanges": "Salvar alterações",
-    "tabs": {
-      "chats": "Chats ({{count}})",
-      "instructions": "Instruções",
-      "knowledgeComingSoon": "Conhecimento (Fase 2)"
-    },
-    "newChatButton": "Novo Chat no Projeto",
-    "emptyChats": "Ainda não há chats neste projeto. Inicie um novo chat para começar.",
-    "customInstructionsLabel": "Instruções Personalizadas",
-    "instructionsPlaceholder": "Diga à IA como se comportar neste projeto...",
-    "useStructuredLabel": "Usar instruções estruturadas",
-    "structuredFields": {
-      "role": "Função",
-      "tone": "Tom",
-      "responseFormat": "Formato de Resposta",
-      "constraints": "Restrições"
-    },
-    "structuredPlaceholders": {
-      "role": "ex.: Engenheiro sênior, Tutor de redação",
-      "tone": "ex.: Formal, Casual, Técnico",
-      "responseFormat": "ex.: Tópicos, Parágrafos detalhados",
-      "constraints": "ex.: Mantenha as respostas com menos de 200 palavras"
-    },
-    "toast": {
-      "createdTitle": "Projeto criado",
-      "updatedTitle": "Projeto atualizado",
-      "deletedTitle": "Projeto excluído"
     }
   },
   "run": {

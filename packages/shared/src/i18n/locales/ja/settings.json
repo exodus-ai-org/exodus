@@ -936,7 +936,7 @@
     "snapshot": {
       "title": "スナップショット",
       "none": "スナップショットはまだありません",
-      "noneHint": "作成すると、チャット・メッセージ・プロジェクトが DuckDB ファイルにコピーされます。",
+      "noneHint": "作成すると、チャットとメッセージが DuckDB ファイルにコピーされます。",
       "build": "スナップショットを作成",
       "rebuild": "再作成",
       "building": "作成中…",
@@ -963,7 +963,7 @@
       "title": "クエリ",
       "run": "クエリを実行",
       "running": "実行中…",
-      "tables": "テーブル: chats, messages, projects, logs"
+      "tables": "テーブル: chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}} 行",

@@ -209,15 +209,6 @@
       "copyId": "会話 ID をコピー",
       "idCopied": "会話 ID をコピーしました"
     },
-    "projects": {
-      "title": "プロジェクト",
-      "newProject": "新しいプロジェクト",
-      "editProject": "プロジェクトを編集",
-      "createTitle": "プロジェクトを作成",
-      "namePlaceholder": "プロジェクト名",
-      "deleteTitle": "プロジェクトを削除しますか?",
-      "deleteDescription": "「{{name}}」とそのすべてのチャットが完全に削除されます。この操作は取り消せません。"
-    },
     "renameDialog": {
       "title": "チャット名を変更",
       "submit": "送信"
@@ -230,38 +221,6 @@
       "placeholder": "チャットを検索…",
       "ariaLabel": "チャットメッセージを検索",
       "noContents": "該当する内容がありません"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "プロジェクト名",
-    "descriptionPlaceholder": "説明を追加…",
-    "saveChanges": "変更を保存",
-    "tabs": {
-      "chats": "チャット({{count}}件)",
-      "instructions": "指示",
-      "knowledgeComingSoon": "ナレッジ(フェーズ2)"
-    },
-    "newChatButton": "プロジェクトで新しいチャット",
-    "emptyChats": "このプロジェクトにはまだチャットがありません。新しいチャットを始めましょう。",
-    "customInstructionsLabel": "カスタム指示",
-    "instructionsPlaceholder": "このプロジェクトでAIにどう振る舞ってほしいかを記入してください…",
-    "useStructuredLabel": "構造化された指示を使用",
-    "structuredFields": {
-      "role": "役割",
-      "tone": "トーン",
-      "responseFormat": "応答形式",
-      "constraints": "制約"
-    },
-    "structuredPlaceholders": {
-      "role": "例:シニアエンジニア、ライティング講師",
-      "tone": "例:フォーマル、カジュアル、テクニカル",
-      "responseFormat": "例:箇条書き、詳細な段落",
-      "constraints": "例:応答は200語以内に収める"
-    },
-    "toast": {
-      "createdTitle": "プロジェクトを作成しました",
-      "updatedTitle": "プロジェクトを更新しました",
-      "deletedTitle": "プロジェクトを削除しました"
     }
   },
   "run": {

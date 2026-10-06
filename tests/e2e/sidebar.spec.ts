@@ -25,8 +25,7 @@ test.describe('Sidebar', () => {
     const hasNavigation =
       bodyText?.includes('Settings') ||
       bodyText?.includes('New') ||
-      bodyText?.includes('Chat') ||
-      bodyText?.includes('Project')
+      bodyText?.includes('Chat')
 
     expect(hasNavigation).toBe(true)
   })

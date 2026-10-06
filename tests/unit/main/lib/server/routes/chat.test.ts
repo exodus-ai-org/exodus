@@ -60,11 +60,6 @@ vi.mock('@main/lib/ai/utils/cost', () => ({
   calculateCost: vi.fn(() => ({ total: 0 }))
 }))
 
-vi.mock('@main/lib/db/project-queries', () => ({
-  getProjectById: vi.fn(async () => null),
-  bumpProjectUpdatedAt: vi.fn(async () => {})
-}))
-
 // Regenerate-group transitions (lib/chat/attempts.ts) are tested on a real
 // PGlite in attempts.test.ts; no run here is a regenerate.
 vi.mock('@main/lib/chat/attempts', () => ({

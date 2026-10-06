@@ -1,7 +1,7 @@
 /**
  * Preset queries for Settings → Developer → Chat Audit. Labels are i18n keys
  * (`settings:chatAudit.presets.<id>`); the SQL is DuckDB dialect against the
- * snapshot tables `chats`, `messages`, `projects` and `logs` (see
+ * snapshot tables `chats`, `messages` and `logs` (see
  * src/main/lib/analytics/snapshot.ts for the columns). Every preset is
  * executed against a fixture snapshot in the unit tests.
  */

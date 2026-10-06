@@ -361,7 +361,7 @@ describe('chat namespace Phase 5 additions (en)', () => {
     expect(chat.sourcesPanel.more).toBe('More')
   })
 
-  it('has the sidebar.newChat / searchChats / history / projects / dialogs / search keys', () => {
+  it('has the sidebar.newChat / searchChats / history / dialogs / search keys', () => {
     expect(chat.sidebar.newChat).toBe('New chat')
     expect(chat.sidebar.searchChats).toBe('Search chats')
     expect(chat.sidebar.history).toMatchObject({
@@ -371,27 +371,11 @@ describe('chat namespace Phase 5 additions (en)', () => {
       chats: 'Chats',
       rename: 'Rename'
     })
-    expect(chat.sidebar.projects.deleteDescription).toContain('{{name}}')
     expect(chat.sidebar.renameDialog.title).toBe('Rename Chat')
     expect(chat.sidebar.deleteDialog.description).toBe(
       'This will delete <strong>{{title}}</strong>.'
     )
     expect(chat.sidebar.search.noContents).toBe('No contents')
-  })
-
-  it('has the projectDetail keys, including per-field structured placeholders and toasts', () => {
-    expect(chat.projectDetail.tabs.chats).toBe('Chats ({{count}})')
-    expect(chat.projectDetail.structuredFields).toMatchObject({
-      role: 'Role',
-      tone: 'Tone',
-      responseFormat: 'Response Format',
-      constraints: 'Constraints'
-    })
-    expect(chat.projectDetail.toast).toMatchObject({
-      createdTitle: 'Project created',
-      updatedTitle: 'Project updated',
-      deletedTitle: 'Project deleted'
-    })
   })
 
   it('has the extra toast keys for chat.tsx onError and stream-manager', () => {

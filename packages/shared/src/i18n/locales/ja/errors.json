@@ -29,7 +29,6 @@
     "AGENT_NOT_FOUND": "エージェントまたは部門が見つかりません。",
     "TASK_NOT_FOUND": "タスクが見つかりません。",
     "MEMORY_NOT_FOUND": "メモリー {{id}} が見つかりません。",
-    "PROJECT_NOT_FOUND": "プロジェクトが見つかりません。",
     "SKILL_NOT_FOUND": "スキルが見つかりません。",
     "AUDIO_NOT_FOUND": "音声ファイルが見つかりません。",
     "VALIDATION_FAILED": "入力の検証に失敗しました。",

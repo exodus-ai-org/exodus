@@ -217,15 +217,6 @@
       "copyId": "Copiar ID de la conversación",
       "idCopied": "ID de la conversación copiado"
     },
-    "projects": {
-      "title": "Proyectos",
-      "newProject": "Nuevo proyecto",
-      "editProject": "Editar proyecto",
-      "createTitle": "Crear proyecto",
-      "namePlaceholder": "Nombre del proyecto",
-      "deleteTitle": "¿Eliminar proyecto?",
-      "deleteDescription": "Esto eliminará permanentemente \"{{name}}\" y todos sus chats. Esta acción no se puede deshacer."
-    },
     "renameDialog": {
       "title": "Renombrar chat",
       "submit": "Enviar"
@@ -238,38 +229,6 @@
       "placeholder": "Buscar chat…",
       "ariaLabel": "Buscar mensajes del chat",
       "noContents": "Sin contenido"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "Nombre del proyecto",
-    "descriptionPlaceholder": "Agregar una descripción…",
-    "saveChanges": "Guardar cambios",
-    "tabs": {
-      "chats": "Chats ({{count}})",
-      "instructions": "Instrucciones",
-      "knowledgeComingSoon": "Conocimiento (Fase 2)"
-    },
-    "newChatButton": "Nuevo chat en el proyecto",
-    "emptyChats": "Aún no hay chats en este proyecto. Inicie un nuevo chat para comenzar.",
-    "customInstructionsLabel": "Instrucciones personalizadas",
-    "instructionsPlaceholder": "Indique a la IA cómo comportarse en este proyecto…",
-    "useStructuredLabel": "Usar instrucciones estructuradas",
-    "structuredFields": {
-      "role": "Rol",
-      "tone": "Tono",
-      "responseFormat": "Formato de respuesta",
-      "constraints": "Restricciones"
-    },
-    "structuredPlaceholders": {
-      "role": "P. ej., Ingeniero sénior, Tutor de escritura",
-      "tone": "P. ej., Formal, Informal, Técnico",
-      "responseFormat": "P. ej., Viñetas, Párrafos detallados",
-      "constraints": "P. ej., Mantenga las respuestas por debajo de 200 palabras"
-    },
-    "toast": {
-      "createdTitle": "Proyecto creado",
-      "updatedTitle": "Proyecto actualizado",
-      "deletedTitle": "Proyecto eliminado"
     }
   },
   "run": {

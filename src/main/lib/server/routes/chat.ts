@@ -43,7 +43,6 @@ import {
   settleOpenComparison
 } from '../../chat/attempts'
 import type { MemoryRow } from '../../db/memory-queries'
-import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
   getChatById,
@@ -169,12 +168,11 @@ chat.get('/:id', async (c) => {
 })
 
 chat.post('/', async (c) => {
-  const { id, messages, advancedTools, reasoningEffort, projectId } =
-    validateSchema(
-      postRequestBodySchema,
-      await c.req.json(),
-      'Invalid request body'
-    )
+  const { id, messages, advancedTools, reasoningEffort } = validateSchema(
+    postRequestBodySchema,
+    await c.req.json(),
+    'Invalid request body'
+  )
   bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
   const { model, apiKey } = getModelFromProvider(setting)
@@ -213,15 +211,7 @@ chat.post('/', async (c) => {
   const existingChat = await getChatById({ id })
   let titlePromise: Promise<string> | null = null
   if (!existingChat) {
-    await saveChat({ id, title: 'New chat', projectId })
-    if (projectId) {
-      bumpProjectUpdatedAt({ id: projectId }).catch((err) => {
-        logger.warn('chat', 'Failed to bump project updatedAt', {
-          projectId,
-          error: err
-        })
-      })
-    }
+    await saveChat({ id, title: 'New chat' })
     titlePromise = generateTitleFromUserMessage({
       message: userMessage,
       model,
@@ -351,32 +341,6 @@ chat.post('/', async (c) => {
     // Sources are numbered through the chat, not per run.
     sourceRankBase: highestSourceRank(history)
   })
-  // Load project instructions if applicable
-  let projectInstructions = ''
-  if (projectId) {
-    const existingChatRecord = existingChat ?? (await getChatById({ id }))
-    if (existingChatRecord?.useProjectInstructions !== false) {
-      const proj = await getProjectById({ id: projectId })
-      if (proj) {
-        if (proj.instructions) {
-          projectInstructions += `\n\n<project_instructions>\n${proj.instructions}\n</project_instructions>`
-        }
-        if (proj.structuredInstructions) {
-          const si = proj.structuredInstructions
-          const parts: string[] = []
-          if (si.role) parts.push(`Role: ${si.role}`)
-          if (si.tone) parts.push(`Tone: ${si.tone}`)
-          if (si.responseFormat)
-            parts.push(`Response Format: ${si.responseFormat}`)
-          if (si.constraints) parts.push(`Constraints: ${si.constraints}`)
-          if (parts.length > 0) {
-            projectInstructions += `\n\n<project_guidelines>\n${parts.join('\n')}\n</project_guidelines>`
-          }
-        }
-      }
-    }
-  }
-
   const personalityPrompt = buildPersonalityPrompt(setting)
   const skillsIndex = await getActiveSkillsIndex()
   logger.info('chat', 'skill injection', {
@@ -391,7 +355,6 @@ chat.post('/', async (c) => {
         skillsIndex
       }) +
       personalityPrompt +
-      projectInstructions +
       memoriesSection
 
   // Deep Research forces a strong reasoning effort regardless of what the

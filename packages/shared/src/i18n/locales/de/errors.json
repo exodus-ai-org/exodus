@@ -29,7 +29,6 @@
     "AGENT_NOT_FOUND": "Agent oder Abteilung nicht gefunden.",
     "TASK_NOT_FOUND": "Aufgabe nicht gefunden.",
     "MEMORY_NOT_FOUND": "Gedächtniseintrag {{id}} wurde nicht gefunden.",
-    "PROJECT_NOT_FOUND": "Projekt nicht gefunden.",
     "SKILL_NOT_FOUND": "Skill nicht gefunden.",
     "AUDIO_NOT_FOUND": "Audiodatei nicht gefunden.",
     "VALIDATION_FAILED": "Die Eingabevalidierung ist fehlgeschlagen.",

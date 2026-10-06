@@ -28,9 +28,6 @@ vi.mock('@/hooks/use-chat', () => ({
 vi.mock('@/hooks/use-attempts', () => ({
   useChooseAttempt: () => ({ choose: () => {}, isPending: false })
 }))
-vi.mock('@/hooks/use-projects', () => ({
-  useProject: () => ({ data: undefined })
-}))
 vi.mock('@/components/messages', () => ({ default: () => null }))
 vi.mock('@/components/multimodel-input', () => ({ default: () => null }))
 vi.mock('@/components/chat/lcm-status-card', () => ({

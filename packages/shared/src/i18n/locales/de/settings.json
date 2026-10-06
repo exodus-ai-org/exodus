@@ -942,7 +942,7 @@
     "snapshot": {
       "title": "Snapshot",
       "none": "Noch kein Snapshot",
-      "noneHint": "Erstellen Sie einen, um Chats, Nachrichten und Projekte in eine DuckDB-Datei zu kopieren.",
+      "noneHint": "Erstellen Sie einen, um Chats und Nachrichten in eine DuckDB-Datei zu kopieren.",
       "build": "Snapshot erstellen",
       "rebuild": "Neu erstellen",
       "building": "Wird erstellt…",
@@ -969,7 +969,7 @@
       "title": "Abfrage",
       "run": "Abfrage ausführen",
       "running": "Läuft…",
-      "tables": "Tabellen: chats, messages, projects, logs"
+      "tables": "Tabellen: chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}} Zeile",

@@ -49,10 +49,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
     typeof m.content === 'string' ? m.content : ''
   )
 }))
-vi.mock('@main/lib/db/project-queries', () => ({
-  getProjectById: vi.fn(async () => null),
-  bumpProjectUpdatedAt: vi.fn(async () => {})
-}))
 // The job queue is not under test, but one job is part of the story: after a
 // run, `lcm-post-turn` adds the run's messages to what LCM tracks (and then
 // compacts, which a chat this short never needs).

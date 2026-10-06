@@ -6,17 +6,16 @@ import type { DuckDBConnection } from '@duckdb/node-api'
 import type { Usage } from '@earendil-works/pi-ai'
 import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
 import type { SnapshotMeta } from '@exodus/shared/types/analytics'
-import { eq } from 'drizzle-orm'
 
 import { db } from '../db/db'
-import { chat, message, project } from '../db/schema'
+import { chat, message } from '../db/schema'
 import { logger } from '../logger'
 import { getAnalyticsDbPath, getAnalyticsDir, getLogsDir } from '../paths'
 import { scrubSecrets } from '../secrets/scrub'
 import { closeDuckDB, withReadWrite } from './duckdb'
 
 /**
- * Copies chats / messages / projects out of PGlite into the DuckDB file the
+ * Copies chats / messages out of PGlite into the DuckDB file the
  * Chat Audit console queries, plus a `logs` table copied from the JSONL log
  * files. Rows are staged as NDJSON and loaded with `read_json(..., columns)`
  * so every column has an explicit type (no inference surprises on an empty
@@ -29,8 +28,6 @@ export interface ChatSource {
   id: string
   title: string
   favorite: boolean | null
-  projectId: string | null
-  projectName: string | null
   createdAt: Date
 }
 
@@ -53,18 +50,9 @@ export interface MessageSource {
   content: unknown
 }
 
-export interface ProjectSource {
-  id: string
-  name: string
-  description: string | null
-  createdAt: Date
-  updatedAt: Date
-}
-
 export interface SourceRows {
   chats: ChatSource[]
   messages: MessageSource[]
-  projects: ProjectSource[]
 }
 
 // ─── Row mappers (pure, unit-tested) ─────────────────────────────────────────
@@ -73,7 +61,6 @@ export interface SourceRows {
 // autocomplete and this loader can never disagree.
 export const CHAT_COLUMNS = CHAT_AUDIT_SCHEMA.chats
 export const MESSAGE_COLUMNS = CHAT_AUDIT_SCHEMA.messages
-export const PROJECT_COLUMNS = CHAT_AUDIT_SCHEMA.projects
 export const LOG_COLUMNS = CHAT_AUDIT_SCHEMA.logs
 
 export function toChatRow(c: ChatSource) {
@@ -81,8 +68,6 @@ export function toChatRow(c: ChatSource) {
     id: c.id,
     title: c.title,
     favorite: c.favorite ?? false,
-    project_id: c.projectId,
-    project_name: c.projectName,
     created_at: c.createdAt.toISOString()
   }
 }
@@ -111,16 +96,6 @@ export function toMessageRow(m: MessageSource) {
     duration_ms: m.durationMs,
     created_at: m.createdAt.toISOString(),
     content: m.content ?? null
-  }
-}
-
-export function toProjectRow(p: ProjectSource) {
-  return {
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    created_at: p.createdAt.toISOString(),
-    updated_at: p.updatedAt.toISOString()
   }
 }
 
@@ -168,18 +143,15 @@ export function logsTableSql(stagedFile: string): string {
 // ─── Source ──────────────────────────────────────────────────────────────────
 
 async function readSource(): Promise<SourceRows> {
-  const [chats, messages, projects] = await Promise.all([
+  const [chats, messages] = await Promise.all([
     db
       .select({
         id: chat.id,
         title: chat.title,
         favorite: chat.favorite,
-        projectId: chat.projectId,
-        projectName: project.name,
         createdAt: chat.createdAt
       })
-      .from(chat)
-      .leftJoin(project, eq(chat.projectId, project.id)),
+      .from(chat),
     db
       .select({
         id: message.id,
@@ -199,18 +171,9 @@ async function readSource(): Promise<SourceRows> {
         createdAt: message.createdAt,
         content: message.content
       })
-      .from(message),
-    db
-      .select({
-        id: project.id,
-        name: project.name,
-        description: project.description,
-        createdAt: project.createdAt,
-        updatedAt: project.updatedAt
-      })
-      .from(project)
+      .from(message)
   ])
-  return { chats, messages, projects }
+  return { chats, messages }
 }
 
 // ─── Build / status ──────────────────────────────────────────────────────────
@@ -287,10 +250,6 @@ export async function buildSnapshot(
     messages: {
       file: join(tmp, 'messages.ndjson'),
       rows: rows.messages.map(toMessageRow)
-    },
-    projects: {
-      file: join(tmp, 'projects.ndjson'),
-      rows: rows.projects.map(toProjectRow)
     }
   }
   await Promise.all(
@@ -331,14 +290,8 @@ export async function buildSnapshot(
           staged.messages.rows.length
         )
       )
-      await conn.run(
-        loadTableSql(
-          'projects',
-          staged.projects.file,
-          PROJECT_COLUMNS,
-          staged.projects.rows.length
-        )
-      )
+      // Projects are gone; a snapshot built before keeps their table.
+      await conn.run('DROP TABLE IF EXISTS projects')
       // A snapshot built before `logs` became a table has it as a view.
       await dropLogs(conn)
       if (haveLogs) {
@@ -364,8 +317,7 @@ export async function buildSnapshot(
     durationMs: Math.round(performance.now() - started),
     tables: [
       { name: 'chats', rows: staged.chats.rows.length },
-      { name: 'messages', rows: staged.messages.rows.length },
-      { name: 'projects', rows: staged.projects.rows.length }
+      { name: 'messages', rows: staged.messages.rows.length }
     ],
     logsIncluded,
     sizeBytes: statSync(getAnalyticsDbPath()).size

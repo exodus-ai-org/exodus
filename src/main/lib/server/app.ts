@@ -40,7 +40,6 @@ import mediaRouter from './routes/media'
 import memoryRouter from './routes/memory'
 import pairRouter from './routes/pair'
 import philharmonicRouter, { emitToAll } from './routes/philharmonic'
-import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
@@ -111,7 +110,6 @@ export function createApp() {
   v1.route('/lcm', lcmStatusRouter)
   v1.route('/history', historyRouter)
   v1.route('/knowledge-base', knowledgeBaseRouter)
-  v1.route('/project', projectRouter)
   v1.route('/settings', settingsRouter)
   v1.route('/skills', skillsRouter)
   v1.route('/audio', audioRouter)

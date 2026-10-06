@@ -270,7 +270,7 @@ same `CommandLine` the detail page uses); it stacks in a narrow window. Spec:
 Settings → Developer → Chat Audit is a read-only SQL console over a DuckDB
 snapshot of the user's data (`src/main/lib/analytics/`, route
 `/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
-copies `chat` / `message` / `project` out of PGlite via NDJSON into
+copies `chat` / `message` out of PGlite via NDJSON into
 `~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
 `cost_usd` columns, `content` kept as JSON) and copies
 `~/.exodus/logs/*.jsonl` into a `logs` table; `duckdb.ts` lazy-`import()`s
@@ -402,7 +402,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/workspace`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/workspace`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
 
@@ -439,7 +439,6 @@ There is no MCP middleware: the chat route itself fetches the active servers' to
 - `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
-- `project` - Projects
 - `mcp_server` - Configured MCP servers
 - `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
   the device's token, never the token. Machine-local — deliberately not part of
@@ -668,7 +667,7 @@ and revised prompts. `GET /api/v1/media/:chatId/:file` (`routes/media.ts`)
 serves the file — no index, the path is the storage layout; both segments
 must match what `saveMedia` writes and resolve inside the media dir, else
 400 — with `Cache-Control: private, max-age=31536000, immutable`. Deleting a
-chat, a project's chats or a Group removes its media dir (best-effort,
+chat or a Group removes its media dir (best-effort,
 logged); "reset all data" removes `~/.exodus/media`; `db-io` export does not
 carry media. Rows written before this (`url`: a `data:` URL or an expired
 DALL·E link) still render through `imageSrcOf()`'s legacy branch (a `data:` URL only
@@ -1029,9 +1028,9 @@ Their windows live in `src/main/lib/window.ts`.
   itself and toasts both outcomes directly, instead of going through a `useMutation`.
 - Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
 'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
-  (exodus-ios, exodus-cli, the phone) can change: chat history, the projects list + project chats,
+  (exodus-ios, exodus-cli, the phone) can change: chat history,
   devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
-  (`use-chat-history.ts`, `use-projects.ts`, `use-devices.ts`, `use-installed-skills.ts`,
+  (`use-chat-history.ts`, `use-devices.ts`, `use-installed-skills.ts`,
   `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`, and the secrets status —
   `use-secrets-status.ts`, its own `['secrets-status']` root, never under `['settings']`) — plus the memory list
   (`use-memory.ts`'s `useMemories()`), which the chat's own `update_memory` tool and background

@@ -47,30 +47,17 @@ const usage = {
 }
 
 const source = async () => ({
-  projects: [
-    {
-      id: 'p1',
-      name: 'Work',
-      description: 'desc',
-      createdAt: now,
-      updatedAt: now
-    }
-  ],
   chats: [
     {
       id: 'c1',
       title: 'Hello',
       favorite: true,
-      projectId: 'p1',
-      projectName: 'Work',
       createdAt: now
     },
     {
       id: 'c2',
       title: 'Second',
       favorite: null,
-      projectId: null,
-      projectName: null,
       createdAt: now
     }
   ],
@@ -157,18 +144,14 @@ describe('snapshot row mappers', () => {
       created_at: '2026-09-19T10:00:00.000Z'
     })
     expect(toMessageRow(rows.messages[0]).input_tokens).toBeNull()
-    expect(toChatRow(rows.chats[1])).toMatchObject({
-      favorite: false,
-      project_id: null,
-      project_name: null
-    })
+    expect(toChatRow(rows.chats[1])).toMatchObject({ favorite: false })
   })
 
   it('emits typed DDL for empty tables and read_json with columns otherwise', async () => {
     const { loadTableSql, CHAT_COLUMNS } =
       await import('@main/lib/analytics/snapshot')
     expect(loadTableSql('chats', '/x.ndjson', CHAT_COLUMNS, 0)).toBe(
-      'CREATE OR REPLACE TABLE chats (id VARCHAR, title VARCHAR, favorite BOOLEAN, project_id VARCHAR, project_name VARCHAR, created_at TIMESTAMP)'
+      'CREATE OR REPLACE TABLE chats (id VARCHAR, title VARCHAR, favorite BOOLEAN, created_at TIMESTAMP)'
     )
     const sql = loadTableSql('chats', "/it's.ndjson", CHAT_COLUMNS, 3)
     expect(sql).toContain("read_json('/it''s.ndjson'")
@@ -199,8 +182,7 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     const meta = await buildSnapshot({ source, secrets: noSecrets })
     expect(meta.tables).toEqual([
       { name: 'chats', rows: 2 },
-      { name: 'messages', rows: 3 },
-      { name: 'projects', rows: 1 }
+      { name: 'messages', rows: 3 }
     ])
     expect(meta.logsIncluded).toBe(true)
     expect(meta.sizeBytes).toBeGreaterThan(0)

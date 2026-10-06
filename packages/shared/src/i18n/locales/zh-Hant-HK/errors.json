@@ -29,7 +29,6 @@
     "AGENT_NOT_FOUND": "找不到代理人或部門。",
     "TASK_NOT_FOUND": "找不到任務。",
     "MEMORY_NOT_FOUND": "找不到記憶 {{id}}。",
-    "PROJECT_NOT_FOUND": "找不到項目。",
     "SKILL_NOT_FOUND": "找不到技能。",
     "AUDIO_NOT_FOUND": "找不到音訊檔案。",
     "VALIDATION_FAILED": "輸入驗證失敗。",

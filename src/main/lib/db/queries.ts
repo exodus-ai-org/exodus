@@ -37,21 +37,9 @@ function logDbError(logMessage: string, error: unknown) {
   })
 }
 
-export async function saveChat({
-  title,
-  id,
-  projectId
-}: {
-  id: string
-  title: string
-  projectId?: string
-}) {
+export async function saveChat({ title, id }: { id: string; title: string }) {
   try {
-    return await db.insert(chat).values({
-      id,
-      title,
-      projectId
-    })
+    return await db.insert(chat).values({ id, title })
   } catch (error) {
     logDbError('Failed to save chat', error)
     throw error
@@ -67,15 +55,8 @@ export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   }
 }
 
-export async function getAllChats(projectId?: string) {
+export async function getAllChats() {
   try {
-    if (projectId) {
-      return await db
-        .select()
-        .from(chat)
-        .where(eq(chat.projectId, projectId))
-        .orderBy(desc(chat.createdAt))
-    }
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
     logDbError('Failed to get chats', error)

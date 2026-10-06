@@ -29,7 +29,6 @@
     "AGENT_NOT_FOUND": "Agent ou département introuvable.",
     "TASK_NOT_FOUND": "Tâche introuvable.",
     "MEMORY_NOT_FOUND": "Mémoire {{id}} introuvable.",
-    "PROJECT_NOT_FOUND": "Projet introuvable.",
     "SKILL_NOT_FOUND": "Compétence introuvable.",
     "AUDIO_NOT_FOUND": "Fichier audio introuvable.",
     "VALIDATION_FAILED": "Échec de la validation des données saisies.",

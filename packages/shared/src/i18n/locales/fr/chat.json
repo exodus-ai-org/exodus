@@ -217,15 +217,6 @@
       "copyId": "Copier l’ID de la conversation",
       "idCopied": "ID de la conversation copié"
     },
-    "projects": {
-      "title": "Projets",
-      "newProject": "Nouveau projet",
-      "editProject": "Modifier le projet",
-      "createTitle": "Créer un projet",
-      "namePlaceholder": "Nom du projet",
-      "deleteTitle": "Supprimer le projet ?",
-      "deleteDescription": "Cela supprimera définitivement « {{name}} » ainsi que toutes ses conversations. Cette action est irréversible."
-    },
     "renameDialog": {
       "title": "Renommer la conversation",
       "submit": "Valider"
@@ -238,38 +229,6 @@
       "placeholder": "Rechercher une conversation…",
       "ariaLabel": "Rechercher dans les messages de la conversation",
       "noContents": "Aucun contenu"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "Nom du projet",
-    "descriptionPlaceholder": "Ajouter une description…",
-    "saveChanges": "Enregistrer les modifications",
-    "tabs": {
-      "chats": "Conversations ({{count}})",
-      "instructions": "Instructions",
-      "knowledgeComingSoon": "Connaissances (Phase 2)"
-    },
-    "newChatButton": "Nouvelle conversation dans le projet",
-    "emptyChats": "Aucune conversation dans ce projet pour le moment. Démarrez une nouvelle conversation pour commencer.",
-    "customInstructionsLabel": "Instructions personnalisées",
-    "instructionsPlaceholder": "Indiquez à l'IA comment se comporter dans ce projet…",
-    "useStructuredLabel": "Utiliser des instructions structurées",
-    "structuredFields": {
-      "role": "Rôle",
-      "tone": "Ton",
-      "responseFormat": "Format de réponse",
-      "constraints": "Contraintes"
-    },
-    "structuredPlaceholders": {
-      "role": "par ex. Ingénieur senior, Tuteur en rédaction",
-      "tone": "par ex. Formel, Décontracté, Technique",
-      "responseFormat": "par ex. Puces, Paragraphes détaillés",
-      "constraints": "par ex. Limitez les réponses à 200 mots"
-    },
-    "toast": {
-      "createdTitle": "Projet créé",
-      "updatedTitle": "Projet mis à jour",
-      "deletedTitle": "Projet supprimé"
     }
   },
   "run": {

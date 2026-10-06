@@ -66,8 +66,7 @@ const chat = {
   id: '5b30d978-ebe8-4da6-9e73-02c6fc42b771',
   title: 'Trip planning',
   createdAt: '2026-09-29T08:00:00.000',
-  favorite: false,
-  projectId: null
+  favorite: false
 } as unknown as Chat
 
 let host: HTMLDivElement

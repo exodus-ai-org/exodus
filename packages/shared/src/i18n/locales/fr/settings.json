@@ -942,7 +942,7 @@
     "snapshot": {
       "title": "Instantané",
       "none": "Aucun instantané pour l’instant",
-      "noneHint": "Créez-en un pour copier vos discussions, messages et projets dans un fichier DuckDB.",
+      "noneHint": "Créez-en un pour copier vos discussions et messages dans un fichier DuckDB.",
       "build": "Créer l’instantané",
       "rebuild": "Recréer",
       "building": "Création…",
@@ -969,7 +969,7 @@
       "title": "Requête",
       "run": "Exécuter",
       "running": "Exécution…",
-      "tables": "Tables : chats, messages, projects, logs"
+      "tables": "Tables : chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}} ligne",

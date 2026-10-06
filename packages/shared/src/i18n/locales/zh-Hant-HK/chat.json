@@ -209,15 +209,6 @@
       "copyId": "複製對話 ID",
       "idCopied": "已複製對話 ID"
     },
-    "projects": {
-      "title": "項目",
-      "newProject": "新增項目",
-      "editProject": "編輯項目",
-      "createTitle": "建立項目",
-      "namePlaceholder": "項目名稱",
-      "deleteTitle": "刪除項目？",
-      "deleteDescription": "此操作將永久刪除「{{name}}」及其所有聊天記錄，且無法復原。"
-    },
     "renameDialog": {
       "title": "重新命名聊天",
       "submit": "提交"
@@ -230,38 +221,6 @@
       "placeholder": "搜尋聊天記錄...",
       "ariaLabel": "搜尋聊天訊息",
       "noContents": "沒有內容"
-    }
-  },
-  "projectDetail": {
-    "namePlaceholder": "項目名稱",
-    "descriptionPlaceholder": "新增描述...",
-    "saveChanges": "儲存變更",
-    "tabs": {
-      "chats": "聊天記錄（{{count}}）",
-      "instructions": "指示",
-      "knowledgeComingSoon": "知識庫（第二階段）"
-    },
-    "newChatButton": "在項目中開新聊天",
-    "emptyChats": "此項目暫時未有任何聊天記錄，開始新的聊天即可開始使用。",
-    "customInstructionsLabel": "自訂指示",
-    "instructionsPlaceholder": "告訴 AI 在此項目中應該如何表現...",
-    "useStructuredLabel": "使用結構化指示",
-    "structuredFields": {
-      "role": "角色",
-      "tone": "語氣",
-      "responseFormat": "回覆格式",
-      "constraints": "限制條件"
-    },
-    "structuredPlaceholders": {
-      "role": "例如：資深工程師、寫作導師",
-      "tone": "例如：正式、輕鬆、技術性",
-      "responseFormat": "例如：條列式、詳細段落",
-      "constraints": "例如：回覆內容請勿超過 200 字"
-    },
-    "toast": {
-      "createdTitle": "項目已建立",
-      "updatedTitle": "項目已更新",
-      "deletedTitle": "項目已刪除"
     }
   },
   "run": {

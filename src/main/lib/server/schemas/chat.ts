@@ -70,8 +70,7 @@ export const postRequestBodySchema = z.object({
   message: userMessageSchema.optional(),
   messages: z.array(messageSchema),
   advancedTools: z.array(z.enum(AdvancedTools)),
-  reasoningEffort: EffortLevelSchema.optional(),
-  projectId: z.string().uuid().optional()
+  reasoningEffort: EffortLevelSchema.optional()
 })
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>

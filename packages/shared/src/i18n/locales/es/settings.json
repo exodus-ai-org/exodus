@@ -942,7 +942,7 @@
     "snapshot": {
       "title": "Instantánea",
       "none": "Aún no hay instantánea",
-      "noneHint": "Crea una para copiar tus chats, mensajes y proyectos en un archivo DuckDB.",
+      "noneHint": "Crea una para copiar tus chats y mensajes en un archivo DuckDB.",
       "build": "Crear instantánea",
       "rebuild": "Regenerar",
       "building": "Creando…",
@@ -969,7 +969,7 @@
       "title": "Consulta",
       "run": "Ejecutar consulta",
       "running": "Ejecutando…",
-      "tables": "Tablas: chats, messages, projects, logs"
+      "tables": "Tablas: chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}} fila",

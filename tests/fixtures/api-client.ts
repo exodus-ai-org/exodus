@@ -93,7 +93,6 @@ export class ApiClient {
     text: string
     advancedTools?: string[]
     reasoningEffort?: string
-    projectId?: string
     signal?: AbortSignal
   }) {
     const userMessage = {
@@ -109,8 +108,7 @@ export class ApiClient {
         id: opts.chatId,
         messages: [userMessage],
         advancedTools: opts.advancedTools ?? [],
-        reasoningEffort: opts.reasoningEffort,
-        projectId: opts.projectId
+        reasoningEffort: opts.reasoningEffort
       }),
       signal: opts.signal
     })
@@ -126,7 +124,6 @@ export class ApiClient {
     chatId: string
     messages: Array<{ id: string; role: string; content: unknown }>
     advancedTools?: string[]
-    projectId?: string
   }) {
     const res = await fetch(`${this.baseUrl}/api/v1/chat`, {
       method: 'POST',
@@ -134,8 +131,7 @@ export class ApiClient {
       body: JSON.stringify({
         id: opts.chatId,
         messages: opts.messages,
-        advancedTools: opts.advancedTools ?? [],
-        projectId: opts.projectId
+        advancedTools: opts.advancedTools ?? []
       })
     })
     return this.consumeSseStream(res)
@@ -181,9 +177,8 @@ export class ApiClient {
 
   // ── History ────────────────────────────────────────────────────────────
 
-  async getHistory(projectId?: string) {
-    const qs = projectId ? `?projectId=${projectId}` : ''
-    return this.get<Array<Record<string, unknown>>>(`/api/v1/history${qs}`)
+  async getHistory() {
+    return this.get<Array<Record<string, unknown>>>('/api/v1/history')
   }
 
   async getChatMessages(chatId: string) {
@@ -207,20 +202,6 @@ export class ApiClient {
 
   async deleteMemory(id: string, hard = true) {
     return this.delete(`/api/v1/memory/${id}?hard=${hard}`)
-  }
-
-  // ── Project ────────────────────────────────────────────────────────────
-
-  async getProjects() {
-    return this.get<Array<Record<string, unknown>>>('/api/v1/project')
-  }
-
-  async createProject(payload: Record<string, unknown>) {
-    return this.post<Record<string, unknown>>('/api/v1/project', payload)
-  }
-
-  async deleteProject(id: string) {
-    return this.delete(`/api/v1/project/${id}`)
   }
 
   // ── Deep Research ──────────────────────────────────────────────────────

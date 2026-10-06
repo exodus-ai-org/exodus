@@ -33,7 +33,6 @@ export enum ErrorCode {
   AGENT_NOT_FOUND = 'AGENT_NOT_FOUND',
   TASK_NOT_FOUND = 'TASK_NOT_FOUND',
   MEMORY_NOT_FOUND = 'MEMORY_NOT_FOUND',
-  PROJECT_NOT_FOUND = 'PROJECT_NOT_FOUND',
   SKILL_NOT_FOUND = 'SKILL_NOT_FOUND',
   AUDIO_NOT_FOUND = 'AUDIO_NOT_FOUND',
   /** Nothing is waiting for that tool approval: unknown, timed out or stopped. */
@@ -125,7 +124,6 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.AGENT_NOT_FOUND]: 404,
   [ErrorCode.TASK_NOT_FOUND]: 404,
   [ErrorCode.MEMORY_NOT_FOUND]: 404,
-  [ErrorCode.PROJECT_NOT_FOUND]: 404,
   [ErrorCode.SKILL_NOT_FOUND]: 404,
   [ErrorCode.AUDIO_NOT_FOUND]: 404,
   [ErrorCode.APPROVAL_NOT_FOUND]: 404,
@@ -219,7 +217,6 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.AGENT_NOT_FOUND]: 'Agent or department not found.',
   [ErrorCode.TASK_NOT_FOUND]: 'Task not found.',
   [ErrorCode.MEMORY_NOT_FOUND]: 'Memory {{id}} not found.',
-  [ErrorCode.PROJECT_NOT_FOUND]: 'Project not found.',
   [ErrorCode.SKILL_NOT_FOUND]: 'Skill not found.',
   [ErrorCode.AUDIO_NOT_FOUND]: 'Audio file not found.',
   [ErrorCode.APPROVAL_NOT_FOUND]:

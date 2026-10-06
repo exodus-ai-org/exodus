@@ -51,9 +51,9 @@ async function mountHook<T>(hook: () => T) {
 }
 
 // Stand-ins for whatever a real session would have cached (history,
-// projects, settings, …) — `useDbIo` invalidates unfiltered, so any key
+// memories, settings, …) — `useDbIo` invalidates unfiltered, so any key
 // works to prove the cache was (or wasn't) touched.
-const seededKeys = [['history'], ['project'], ['settings']] as const
+const seededKeys = [['history'], ['memories'], ['settings']] as const
 
 function seedCaches(queryClient: QueryClient) {
   for (const key of seededKeys) queryClient.setQueryData(key, ['seeded'])

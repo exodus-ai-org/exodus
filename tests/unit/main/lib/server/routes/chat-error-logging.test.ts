@@ -48,10 +48,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
     typeof m.content === 'string' ? m.content : ''
   )
 }))
-vi.mock('@main/lib/db/project-queries', () => ({
-  getProjectById: vi.fn(async () => null),
-  bumpProjectUpdatedAt: vi.fn(async () => {})
-}))
 vi.mock('@main/lib/chat/attempts', () => ({
   applyAttempts: (messages: unknown[]) => messages,
   chooseAttempt: vi.fn(),

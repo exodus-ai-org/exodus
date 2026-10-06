@@ -7,9 +7,8 @@ import { handleDatabaseOperation, successResponse } from '../utils'
 const history = new Hono<{ Variables: Variables }>()
 
 history.get('/', async (c) => {
-  const projectId = c.req.query('projectId')
   const chats = await handleDatabaseOperation(
-    () => getAllChats(projectId),
+    () => getAllChats(),
     'Failed to get chat history'
   )
   return successResponse(c, chats)

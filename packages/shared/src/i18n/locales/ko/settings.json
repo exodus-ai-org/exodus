@@ -936,7 +936,7 @@
     "snapshot": {
       "title": "스냅샷",
       "none": "아직 스냅샷이 없습니다",
-      "noneHint": "스냅샷을 만들면 채팅, 메시지, 프로젝트가 DuckDB 파일로 복사됩니다.",
+      "noneHint": "스냅샷을 만들면 채팅과 메시지가 DuckDB 파일로 복사됩니다.",
       "build": "스냅샷 만들기",
       "rebuild": "다시 만들기",
       "building": "만드는 중…",
@@ -963,7 +963,7 @@
       "title": "쿼리",
       "run": "쿼리 실행",
       "running": "실행 중…",
-      "tables": "테이블: chats, messages, projects, logs"
+      "tables": "테이블: chats, messages, logs"
     },
     "results": {
       "rowCount_one": "{{count}}행",

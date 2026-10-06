@@ -45,7 +45,7 @@ export function useDbIo() {
       await importAllDataService(file)
       // Import replaces most of the database (everything but `settings`,
       // which the route skips) — nothing in the cache can be trusted
-      // anymore: history, projects, messages, usage. Fire-and-forget, like
+      // anymore: history, messages, usage. Fire-and-forget, like
       // every other post-write invalidation in the app — the toast doesn't
       // wait on the refetch. Settings is safe to include unfiltered: the
       // route never touches that table, so the read comes back unchanged,

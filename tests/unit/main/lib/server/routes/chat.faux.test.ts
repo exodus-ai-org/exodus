@@ -58,10 +58,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
     typeof m.content === 'string' ? m.content : ''
   )
 }))
-vi.mock('@main/lib/db/project-queries', () => ({
-  getProjectById: vi.fn(async () => null),
-  bumpProjectUpdatedAt: vi.fn(async () => {})
-}))
 const saveMessages = vi.fn(async () => {})
 // Regenerate-group transitions (lib/chat/attempts.ts) are tested on a real
 // PGlite in attempts.test.ts; no run here is a regenerate.

@@ -55,10 +55,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
     typeof m.content === 'string' ? m.content : ''
   )
 }))
-vi.mock('@main/lib/db/project-queries', () => ({
-  getProjectById: vi.fn(async () => null),
-  bumpProjectUpdatedAt: vi.fn(async () => {})
-}))
 vi.mock('@main/lib/jobs/worker', () => ({
   enqueueAndProcess: vi.fn(async () => {}),
   logEnqueueFailure: vi.fn()

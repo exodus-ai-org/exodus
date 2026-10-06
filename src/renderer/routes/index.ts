@@ -3,7 +3,6 @@ import { createHashRouter } from 'react-router'
 import { RouteErrorBoundary } from '@/components/error-boundary'
 import { ChatDetail } from '@/containers/chat-detail'
 import { Home } from '@/containers/home'
-import { ProjectDetail } from '@/containers/project-detail'
 import { Layout as ChatLayout } from '@/layouts/chat-layout'
 
 // Settings + Philharmonic are large feature surfaces (Monaco, recharts)
@@ -41,11 +40,6 @@ export const router = createHashRouter([
       {
         path: '/chat/:id',
         Component: ChatDetail,
-        ErrorBoundary: RouteErrorBoundary
-      },
-      {
-        path: '/project/:id',
-        Component: ProjectDetail,
         ErrorBoundary: RouteErrorBoundary
       }
     ]
