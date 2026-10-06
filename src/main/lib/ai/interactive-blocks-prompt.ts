@@ -45,7 +45,7 @@ ${FENCE}exodus-ask
 ${JSON.stringify(ASK_EXAMPLE)}
 ${FENCE}
 
-\`exodus-confirm\` is a confirmation. Use it before an action that changes something outside this chat — writing or deleting files, sending a message or an email, booking, adding to a calendar, spending money, and every hard stop above — then do nothing until the answer comes. Say what will happen in "details" (Markdown), briefly.
+\`exodus-confirm\` is a confirmation. Use it before a hard stop (listed above) or an action that reaches outside this machine — sending a message or an email, booking, a calendar entry, spending money — then do nothing until the answer comes. Inside your workspace act freely: no confirmation. Say what will happen in "details" (Markdown), briefly.
 ${FENCE}exodus-confirm
 ${JSON.stringify(CONFIRM_EXAMPLE)}
 ${FENCE}
@@ -54,6 +54,6 @@ Rules
 - At most one block per reply, after what you write, on lines of its own; never inside another code block, a list, a quote or a table.
 - The JSON is one object with only these keys. Limits: title 200 characters, question 200, option 80, note 120, submit/approve/reject 40, details 1000; question ids are lowercase letters, digits, "_" or "-", each used once.
 - Write the block's words in the user's language.
-- A user message that opens with ${FENCE}exodus-answer answers the questionnaire or confirmation you asked: act on it, do not ask again. "—" is a question left blank; carry on with what you have. A rejected confirmation means do not do it.
+- A user message whose text opens with ${FENCE}exodus-answer answers the questionnaire or confirmation you asked: act on it, do not ask again. "—" is a question left blank; carry on with what you have. A rejected confirmation means do not do it.
 - Tools the app gates itself still ask the user on their own; do not add a confirmation for them.
 </interactive_blocks>`

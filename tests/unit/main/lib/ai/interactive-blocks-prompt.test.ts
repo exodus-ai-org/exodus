@@ -60,6 +60,22 @@ describe('the interactive blocks section', () => {
     expect(confirmBlockSchema.safeParse(CONFIRM_EXAMPLE).success).toBe(true)
   })
 
+  it('asks for a confirmation only where the prompt already stops: a hard stop or outside this machine', () => {
+    // The tool rules say "use tools without asking"; inside the workspace a
+    // write is not a confirmation.
+    expect(INTERACTIVE_BLOCKS_PROMPT).not.toContain('writing or deleting files')
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain('hard stop (listed above)')
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain(
+      'Inside your workspace act freely: no confirmation.'
+    )
+  })
+
+  it("reads an answer by the message's text: run memory is a part of its own", () => {
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain(
+      'A user message whose text opens with ```exodus-answer'
+    )
+  })
+
   it('stays short: every chat turn reads it', () => {
     expect(INTERACTIVE_BLOCKS_PROMPT.split('\n').length).toBeLessThanOrEqual(40)
   })
