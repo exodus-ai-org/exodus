@@ -1,4 +1,5 @@
 import type { Settings } from '../db/schema'
+import { INTERACTIVE_BLOCKS_PROMPT } from './interactive-blocks-prompt'
 
 export function buildPersonalityPrompt(settings: Settings): string {
   const p = settings.personality
@@ -194,6 +195,8 @@ WRONG (never do this — missing citations):
 WRONG (never do this — something inside the marker):
   10 月 30 日 Lasertec 财报【1-source，前次检索】
 </citation_rules>
+
+${INTERACTIVE_BLOCKS_PROMPT}
 
 <response_format>
 - **Length**: Match the complexity of the request. Short questions deserve short answers. Don't pad responses.

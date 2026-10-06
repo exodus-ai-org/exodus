@@ -112,7 +112,10 @@ describe('getSystemPrompt', () => {
   })
 
   it('stays within budget', () => {
-    // Roughly 3.5 chars a token: keep the fixed part under ~2.5k tokens.
-    expect(getSystemPrompt({}).length).toBeLessThan(9_000)
+    // Roughly 3.5 chars a token: keep the fixed part under ~3.2k tokens. The
+    // ceiling includes the interactive-blocks section (~2.2k characters: both
+    // blocks with an example each, their limits and the answer message), which
+    // brought the chat prompt to ~11.2k characters.
+    expect(getSystemPrompt({}).length).toBeLessThan(11_500)
   })
 })
