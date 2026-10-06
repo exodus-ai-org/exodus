@@ -161,7 +161,7 @@
     "markdown-it": "^15.0.2",
     "monaco-editor": "^0.56.0",
     "motion": "^13.4.0",
-    "oxfmt": "^0.70.0",
+    "oxfmt": "^0.71.0",
     "oxlint": "^1.85.0",
     "qrcode.react": "^4.2.0",
     "react-hook-form": "^7.88.0",
