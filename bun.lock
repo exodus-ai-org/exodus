@@ -55,7 +55,7 @@
         "react": "^19.3.0",
         "react-day-picker": "^10.0.1",
         "react-dom": "^19.3.0",
-        "react-i18next": "^17.0.14",
+        "react-i18next": "^17.0.15",
         "react-resizable-panels": "^4.12.4",
         "recharts": "3.10.1",
         "reflect-metadata": "^0.2.2",
@@ -2589,7 +2589,7 @@
 
     "react-hook-form": ["react-hook-form@7.88.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-QRaLOWhX93YCnMiRfnOFRSwWXZNt8qhm2JTZwypoDvKpSffTJHmpzMXt8U6PV5UThvL3IiiLDUWe2nHMtz6Mmw=="],
 
-    "react-i18next": ["react-i18next@17.0.14", "", { "dependencies": { "@babel/runtime": "^7.29.7", "html-parse-stringify": "^4.0.1", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "i18next": ">= 26.2.0", "react": ">= 16.8.0", "react-dom": "*", "react-native": "*", "typescript": "^5 || ^6 || ^7" }, "optionalPeers": ["react-dom", "react-native", "typescript"] }, "sha512-ZpMBfJL3BiXPuYHj5QMY1GwvKJNhE1vCxOJQ8BoMBdHP5XONTfi/Qss1nuRlnFdIl72PKo2jPmw+fxuLjRFgaQ=="],
+    "react-i18next": ["react-i18next@17.0.15", "", { "dependencies": { "@babel/runtime": "^7.29.7", "html-parse-stringify": "^4.0.1", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "i18next": ">= 26.2.0", "react": ">= 16.8.0", "react-dom": "*", "react-native": "*", "typescript": "^5 || ^6 || ^7" }, "optionalPeers": ["react-dom", "react-native", "typescript"] }, "sha512-7uYpx/oBkesLto7cOzOmfITlUBaXHCAcFahmgETMfWr8nbbWRRnVGvz8wsH/xpbNcyoH+NpCcnOQEqWPMO6/hw=="],
 
     "react-is": ["react-is@19.3.0", "", {}, "sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA=="],
 
