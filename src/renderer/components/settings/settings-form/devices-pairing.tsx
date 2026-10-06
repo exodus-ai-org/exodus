@@ -1,6 +1,12 @@
 import { PAIRING_TTL_MS } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { CheckIcon, CopyIcon, SmartphoneIcon, WifiIcon } from 'lucide-react'
+import {
+  Tick02Icon,
+  Copy01Icon,
+  SmartPhone01Icon,
+  Wifi01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
@@ -59,13 +65,13 @@ function CopyLinkButton({ link }: { link: string }) {
         labels={{
           idle: (
             <>
-              <CopyIcon />
+              <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
               {t('devices.pairing.copyLink')}
             </>
           ),
           done: (
             <>
-              <CheckIcon />
+              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
               {t('devices.pairing.linkCopied')}
             </>
           )
@@ -134,7 +140,7 @@ export function PairingPanel({
               ))}
             </ol>
             <SettingsNotice
-              icon={WifiIcon}
+              icon={Wifi01Icon}
               className={ENTER_UP}
               style={staggerDelay(steps.length + 1)}
             >
@@ -184,7 +190,7 @@ export function PairCard({ onPair }: { onPair: () => void }) {
     <SettingsSection>
       <SettingsItem
         className={ENTER}
-        icon={<SmartphoneIcon />}
+        icon={<HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={2} />}
         title={t('devices.pairCard.title')}
         description={t('devices.pairCard.description')}
         actions={

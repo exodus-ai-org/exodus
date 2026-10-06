@@ -1,6 +1,6 @@
-// src/renderer/components/web-search/image-gallery.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { PlusIcon } from 'lucide-react'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 
 import { AttachmentFrame } from '@/components/chat/attachment-frame'
@@ -44,7 +44,8 @@ export function ImageGallery({ images }: { images: GalleryImage[] }) {
                 />
                 {isLastWithMore && (
                   <div className="absolute inset-0 flex items-center justify-center gap-0.5 bg-black/50 text-sm font-medium text-white">
-                    <PlusIcon size={16} /> {images.length}
+                    <HugeiconsIcon icon={Add01Icon} strokeWidth={2} size={16} />{' '}
+                    {images.length}
                   </div>
                 )}
               </button>

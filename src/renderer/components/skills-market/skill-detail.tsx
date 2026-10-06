@@ -5,13 +5,14 @@ import {
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { InstalledSkill, SkillDetail } from '@exodus/shared/types/skills'
 import {
-  ArrowLeftIcon,
-  ChevronDownIcon,
+  ArrowLeft02Icon,
+  ArrowDown01Icon,
   DownloadIcon,
-  ExternalLinkIcon,
-  Loader2Icon,
+  LinkSquare02Icon,
+  Loading03Icon,
   UnplugIcon
-} from 'lucide-react'
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -59,7 +60,11 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
       className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-4 transition-colors hover:underline"
     >
       {children}
-      <ExternalLinkIcon className="size-3" />
+      <HugeiconsIcon
+        icon={LinkSquare02Icon}
+        strokeWidth={2}
+        className="size-3"
+      />
     </a>
   )
 }
@@ -134,7 +139,7 @@ export function SkillDetailPage({
           onClick={onBack}
           className="text-muted-foreground -ml-2"
         >
-          <ArrowLeftIcon />
+          <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
           {t('skillsMarket.detail.back')}
         </Button>
       </div>
@@ -174,7 +179,13 @@ export function SkillDetailPage({
                 disabled={pending}
                 onClick={() => setConfirmUninstall(true)}
               >
-                {pending && <Loader2Icon className="animate-spin" />}
+                {pending && (
+                  <HugeiconsIcon
+                    icon={Loading03Icon}
+                    strokeWidth={2}
+                    className="animate-spin"
+                  />
+                )}
                 {t('skillsMarket.detail.uninstall')}
               </Button>
             </>
@@ -190,13 +201,17 @@ export function SkillDetailPage({
                 labels={{
                   idle: (
                     <>
-                      <DownloadIcon />
+                      <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
                       {t('skillsMarket.detail.install')}
                     </>
                   ),
                   busy: (
                     <>
-                      <Loader2Icon className="animate-spin" />
+                      <HugeiconsIcon
+                        icon={Loading03Icon}
+                        strokeWidth={2}
+                        className="animate-spin"
+                      />
                       {t('skillsMarket.detail.installing')}
                     </>
                   )
@@ -257,7 +272,11 @@ export function SkillDetailPage({
               />
             }
           >
-            <ChevronDownIcon className="transition-transform duration-200 group-data-panel-open:rotate-180" />
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              strokeWidth={2}
+              className="transition-transform duration-200 group-data-panel-open:rotate-180"
+            />
             {t('skillsMarket.detail.files', { count: bundled.length })}
           </CollapsibleTrigger>
           <CollapsibleContent>

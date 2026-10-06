@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { SearchIcon } from 'lucide-react'
+import { SearchIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -129,7 +130,7 @@ export function SkillsMarket() {
               placeholder={t('skillsMarket.searchPlaceholder')}
             />
             <InputGroupAddon align="inline-start">
-              <SearchIcon />
+              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
               <Kbd>{'/'}</Kbd>

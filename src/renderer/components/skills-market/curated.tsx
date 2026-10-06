@@ -3,7 +3,8 @@ import type {
   SkillCuratedOwner,
   SkillListItem
 } from '@exodus/shared/types/skills'
-import { ChevronDownIcon } from 'lucide-react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -88,7 +89,9 @@ export function CuratedOwners({
               <Installs count={owner.totalInstalls} />
             </span>
           </span>
-          <ChevronDownIcon
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            strokeWidth={2}
             className={cn(
               'text-muted-foreground size-4 shrink-0 transition-transform duration-200',
               isOpen && 'rotate-180'

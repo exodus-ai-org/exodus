@@ -1,6 +1,6 @@
-// src/renderer/components/philharmonic/schedule/schedule-tab.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { PlusIcon } from 'lucide-react'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -97,7 +97,7 @@ export function ScheduleTab({
           size="sm"
           onClick={() => setFormOpen(true)}
         >
-          <PlusIcon className="h-4 w-4" />
+          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="h-4 w-4" />
           {t('schedule.scheduleTaskButton')}
         </Button>
       </div>

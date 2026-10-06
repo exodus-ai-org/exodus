@@ -1,4 +1,5 @@
-import { ExternalLinkIcon } from 'lucide-react'
+import { LinkSquare02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -152,7 +153,11 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
           }
         >
           {t('drawioCard.openInDrawio')}
-          <ExternalLinkIcon className="ml-1 size-3" />
+          <HugeiconsIcon
+            icon={LinkSquare02Icon}
+            strokeWidth={2}
+            className="ml-1 size-3"
+          />
         </Button>
       </div>
       <iframe

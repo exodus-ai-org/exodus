@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { AttachmentRequest } from '@exodus/shared/types/attachment-actions'
-import { DownloadIcon } from 'lucide-react'
+import { DownloadIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import type { MouseEvent, ReactElement, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import Zoom from 'react-medium-image-zoom'
@@ -39,7 +40,12 @@ export function AttachmentDownloadButton({
         className
       )}
     >
-      <DownloadIcon size={14} aria-hidden />
+      <HugeiconsIcon
+        icon={DownloadIcon}
+        strokeWidth={2}
+        size={14}
+        aria-hidden
+      />
     </button>
   )
 }

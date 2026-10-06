@@ -1,8 +1,9 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { Tick02Icon, Copy01Icon, RefreshIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
-import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -115,12 +116,16 @@ export const MessageAction = memo(function MessageAction({
   return (
     <TooltipProvider>
       <div
-        className="text-muted-foreground mt-1.5 flex items-center gap-0.5"
+        className="text-muted-foreground mt-1.5 -ml-1.5 flex items-center gap-0.5"
         data-testid={TEST_IDS.chat.messageAction}
       >
         <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
-            {copied === copyText ? <CheckIcon /> : <CopyIcon />}
+            {copied === copyText ? (
+              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+            ) : (
+              <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+            )}
           </IconWrapper>
         </MessageActionItem>
 
@@ -133,7 +138,7 @@ export const MessageAction = memo(function MessageAction({
               label={t('messageAction.regenerate')}
               testId={TEST_IDS.chat.regenerate}
             >
-              <RefreshCwIcon />
+              <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} />
             </IconWrapper>
           </MessageActionItem>
         )}

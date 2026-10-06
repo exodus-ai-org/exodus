@@ -12,7 +12,8 @@ import {
   HttpError,
   toErrorI18n
 } from '@exodus/shared/utils/http'
-import { AstroidIcon } from 'lucide-react'
+import { AsteroidIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { FieldPath } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -182,7 +183,7 @@ export function ModelPicker({
               data-testid={TEST_IDS.providerModels.modelSelect}
             >
               <InputGroupAddon>
-                <AstroidIcon />
+                <HugeiconsIcon icon={AsteroidIcon} strokeWidth={2} />
               </InputGroupAddon>
             </ComboboxInput>
             <ComboboxContent>

@@ -22,55 +22,55 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/calling-tools/artifact/artifact-card.tsx',
     text: 'artifact://',
-    line: 133,
+    line: 134,
     reason: "The app's own URI scheme prefix, not user-facing prose."
   },
   {
     file: 'src/renderer/components/calling-tools/drawio/drawio-card.tsx',
     text: 'draw.io ·',
-    line: 138,
+    line: 139,
     reason: "draw.io is the third-party product's own brand name."
   },
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'traceId:',
-    line: 374,
+    line: 379,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'originTraceId:',
-    line: 376,
+    line: 381,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'Exodus',
-    line: 62,
+    line: 63,
     reason: "The app's own name under its icon in About, a brand name."
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus-ai-org/exodus',
-    line: 130,
+    line: 131,
     reason: 'GitHub org/repo slug, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: '@YanceyOfficial',
-    line: 133,
+    line: 134,
     reason: 'Social handle, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus.yancey.app',
-    line: 136,
+    line: 137,
     reason: 'Website domain, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'MIT',
-    line: 139,
+    line: 140,
     reason: 'Software license name — never translated.'
   }
 ]

@@ -17,8 +17,9 @@ import type { ChatPageQuestion } from '@exodus/shared/types/chat-page'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { isLocked, runAttemptInfos } from '@exodus/shared/utils/attempts'
 import { splitThinkingTagsInContent } from '@exodus/shared/utils/thinking-tags'
+import { ArrowDownIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { capitalCase } from 'change-case'
-import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -1003,7 +1004,7 @@ function Messages({
           className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border shadow-md"
           aria-label={t('messageList.scrollToBottom')}
         >
-          <ArrowDownIcon />
+          <HugeiconsIcon icon={ArrowDownIcon} strokeWidth={2} />
         </Button>
       )}
     </div>

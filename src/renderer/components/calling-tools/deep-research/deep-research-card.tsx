@@ -1,7 +1,12 @@
 import { WebSearchResult } from '@exodus/shared/types/web-search'
+import {
+  AlertCircleIcon,
+  DownloadIcon,
+  Loading03Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
-import { AlertCircleIcon, DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -163,7 +168,12 @@ export function DeepResearchCard({
             )}
           {deepResearchResult?.jobStatus === 'failed' && (
             <div className="text-destructive flex items-center gap-1.5">
-              <AlertCircleIcon size={14} className="shrink-0" />
+              <HugeiconsIcon
+                icon={AlertCircleIcon}
+                strokeWidth={2}
+                size={14}
+                className="shrink-0"
+              />
               {t('deepResearchCard.failed')}
             </div>
           )}
@@ -180,13 +190,14 @@ export function DeepResearchCard({
                   onClick={exportPdf}
                 >
                   {loading ? (
-                    <LoaderIcon
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
                       size={14}
                       strokeWidth={2.5}
                       className="animate-spin"
                     />
                   ) : (
-                    <DownloadIcon />
+                    <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
                   )}
                 </Button>
               </TooltipTrigger>

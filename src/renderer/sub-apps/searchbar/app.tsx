@@ -1,7 +1,13 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  SearchIcon,
+  Cancel01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import type { IpcRendererEvent, Result } from 'electron'
-import { ChevronDownIcon, ChevronUpIcon, SearchIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -115,7 +121,7 @@ export function SearchBar() {
       <div className="bg-popover text-popover-foreground border-border/60 flex w-full items-center gap-0.5 rounded-3xl border py-1.5 pr-1.5 pl-2 shadow-md">
         <InputGroup className="flex-1 border-0 bg-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-0">
           <InputGroupAddon>
-            <SearchIcon />
+            <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
           </InputGroupAddon>
           <InputGroupInput
             ref={inputRef}
@@ -155,7 +161,7 @@ export function SearchBar() {
           title={t('findInPage.previous')}
           aria-label={t('findInPage.previous')}
         >
-          <ChevronUpIcon />
+          <HugeiconsIcon icon={ArrowUp01Icon} strokeWidth={2} />
         </Button>
         <Button
           variant="ghost"
@@ -167,7 +173,7 @@ export function SearchBar() {
           title={t('findInPage.next')}
           aria-label={t('findInPage.next')}
         >
-          <ChevronDownIcon />
+          <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} />
         </Button>
         <Button
           variant="ghost"
@@ -178,7 +184,7 @@ export function SearchBar() {
           title={t('findInPage.close')}
           aria-label={t('findInPage.close')}
         >
-          <XIcon />
+          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
         </Button>
       </div>
     </div>

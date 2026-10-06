@@ -1,6 +1,10 @@
-// src/renderer/components/philharmonic/chat/group-message-bubble.tsx
+import {
+  Tick02Icon,
+  Loading03Icon,
+  Wrench01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { format } from 'date-fns'
-import { CheckIcon, Loader2Icon, WrenchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { ArtifactCard } from '@/components/calling-tools/artifact/artifact-card'
@@ -190,15 +194,27 @@ export function GroupMessageBubble({
                 }}
               >
                 <div className="bg-accent text-accent-foreground flex h-6 w-6 items-center justify-center rounded-md">
-                  <WrenchIcon className="h-3.5 w-3.5" />
+                  <HugeiconsIcon
+                    icon={Wrench01Icon}
+                    strokeWidth={2}
+                    className="h-3.5 w-3.5"
+                  />
                 </div>
                 <div className="text-foreground min-w-0 flex-1 text-xs font-semibold">
                   {card.toolName}
                 </div>
                 {card.phase === 'start' ? (
-                  <Loader2Icon className="text-muted-foreground h-3.5 w-3.5 animate-spin" />
+                  <HugeiconsIcon
+                    icon={Loading03Icon}
+                    strokeWidth={2}
+                    className="text-muted-foreground h-3.5 w-3.5 animate-spin"
+                  />
                 ) : (
-                  <CheckIcon className="h-3.5 w-3.5 text-emerald-500" />
+                  <HugeiconsIcon
+                    icon={Tick02Icon}
+                    strokeWidth={2}
+                    className="h-3.5 w-3.5 text-emerald-500"
+                  />
                 )}
               </div>
             ))}

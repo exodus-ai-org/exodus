@@ -1,4 +1,9 @@
-import { CheckCircle2Icon, TerminalIcon, XCircleIcon } from 'lucide-react'
+import {
+  CheckmarkCircle02Icon,
+  ComputerTerminal01Icon,
+  CancelCircleIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
@@ -21,14 +26,26 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
     <div className="overflow-hidden rounded-lg border font-mono text-xs">
       {/* Header */}
       <div className="bg-muted/60 flex items-center gap-2 border-b px-3 py-2">
-        <TerminalIcon className="text-muted-foreground size-3.5 shrink-0" />
+        <HugeiconsIcon
+          icon={ComputerTerminal01Icon}
+          strokeWidth={2}
+          className="text-muted-foreground size-3.5 shrink-0"
+        />
         <span className="text-foreground/80 flex-1 truncate">
           {toolResult.command}
         </span>
         {success ? (
-          <CheckCircle2Icon className="size-3.5 shrink-0 text-green-500" />
+          <HugeiconsIcon
+            icon={CheckmarkCircle02Icon}
+            strokeWidth={2}
+            className="size-3.5 shrink-0 text-green-500"
+          />
         ) : (
-          <XCircleIcon className="text-destructive size-3.5 shrink-0" />
+          <HugeiconsIcon
+            icon={CancelCircleIcon}
+            strokeWidth={2}
+            className="text-destructive size-3.5 shrink-0"
+          />
         )}
         <span
           className={cn(

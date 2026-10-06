@@ -1,6 +1,11 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WorkspaceFileReadResult } from '@exodus/shared/types/workspace-files'
-import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import {
+  Tick02Icon,
+  Copy01Icon,
+  LinkSquare02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { Markdown } from '@/components/markdown/markdown'
@@ -86,7 +91,11 @@ export function WorkspaceFilePreview({
               size="sm"
               onClick={() => handleCopy(content)}
             >
-              {isCopied ? <CheckIcon /> : <CopyIcon />}
+              {isCopied ? (
+                <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+              ) : (
+                <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+              )}
               {isCopied ? t('workspaceFile.copied') : t('workspaceFile.copy')}
             </Button>
           )}
@@ -95,7 +104,7 @@ export function WorkspaceFilePreview({
             size="sm"
             onClick={() => void openWorkspaceFileWithFeedback(path, t)}
           >
-            <ExternalLinkIcon />
+            <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} />
             {t('workspaceFile.open')}
           </Button>
         </div>

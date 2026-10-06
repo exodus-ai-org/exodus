@@ -1,4 +1,5 @@
-import { ImageOffIcon } from 'lucide-react'
+import { ImageNotFound01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   type HTMLAttributeReferrerPolicy,
   type ReactNode,
@@ -85,7 +86,11 @@ export function LazyLoadImage({
         <div className="bg-accent text-card flex size-full flex-col items-center justify-center">
           {/* A third of the box, at most 48px: a 32px map pin no longer
               holds a 48px icon. */}
-          <ImageOffIcon className="size-1/3 max-h-12 max-w-12" />
+          <HugeiconsIcon
+            icon={ImageNotFound01Icon}
+            strokeWidth={2}
+            className="size-1/3 max-h-12 max-w-12"
+          />
         </div>
       )}
     </div>

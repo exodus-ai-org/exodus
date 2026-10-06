@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import type React from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -91,14 +91,14 @@ export function SettingsNotice({
   style,
   children
 }: {
-  icon: LucideIcon
+  icon: IconSvgElement
   className?: string
   style?: React.CSSProperties
   children: React.ReactNode
 }) {
   return (
     <Alert className={className} style={style}>
-      <Icon />
+      <HugeiconsIcon icon={Icon} strokeWidth={2} />
       <AlertDescription>{children}</AlertDescription>
     </Alert>
   )
@@ -114,7 +114,7 @@ export function SettingsEmpty({
   description,
   children
 }: {
-  icon: LucideIcon
+  icon: IconSvgElement
   title: string
   description?: React.ReactNode
   children?: React.ReactNode
@@ -124,7 +124,7 @@ export function SettingsEmpty({
       <Empty className="p-4">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <Icon />
+            <HugeiconsIcon icon={Icon} strokeWidth={2} />
           </EmptyMedia>
           <EmptyTitle className="text-base">{title}</EmptyTitle>
           {description && <EmptyDescription>{description}</EmptyDescription>}

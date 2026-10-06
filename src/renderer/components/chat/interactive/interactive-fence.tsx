@@ -1,13 +1,3 @@
-// Where a reply's fenced code becomes its block. `markdown.tsx` hands every
-// `<pre>` whose code is labelled `exodus-ask` / `exodus-confirm` to
-// `InteractiveFence`, with the `<pre>` as its fallback. It is drawn as the
-// control only when it is the turn's block (`useInteractiveTurn`, which finds
-// it with `findInteractiveBlock`) inside a chat: the same text, opened at the
-// left margin by exactly ```` ```exodus-ask ```` (a `~~~` fence, a longer info
-// string or an indented one carry the same label but are not blocks), with no
-// block before it in the turn — in its own text or in a text block above it
-// (`TurnTextAboveContext`). Outside a turn, invalid, second or still being
-// written, it stays code.
 import {
   findInteractiveBlock,
   interactiveKind,

@@ -1,7 +1,5 @@
-// src/renderer/components/philharmonic/chat/group-chat.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { isSameDay, isToday, isYesterday, format } from 'date-fns'
-import { AlertTriangleIcon, HelpCircleIcon, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -37,6 +35,13 @@ function formatDayLabel(d: Date): string {
   if (isYesterday(d)) return i18n.t('philharmonic:chat.dateLabels.yesterday')
   return format(d, 'PPP')
 }
+
+import {
+  Alert02Icon,
+  HelpCircleIcon,
+  UserGroupIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 import type { ConversationStream } from '@/hooks/use-conversation-stream'
 
@@ -299,7 +304,7 @@ export function GroupChat({
             membersOpen && 'bg-accent text-foreground'
           )}
         >
-          <UsersIcon />
+          <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />
         </Button>
       </header>
 
@@ -348,14 +353,22 @@ export function GroupChat({
         )}
         {error && (
           <div className="text-destructive bg-destructive/10 mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
-            <AlertTriangleIcon className="h-3.5 w-3.5 shrink-0" />
+            <HugeiconsIcon
+              icon={Alert02Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5 shrink-0"
+            />
             <span>{error}</span>
           </div>
         )}
         {askUser && (
           <div className="border-border bg-muted mx-auto my-3 max-w-2xl rounded-xl border p-3">
             <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
-              <HelpCircleIcon className="text-primary-ink mt-0.5 h-4 w-4 shrink-0" />
+              <HugeiconsIcon
+                icon={HelpCircleIcon}
+                strokeWidth={2}
+                className="text-primary-ink mt-0.5 h-4 w-4 shrink-0"
+              />
               <span>{askUser.question}</span>
             </div>
             <div className="flex gap-2">

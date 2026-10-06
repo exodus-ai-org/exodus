@@ -1,13 +1,14 @@
 import type { ToolNotice } from '@exodus/shared/types/chat'
+import {
+  Tick02Icon,
+  Copy01Icon,
+  LinkSquare02Icon,
+  InformationCircleIcon,
+  Alert02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkey } from '@tanstack/react-hotkeys'
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
-import {
-  CheckIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-  InfoIcon,
-  TriangleAlertIcon
-} from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -140,7 +141,7 @@ const MapSurface = memo(function MapSurface({
  *  map renders from the LLM's coordinates but ratings/photos/hours are missing. */
 function ItineraryNotice({ notice }: { notice: ToolNotice }) {
   const isInfo = notice.level === 'info'
-  const Icon = isInfo ? InfoIcon : TriangleAlertIcon
+  const Icon = isInfo ? InformationCircleIcon : Alert02Icon
   return (
     <div
       className={cn(
@@ -150,7 +151,11 @@ function ItineraryNotice({ notice }: { notice: ToolNotice }) {
           : 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400'
       )}
     >
-      <Icon className="mt-px size-3.5 shrink-0" />
+      <HugeiconsIcon
+        icon={Icon}
+        strokeWidth={2}
+        className="mt-px size-3.5 shrink-0"
+      />
       <span>{notice.message}</span>
     </div>
   )
@@ -292,7 +297,11 @@ function MapItineraryCardImpl({
                 title={t('mapItineraryCard.openRouteTitle')}
                 className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
               >
-                <ExternalLinkIcon size={14} />
+                <HugeiconsIcon
+                  icon={LinkSquare02Icon}
+                  strokeWidth={2}
+                  size={14}
+                />
               </a>
             )}
             <button
@@ -302,9 +311,9 @@ function MapItineraryCardImpl({
               className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
             >
               {copied === copyMarkdown ? (
-                <CheckIcon size={14} />
+                <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} size={14} />
               ) : (
-                <CopyIcon size={14} />
+                <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} size={14} />
               )}
             </button>
           </div>

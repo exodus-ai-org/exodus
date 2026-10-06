@@ -2,8 +2,9 @@ import {
   artifactShortId,
   artifactSlug
 } from '@exodus/shared/utils/artifact-slug'
+import { Maximize01Icon, Minimize01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkey } from '@tanstack/react-hotkeys'
-import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -162,7 +163,11 @@ function FullscreenButton({
       )}
       className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
-      {isFullscreen ? <MinimizeIcon size={14} /> : <MaximizeIcon size={14} />}
+      {isFullscreen ? (
+        <HugeiconsIcon icon={Minimize01Icon} strokeWidth={2} size={14} />
+      ) : (
+        <HugeiconsIcon icon={Maximize01Icon} strokeWidth={2} size={14} />
+      )}
     </button>
   )
 }

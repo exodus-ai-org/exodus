@@ -1,13 +1,14 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
-  ChevronDownIcon,
+  ArrowDown01Icon,
   DropletIcon,
   FootprintsIcon,
-  HeartIcon,
+  FavouriteIcon,
   HeartPulseIcon,
-  MoonIcon,
-  type LucideIcon
-} from 'lucide-react'
+  MoonIcon
+} from '@hugeicons/core-free-icons'
+import type { IconSvgElement } from '@hugeicons/react'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -23,10 +24,10 @@ import {
   CollapsibleTrigger
 } from '@/components/ui/collapsible'
 
-const ICONS: Record<HealthChipIcon, LucideIcon> = {
+const ICONS: Record<HealthChipIcon, IconSvgElement> = {
   sleep: MoonIcon,
   steps: FootprintsIcon,
-  heart: HeartIcon,
+  heart: FavouriteIcon,
   water: DropletIcon,
   health: HeartPulseIcon
 }
@@ -73,7 +74,9 @@ export function HealthContextCard({ json }: { json: string }) {
               key={`${chip.icon}:${chip.text}`}
               className="inline-flex items-center gap-1 tabular-nums"
             >
-              <Icon
+              <HugeiconsIcon
+                icon={Icon}
+                strokeWidth={2}
                 aria-hidden
                 className="text-primary-ink size-3.5 shrink-0"
               />
@@ -81,7 +84,9 @@ export function HealthContextCard({ json }: { json: string }) {
             </span>
           )
         })}
-        <ChevronDownIcon
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           aria-hidden
           className="size-3 shrink-0 transition-transform duration-200 group-data-panel-open/health:rotate-180 motion-reduce:transition-none"
         />

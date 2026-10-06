@@ -1,5 +1,5 @@
+import { HugeiconsIcon } from '@hugeicons/react'
 import * as Motion from 'framer-motion'
-import * as LucideIcons from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as ReactJsxDevRuntime from 'react/jsx-dev-runtime'
 import * as ReactJsxRuntime from 'react/jsx-runtime'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { artifactIcons } from './sandbox-icons'
 import { observeSize } from './size-report'
 
 const MODULE_REGISTRY: Record<string, unknown> = {
@@ -28,7 +29,11 @@ const MODULE_REGISTRY: Record<string, unknown> = {
   'react/jsx-runtime': ReactJsxRuntime,
   'react/jsx-dev-runtime': ReactJsxDevRuntime,
   recharts: Recharts,
-  'lucide-react': LucideIcons,
+  // The icons an artifact may draw: a curated set of Hugeicons (the whole
+  // free package is 14k icons) behind a Proxy that hands an unknown name a
+  // placeholder, so a misremembered name never breaks the artifact.
+  '@hugeicons/react': { HugeiconsIcon },
+  '@hugeicons/core-free-icons': artifactIcons,
   'framer-motion': Motion,
   '@/ui/button': { Button },
   '@/ui/card': { Card, CardContent, CardHeader, CardTitle },

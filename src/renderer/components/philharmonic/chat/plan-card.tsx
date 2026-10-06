@@ -1,6 +1,11 @@
-// src/renderer/components/philharmonic/chat/plan-card.tsx
 import type { PlanDto, StepStatus } from '@exodus/shared/types/philharmonic'
-import { Check, ChevronDown, ChevronRight, X } from 'lucide-react'
+import {
+  Tick02Icon,
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -87,9 +92,17 @@ export function PlanCard({ plan, agentsById }: Props) {
         className="hover:bg-background flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors"
       >
         {collapsed ? (
-          <ChevronRight className="text-muted-foreground h-4 w-4" />
+          <HugeiconsIcon
+            icon={ArrowRight01Icon}
+            strokeWidth={2}
+            className="text-muted-foreground h-4 w-4"
+          />
         ) : (
-          <ChevronDown className="text-muted-foreground h-4 w-4" />
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            strokeWidth={2}
+            className="text-muted-foreground h-4 w-4"
+          />
         )}
         <span className="text-foreground flex-1 truncate text-[12.5px] font-semibold">
           {plan.summary}
@@ -119,9 +132,17 @@ export function PlanCard({ plan, agentsById }: Props) {
                   aria-label={stepStatusAria[s.status]}
                 >
                   {s.status === 'done' ? (
-                    <Check className="h-3.5 w-3.5" />
+                    <HugeiconsIcon
+                      icon={Tick02Icon}
+                      strokeWidth={2}
+                      className="h-3.5 w-3.5"
+                    />
                   ) : s.status === 'failed' ? (
-                    <X className="h-3.5 w-3.5" />
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      strokeWidth={2}
+                      className="h-3.5 w-3.5"
+                    />
                   ) : (
                     STATUS_GLYPH[s.status]
                   )}

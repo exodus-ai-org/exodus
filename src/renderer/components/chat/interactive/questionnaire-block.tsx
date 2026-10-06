@@ -1,9 +1,3 @@
-// A reply's questionnaire (`exodus-ask`) on the user's shadcn Questionnaire:
-// one question at a time with Previous / Skip / Next, Submit on the last with
-// the closing note above it. A blank is a Skip. Submit sends the answers as
-// the user's next message (`composeAskAnswer`); once the chat holds that
-// message the block is frozen, a summary of the picks it carried
-// (`AnsweredQuestionnaire`) — the primitive hides an item it would disable.
 import type { AskBlock, AskQuestion } from '@exodus/shared/types/interactive'
 import {
   composeAskAnswer,

@@ -1,6 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { KeyRoundIcon } from 'lucide-react'
+import { Key01Icon } from '@hugeicons/core-free-icons'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -42,7 +42,7 @@ export function Discover({ form }: { form: UseFormReturnType }) {
       <SettingsIntro>{t('alert')}</SettingsIntro>
 
       {!hasBraveKey && (
-        <SettingsNotice icon={KeyRoundIcon} className={ENTER_UP}>
+        <SettingsNotice icon={Key01Icon} className={ENTER_UP}>
           <BraveKeyHint
             onNavigate={() => setActiveSection(SettingsLabel.BuiltinTools)}
           />

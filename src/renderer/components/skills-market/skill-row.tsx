@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { SkillListItem } from '@exodus/shared/types/skills'
-import { CheckIcon } from 'lucide-react'
+import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import type React from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -51,7 +52,7 @@ export function InstalledBadge() {
       variant="secondary"
       className="shrink-0 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
     >
-      <CheckIcon />
+      <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
       {t('skillsMarket.card.installedBadge')}
     </Badge>
   )

@@ -1,11 +1,12 @@
 import {
   AlertCircleIcon,
-  CheckCircleIcon,
   DownloadIcon,
-  LoaderIcon,
-  RefreshCwIcon,
-  ZapIcon
-} from 'lucide-react'
+  Loading03Icon,
+  RefreshIcon,
+  ZapIcon,
+  CheckmarkCircle02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,12 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           {t('settings:about.update.checkPrompt')}
         </span>
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
+          <HugeiconsIcon
+            icon={RefreshIcon}
+            strokeWidth={2}
+            className="mr-1.5 size-3.5"
+            data-icon
+          />
           {t('settings:about.update.checkButton')}
         </Button>
       </div>
@@ -39,7 +45,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
   if (state === 'checking') {
     return (
       <div className="flex items-center gap-3 rounded-lg px-4 py-3">
-        <LoaderIcon className="text-muted-foreground size-4 animate-spin" />
+        <HugeiconsIcon
+          icon={Loading03Icon}
+          strokeWidth={2}
+          className="text-muted-foreground size-4 animate-spin"
+        />
         <span className="text-muted-foreground text-sm">
           {t('settings:about.update.checking')}
         </span>
@@ -51,11 +61,20 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <CheckCircleIcon className="size-4 text-green-500" />
+          <HugeiconsIcon
+            icon={CheckmarkCircle02Icon}
+            strokeWidth={2}
+            className="size-4 text-green-500"
+          />
           <span className="text-sm">{t('settings:about.update.upToDate')}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
+          <HugeiconsIcon
+            icon={RefreshIcon}
+            strokeWidth={2}
+            className="mr-1.5 size-3.5"
+            data-icon
+          />
           {t('settings:about.update.checkAgain')}
         </Button>
       </div>
@@ -69,7 +88,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="flex items-center justify-between gap-4 rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <ZapIcon className="size-4 shrink-0 text-blue-500" />
+          <HugeiconsIcon
+            icon={ZapIcon}
+            strokeWidth={2}
+            className="size-4 shrink-0 text-blue-500"
+          />
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {t('settings:about.update.available')}
@@ -94,7 +117,12 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
             className="shrink-0"
             onClick={() => updaterDownload()}
           >
-            <DownloadIcon className="mr-1.5 size-3.5" data-icon />
+            <HugeiconsIcon
+              icon={DownloadIcon}
+              strokeWidth={2}
+              className="mr-1.5 size-3.5"
+              data-icon
+            />
             {manual
               ? t('settings:about.update.downloadPage')
               : t('settings:about.update.download')}
@@ -109,7 +137,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
       <div className="flex flex-col gap-2 rounded-lg px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <DownloadIcon className="text-muted-foreground size-4" />
+            <HugeiconsIcon
+              icon={DownloadIcon}
+              strokeWidth={2}
+              className="text-muted-foreground size-4"
+            />
             <span className="text-sm">
               {t('settings:about.update.downloading')}
             </span>
@@ -132,7 +164,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <CheckCircleIcon className="size-4 text-green-500" />
+          <HugeiconsIcon
+            icon={CheckmarkCircle02Icon}
+            strokeWidth={2}
+            className="size-4 text-green-500"
+          />
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {t('settings:about.update.ready')}
@@ -153,7 +189,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <AlertCircleIcon className="text-destructive size-4" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            className="text-destructive size-4"
+          />
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {t('settings:about.update.failed')}
@@ -166,7 +206,12 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
+          <HugeiconsIcon
+            icon={RefreshIcon}
+            strokeWidth={2}
+            className="mr-1.5 size-3.5"
+            data-icon
+          />
           {t('action.retry')}
         </Button>
       </div>

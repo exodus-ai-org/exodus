@@ -3,7 +3,12 @@ import {
   weatherClockHours,
   type WeatherResult
 } from '@exodus/shared/types/weather'
-import { ChevronDown, Sunrise, Sunset } from 'lucide-react'
+import {
+  ArrowDown01Icon,
+  SunriseIcon,
+  SunsetIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -121,7 +126,8 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
       <Morph active={expanded ? 1 : 0}>
         {/* compact: a line of now */}
         <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-          <now.Icon
+          <HugeiconsIcon
+            icon={now.Icon}
             className={cn('size-8 shrink-0', now.tint)}
             strokeWidth={1.5}
           />
@@ -177,7 +183,8 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
               })}
             </p>
           </div>
-          <now.Icon
+          <HugeiconsIcon
+            icon={now.Icon}
             className={cn('mt-1 size-9 shrink-0', now.tint)}
             strokeWidth={1.5}
           />
@@ -231,12 +238,22 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
               <TemperatureCurve day={day} hover={hover} onHover={setHover} />
               <div className="text-muted-foreground flex items-center justify-between px-5 pb-2 text-[10px] tabular-nums">
                 <span className="flex items-center gap-1">
-                  <Sunrise className="size-3" aria-hidden="true" />
+                  <HugeiconsIcon
+                    icon={SunriseIcon}
+                    strokeWidth={2}
+                    className="size-3"
+                    aria-hidden="true"
+                  />
                   <span className="sr-only">{t('weatherCard.sunrise')}</span>
                   {hourMinute(day.sunrise)}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Sunset className="size-3" aria-hidden="true" />
+                  <HugeiconsIcon
+                    icon={SunsetIcon}
+                    strokeWidth={2}
+                    className="size-3"
+                    aria-hidden="true"
+                  />
                   <span className="sr-only">{t('weatherCard.sunset')}</span>
                   {hourMinute(day.sunset)}
                 </span>
@@ -268,7 +285,8 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                     )}
                   >
                     <span>{weekday(f.date, i)}</span>
-                    <c.Icon
+                    <HugeiconsIcon
+                      icon={c.Icon}
                       className={cn('size-3.5', c.tint)}
                       strokeWidth={1.75}
                     />
@@ -305,7 +323,8 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                     <span className="text-foreground">
                       {weekday(f.date, i)}
                     </span>
-                    <c.Icon
+                    <HugeiconsIcon
+                      icon={c.Icon}
                       className={cn('size-4', c.tint)}
                       strokeWidth={1.75}
                     />
@@ -345,7 +364,9 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         className="border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 flex w-full items-center justify-center gap-1 border-t py-1.5 text-xs transition-[color,background-color,transform] duration-150 ease-out active:scale-[0.99]"
       >
         {expanded ? t('weatherCard.less') : t('weatherCard.details')}
-        <ChevronDown
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           className={cn(
             'size-3.5 transition-transform duration-200 ease-out',
             expanded && 'rotate-180'

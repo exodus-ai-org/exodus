@@ -1,18 +1,19 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { format } from 'date-fns'
 import {
-  ArrowLeftIcon,
+  ArrowLeft02Icon,
   ArrowUpIcon,
-  BrainIcon,
-  ChevronRightIcon,
+  ArrowRight01Icon,
   EyeIcon,
-  EyeOffIcon,
-  LoaderIcon,
-  PlusIcon,
-  Trash2Icon,
+  ViewOffIcon,
+  Loading03Icon,
+  Add01Icon,
+  Delete02Icon,
+  AiBrainIcon,
   UnplugIcon
-} from 'lucide-react'
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { format } from 'date-fns'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -111,7 +112,9 @@ function MemoryRow({
       {/* Fixed slot: a chevron at rest, the eye/trash actions on hover — the
           slot keeps its width both ways so the swap never nudges the row. */}
       <div className="relative flex h-7 w-16 shrink-0 items-center justify-end">
-        <ChevronRightIcon
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          strokeWidth={2}
           className="text-muted-foreground/40 size-4 transition-opacity group-hover:opacity-0"
           data-icon
         />
@@ -132,9 +135,19 @@ function MemoryRow({
             }}
           >
             {disabled ? (
-              <EyeIcon className="size-3.5" data-icon />
+              <HugeiconsIcon
+                icon={EyeIcon}
+                strokeWidth={2}
+                className="size-3.5"
+                data-icon
+              />
             ) : (
-              <EyeOffIcon className="size-3.5" data-icon />
+              <HugeiconsIcon
+                icon={ViewOffIcon}
+                strokeWidth={2}
+                className="size-3.5"
+                data-icon
+              />
             )}
           </Button>
           <Button
@@ -148,7 +161,12 @@ function MemoryRow({
               onDelete()
             }}
           >
-            <Trash2Icon className="size-3.5" data-icon />
+            <HugeiconsIcon
+              icon={Delete02Icon}
+              strokeWidth={2}
+              className="size-3.5"
+              data-icon
+            />
           </Button>
         </div>
       </div>
@@ -269,7 +287,12 @@ function MemoryDetail({
           onClick={onBack}
           className="text-muted-foreground hover:text-foreground -ml-1 flex items-center gap-1.5 text-sm"
         >
-          <ArrowLeftIcon className="size-4" data-icon />
+          <HugeiconsIcon
+            icon={ArrowLeft02Icon}
+            strokeWidth={2}
+            className="size-4"
+            data-icon
+          />
           {t('settings:memory.detail.backButton')}
         </button>
         <div className="flex items-center gap-1">
@@ -423,9 +446,19 @@ function MemoryComposer({
         onClick={submit}
       >
         {busy ? (
-          <LoaderIcon className="size-4 animate-spin" data-icon />
+          <HugeiconsIcon
+            icon={Loading03Icon}
+            strokeWidth={2}
+            className="size-4 animate-spin"
+            data-icon
+          />
         ) : (
-          <ArrowUpIcon className="size-4" data-icon />
+          <HugeiconsIcon
+            icon={ArrowUpIcon}
+            strokeWidth={2}
+            className="size-4"
+            data-icon
+          />
         )}
       </Button>
     </div>
@@ -681,7 +714,12 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
             <span className="ml-1.5 tabular-nums">{memories.length}</span>
           </h2>
           <Button type="button" size="sm" variant="outline" onClick={handleNew}>
-            <PlusIcon className="mr-1 size-3.5" data-icon />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              className="mr-1 size-3.5"
+              data-icon
+            />
             {t('memory.settings.newButton')}
           </Button>
         </div>
@@ -713,7 +751,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         ) : memories.length === 0 ? (
           <SettingsSection>
             <SettingsEmpty
-              icon={BrainIcon}
+              icon={AiBrainIcon}
               title={t('memory.settings.emptyTitle')}
               description={t('memory.settings.emptyHint')}
             />

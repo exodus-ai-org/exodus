@@ -1,4 +1,5 @@
-import { PlusIcon, XIcon } from 'lucide-react'
+import { Add01Icon, Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -70,12 +71,13 @@ export function AvatarUploader<T extends FieldValues>({
           {fallback}
         </span>
       ) : (
-        <PlusIcon />
+        <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
       )}
 
       {!!field.value && (
         <span className="border-background bg-foreground absolute -top-1 -right-1 z-100 rounded-full border-3 p-0.75">
-          <XIcon
+          <HugeiconsIcon
+            icon={Cancel01Icon}
             onClick={(e) => {
               e.stopPropagation()
               e.preventDefault()

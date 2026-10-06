@@ -1,13 +1,14 @@
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ClockIcon,
-  GlobeIcon,
-  MapPinIcon,
-  PhoneIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Clock01Icon,
+  Globe02Icon,
   StarIcon,
-  XIcon
-} from 'lucide-react'
+  Cancel01Icon,
+  Location01Icon,
+  CallIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -146,7 +147,7 @@ export function PlaceDetail({
           aria-label={t('placeDetail.closeAriaLabel')}
           className="bg-background/80 text-foreground hover:bg-background absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
         >
-          <XIcon size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={14} />
         </button>
       </div>
 
@@ -188,7 +189,12 @@ export function PlaceDetail({
                 <span className="text-foreground font-medium">
                   {place.rating.toFixed(1)}
                 </span>
-                <StarIcon size={11} className="fill-amber-500 text-amber-500" />
+                <HugeiconsIcon
+                  icon={StarIcon}
+                  strokeWidth={2}
+                  size={11}
+                  className="fill-amber-500 text-amber-500"
+                />
                 {place.reviewCount !== undefined && (
                   <span>({formatReviewCount(place.reviewCount)})</span>
                 )}
@@ -266,7 +272,13 @@ export function PlaceDetail({
               </div>
             )}
             <ContactRow
-              icon={<MapPinIcon size={12} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Location01Icon}
+                  strokeWidth={2}
+                  size={12}
+                />
+              }
               text={place.address}
               href={
                 place.googleMapsUri ??
@@ -274,7 +286,7 @@ export function PlaceDetail({
               }
             />
             <ContactRow
-              icon={<PhoneIcon size={12} />}
+              icon={<HugeiconsIcon icon={CallIcon} strokeWidth={2} size={12} />}
               text={place.phone}
               href={
                 place.phone
@@ -284,7 +296,9 @@ export function PlaceDetail({
               monospace
             />
             <ContactRow
-              icon={<GlobeIcon size={12} />}
+              icon={
+                <HugeiconsIcon icon={Globe02Icon} strokeWidth={2} size={12} />
+              }
               text={place.websiteUri?.replace(/^https?:\/\//, '')}
               href={place.websiteUri}
               truncate
@@ -309,7 +323,9 @@ export function PlaceDetail({
                       {r.rating !== undefined && (
                         <span className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, j) => (
-                            <StarIcon
+                            <HugeiconsIcon
+                              icon={StarIcon}
+                              strokeWidth={2}
                               key={j}
                               size={9}
                               className={
@@ -348,7 +364,11 @@ export function PlaceDetail({
                 >
                   <span className="text-foreground font-medium">{day}</span>
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <ClockIcon size={10} />
+                    <HugeiconsIcon
+                      icon={Clock01Icon}
+                      strokeWidth={2}
+                      size={10}
+                    />
                     {time}
                   </span>
                 </li>
@@ -371,7 +391,7 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <ChevronLeftIcon size={14} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} size={14} />
         </button>
         <span className="text-muted-foreground text-[11px]">
           {t('placeDetail.pagination', { index: index + 1, total })}
@@ -386,7 +406,7 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <ChevronRightIcon size={14} />
+          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} size={14} />
         </button>
       </div>
     </div>

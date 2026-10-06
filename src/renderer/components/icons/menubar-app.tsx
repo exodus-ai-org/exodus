@@ -1,10 +1,15 @@
-import { LucideProps } from 'lucide-react'
+import type { SVGProps } from 'react'
+
+type MenuBarAppProps = SVGProps<SVGSVGElement> & {
+  size?: number | string
+  color?: string
+}
 
 export const MenuBarApp = ({
   size = 22,
   color = 'currentColor',
   ...props
-}: LucideProps) => {
+}: MenuBarAppProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

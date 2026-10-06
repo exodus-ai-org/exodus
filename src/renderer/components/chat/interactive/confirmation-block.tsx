@@ -1,12 +1,7 @@
-// A reply's confirmation (`exodus-confirm`): what will happen, a note, and
-// Approve / Reject — pending until the chat holds the answer, then the
-// decision (ai-sdk's Confirmation states). The details are Markdown, drawn
-// with react-markdown directly: `markdown.tsx` draws this block. Their
-// pictures go through the chat's own `RemoteImage` — a remote one loads on a
-// tap, never by itself (docs/security-hardening.md, "Remote images in chat").
 import type { ConfirmBlock } from '@exodus/shared/types/interactive'
 import { composeConfirmAnswer } from '@exodus/shared/utils/interactive-answer'
-import { CheckIcon, XIcon } from 'lucide-react'
+import { Tick02Icon, Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown, { type Components } from 'react-markdown'
@@ -76,9 +71,19 @@ export function ConfirmationBlock({
           className="mt-3 flex items-center gap-1.5 text-sm font-medium outline-none"
         >
           {decision === 'reject' ? (
-            <XIcon aria-hidden className="text-muted-foreground size-4" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              strokeWidth={2}
+              aria-hidden
+              className="text-muted-foreground size-4"
+            />
           ) : (
-            <CheckIcon aria-hidden className="text-primary-ink size-4" />
+            <HugeiconsIcon
+              icon={Tick02Icon}
+              strokeWidth={2}
+              aria-hidden
+              className="text-primary-ink size-4"
+            />
           )}
           {decision === 'approve' && t('interactive.approved')}
           {decision === 'reject' && t('interactive.rejected')}

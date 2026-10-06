@@ -1,10 +1,15 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import { CheckIcon, CodeXmlIcon, CopyIcon } from 'lucide-react'
+import {
+  Tick02Icon,
+  Copy01Icon,
+  SourceCodeIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTheme } from 'next-themes'
-import { memo, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import 'katex/dist/katex.min.css'
+import { memo, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 
@@ -208,13 +213,21 @@ export function Markdown({
                 panel's own fill, as ChatGPT's. */}
             <section className="bg-muted text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-xs">
               <span className="flex items-center gap-2 font-medium">
-                <CodeXmlIcon size={14} />
+                <HugeiconsIcon
+                  icon={SourceCodeIcon}
+                  strokeWidth={2}
+                  size={14}
+                />
                 {languageName(match[1])}
               </span>
               <div className="flex cursor-default items-center gap-6">
                 {copied === children ? (
                   <span className="hover:text-foreground flex items-center gap-1.5">
-                    <CheckIcon size={14} strokeWidth={2.5} />
+                    <HugeiconsIcon
+                      icon={Tick02Icon}
+                      size={14}
+                      strokeWidth={2.5}
+                    />
                     {t('state.copied')}
                   </span>
                 ) : (
@@ -227,7 +240,11 @@ export function Markdown({
                       }
                     }}
                   >
-                    <CopyIcon size={14} />
+                    <HugeiconsIcon
+                      icon={Copy01Icon}
+                      strokeWidth={2}
+                      size={14}
+                    />
                     {t('action.copy')}
                   </button>
                 )}

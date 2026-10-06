@@ -1,8 +1,13 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
 import type { MemoryChange, MemorySnapshot } from '@exodus/shared/types/memory'
+import {
+  Tick02Icon,
+  ArrowDown01Icon,
+  Alert02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { isEqual } from 'lodash-es'
-import { CheckIcon, ChevronDownIcon, TriangleAlertIcon } from 'lucide-react'
 import { memo, useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -136,7 +141,9 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
         role="status"
         tone="destructive"
         data-testid={TEST_IDS.chat.memoryStrip.root}
-        icon={<TriangleAlertIcon className={ICON} />}
+        icon={
+          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} className={ICON} />
+        }
       >
         <span>{t('memoryStrip.failed')}</span>
       </StatusStrip>
@@ -193,9 +200,9 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
       data-testid={TEST_IDS.chat.memoryStrip.root}
       icon={
         partly && shown.kind === 'idle' ? (
-          <TriangleAlertIcon className={ICON} />
+          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} className={ICON} />
         ) : (
-          <CheckIcon className={ICON} />
+          <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className={ICON} />
         )
       }
       details={
@@ -218,7 +225,9 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
         className="hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left transition-colors duration-150 ease-out"
       >
         <span className="truncate">{label}</span>
-        <ChevronDownIcon
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           className={cn(
             ICON,
             'transition-transform duration-200 ease-out',

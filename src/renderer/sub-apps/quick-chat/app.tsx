@@ -1,5 +1,6 @@
+import { ArrowTurnBackwardIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkeys } from '@tanstack/react-hotkeys'
-import { CornerDownLeftIcon } from 'lucide-react'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -90,7 +91,7 @@ export function QuickChat() {
             hasText ? 'opacity-100' : 'opacity-0'
           )}
         >
-          <CornerDownLeftIcon />
+          <HugeiconsIcon icon={ArrowTurnBackwardIcon} strokeWidth={2} />
         </Kbd>
       </div>
     </div>

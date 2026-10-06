@@ -4,7 +4,8 @@ import {
   EXODUS_WEBSITE
 } from '@exodus/shared/constants/external-urls'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { ExternalLinkIcon } from 'lucide-react'
+import { LinkSquare02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -33,7 +34,7 @@ function ExternalLink({
       className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm underline-offset-4 transition-colors hover:underline"
     >
       {children}
-      <ExternalLinkIcon size={12} />
+      <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} size={12} />
     </a>
   )
 }

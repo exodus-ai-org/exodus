@@ -1,4 +1,5 @@
-import { AlertCircleIcon } from 'lucide-react'
+import { AlertCircleIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -62,7 +63,12 @@ export function RenderFailed({ what }: { what: string }) {
         'border-border/50 bg-background/70 text-muted-foreground mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm backdrop-blur-md'
       )}
     >
-      <AlertCircleIcon className="size-3.5 shrink-0" aria-hidden />
+      <HugeiconsIcon
+        icon={AlertCircleIcon}
+        strokeWidth={2}
+        className="size-3.5 shrink-0"
+        aria-hidden
+      />
       {t('renderFailed', { what })}
     </div>
   )

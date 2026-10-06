@@ -1,18 +1,18 @@
-// src/renderer/components/philharmonic/chat/conversation-list.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import {
+  SearchIcon,
+  Delete02Icon,
+  DashboardSquare01Icon,
+  PencilEdit02Icon,
+  UserGroupIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   differenceInCalendarDays,
   format,
   isToday,
   isYesterday
 } from 'date-fns'
-import {
-  LayoutDashboardIcon,
-  SearchIcon,
-  SquarePenIcon,
-  Trash2,
-  UsersIcon
-} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -130,12 +130,12 @@ export function ConversationList({
       {
         page: 'workforce' as const,
         label: t('philharmonic:chat.conversationList.configNav.workforce'),
-        icon: UsersIcon
+        icon: UserGroupIcon
       },
       {
         page: 'dashboard' as const,
         label: t('philharmonic:chat.conversationList.configNav.dashboard'),
-        icon: LayoutDashboardIcon
+        icon: DashboardSquare01Icon
       }
     ],
     [t]
@@ -185,7 +185,7 @@ export function ConversationList({
               )}
             />
             <InputGroupAddon align="inline-start">
-              <SearchIcon />
+              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
             </InputGroupAddon>
           </InputGroup>
         </div>
@@ -196,7 +196,7 @@ export function ConversationList({
             onClick={onCreate}
             data-testid={TEST_IDS.philharmonic.newGroup}
           >
-            <SquarePenIcon size={16} />
+            <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={2} size={16} />
             {t('philharmonic:chat.conversationList.newGroupMenuItem')}
           </SidebarMenuItem>
         </SidebarMenu>
@@ -271,7 +271,11 @@ export function ConversationList({
                         variant="destructive"
                         onClick={() => setConfirming(c)}
                       >
-                        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                        <HugeiconsIcon
+                          icon={Delete02Icon}
+                          strokeWidth={2}
+                          className="mr-1.5 h-3.5 w-3.5"
+                        />
                         {t('action.delete')}
                       </ContextMenuItem>
                     </ContextMenuContent>
@@ -293,7 +297,7 @@ export function ConversationList({
                   isActive={activePage === item.page}
                   onClick={() => onNavigateConfig(item.page)}
                 >
-                  <Icon />
+                  <HugeiconsIcon icon={Icon} strokeWidth={2} />
                   {item.label}
                 </SidebarMenuButton>
               </SidebarMenuItem>

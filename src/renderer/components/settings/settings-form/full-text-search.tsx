@@ -5,7 +5,8 @@ import {
   getHttpErrorMessage,
   toErrorI18n
 } from '@exodus/shared/utils/http'
-import { Loader2Icon } from 'lucide-react'
+import { Loading03Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
@@ -178,7 +179,11 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
                   idle: t('settings:fullTextSearch.connection.testButton'),
                   busy: (
                     <>
-                      <Loader2Icon className="animate-spin" />
+                      <HugeiconsIcon
+                        icon={Loading03Icon}
+                        strokeWidth={2}
+                        className="animate-spin"
+                      />
                       {t('settings:fullTextSearch.connection.testingLabel')}
                     </>
                   )
@@ -198,7 +203,11 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
                   idle: t('settings:fullTextSearch.connection.reindexButton'),
                   busy: (
                     <>
-                      <Loader2Icon className="animate-spin" />
+                      <HugeiconsIcon
+                        icon={Loading03Icon}
+                        strokeWidth={2}
+                        className="animate-spin"
+                      />
                       {t('settings:fullTextSearch.connection.reindexingLabel')}
                     </>
                   )

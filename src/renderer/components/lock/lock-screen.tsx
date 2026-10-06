@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { LockNotification, LockStatus } from '@exodus/shared/types/lock'
-import { FingerprintIcon } from 'lucide-react'
+import { FingerPrintIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -110,7 +111,8 @@ export function LockScreen({
           onClick={tryTouchId}
           className="no-drag text-muted-foreground"
         >
-          <FingerprintIcon size={18} /> {t('screen.unlockWithTouchId')}
+          <HugeiconsIcon icon={FingerPrintIcon} strokeWidth={2} size={18} />{' '}
+          {t('screen.unlockWithTouchId')}
         </Button>
       )}
 

@@ -1,8 +1,12 @@
-// src/renderer/components/web-search/image-lightbox.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { AttachmentRequest } from '@exodus/shared/types/attachment-actions'
+import {
+  Cancel01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkeys } from '@tanstack/react-hotkeys'
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -53,7 +57,7 @@ function NavButton({
   testId: string
 }) {
   const { t } = useTranslation('webSearch')
-  const Icon = direction === 'prev' ? ChevronLeftIcon : ChevronRightIcon
+  const Icon = direction === 'prev' ? ArrowLeft01Icon : ArrowRight01Icon
   return (
     <button
       type="button"
@@ -69,7 +73,7 @@ function NavButton({
         direction === 'prev' ? 'left-4' : 'right-4'
       )}
     >
-      <Icon size={22} />
+      <HugeiconsIcon icon={Icon} size={22} strokeWidth={2} />
     </button>
   )
 }
@@ -137,7 +141,7 @@ export function ImageLightbox({
           aria-label={t('action.close')}
           className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground flex size-8 items-center justify-center rounded-full transition"
         >
-          <XIcon size={18} />
+          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={18} />
         </button>
         <AttachmentDownloadButton
           attachment={galleryAttachment(current)}

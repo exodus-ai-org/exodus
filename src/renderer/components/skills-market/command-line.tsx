@@ -1,4 +1,5 @@
-import { CheckIcon, CopyIcon } from 'lucide-react'
+import { Tick02Icon, Copy01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -52,8 +53,16 @@ export function CommandLine({
         onClick={() => handleCopy(command)}
       >
         <span className="grid *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200">
-          <CopyIcon className={cn(done && 'scale-75 opacity-0 blur-[2px]')} />
-          <CheckIcon className={cn(!done && 'scale-75 opacity-0 blur-[2px]')} />
+          <HugeiconsIcon
+            icon={Copy01Icon}
+            strokeWidth={2}
+            className={cn(done && 'scale-75 opacity-0 blur-[2px]')}
+          />
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            strokeWidth={2}
+            className={cn(!done && 'scale-75 opacity-0 blur-[2px]')}
+          />
         </span>
       </Button>
     </div>

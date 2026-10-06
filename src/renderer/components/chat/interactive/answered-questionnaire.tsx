@@ -1,12 +1,10 @@
-// A questionnaire once the chat holds its answer: frozen, a summary of the
-// picks the answer carried (`readPicks`) — named for a screen reader by its
-// title and picks, and given the focus when it was answered from here.
 import type { AskBlock } from '@exodus/shared/types/interactive'
 import {
   BLANK_ANSWER,
   readPicks
 } from '@exodus/shared/utils/interactive-answer'
-import { CheckIcon } from 'lucide-react'
+import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -74,7 +72,12 @@ export function AnsweredQuestionnaire({
         ))}
       </ol>
       <p className="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
-        <CheckIcon aria-hidden className="size-3.5" />
+        <HugeiconsIcon
+          icon={Tick02Icon}
+          strokeWidth={2}
+          aria-hidden
+          className="size-3.5"
+        />
         {t('interactive.answered')}
       </p>
     </div>
@@ -90,7 +93,14 @@ function Pick({ picked, children }: { picked: boolean; children: ReactNode }) {
         picked ? 'border-primary/40 bg-primary/10' : 'text-muted-foreground'
       )}
     >
-      {picked && <CheckIcon aria-hidden className="size-3" />}
+      {picked && (
+        <HugeiconsIcon
+          icon={Tick02Icon}
+          strokeWidth={2}
+          aria-hidden
+          className="size-3"
+        />
+      )}
       {children}
     </li>
   )

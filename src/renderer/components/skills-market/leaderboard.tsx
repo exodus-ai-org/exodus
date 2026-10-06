@@ -1,11 +1,12 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { SkillListItem, SkillsView } from '@exodus/shared/types/skills'
 import {
-  ChevronDownIcon,
-  Loader2Icon,
-  SearchXIcon,
+  ArrowDown01Icon,
+  Loading03Icon,
+  SearchRemoveIcon,
   UnplugIcon
-} from 'lucide-react'
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -123,7 +124,9 @@ export function ExpandToggle({
         onClick={onClick}
       >
         {label}
-        <ChevronDownIcon
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           className={cn(
             'transition-transform duration-200',
             open && 'rotate-180'
@@ -227,7 +230,7 @@ export function SearchResults({
     return (
       <SettingsSection>
         <SettingsEmpty
-          icon={SearchXIcon}
+          icon={SearchRemoveIcon}
           title={t('skillsMarket.browse.noResults', { query })}
           description={t('skillsMarket.browse.noResultsHint')}
         />
@@ -291,7 +294,7 @@ export function RegistryLeaderboard({
     return (
       <SettingsSection>
         <SettingsEmpty
-          icon={SearchXIcon}
+          icon={SearchRemoveIcon}
           title={t('skillsMarket.browse.empty')}
         />
       </SettingsSection>
@@ -316,7 +319,13 @@ export function RegistryLeaderboard({
             disabled={isFetchingNextPage}
             onClick={() => void fetchNextPage()}
           >
-            {isFetchingNextPage && <Loader2Icon className="animate-spin" />}
+            {isFetchingNextPage && (
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                strokeWidth={2}
+                className="animate-spin"
+              />
+            )}
             {t('skillsMarket.browse.loadMore')}
           </Button>
         </div>

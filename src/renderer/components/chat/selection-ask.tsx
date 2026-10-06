@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { ArrowTurnForwardIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
-import { CornerDownRightIcon } from 'lucide-react'
 import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -116,7 +117,7 @@ export const SelectionAsk = memo(function SelectionAsk({
         setOffer(null)
       }}
     >
-      <CornerDownRightIcon />
+      <HugeiconsIcon icon={ArrowTurnForwardIcon} strokeWidth={2} />
       {t('ask.button')}
     </Button>
   )

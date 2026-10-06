@@ -7,7 +7,8 @@ import {
   type ToolMeta
 } from '@exodus/shared/constants/tools'
 import type { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { ChevronDownIcon } from 'lucide-react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -96,7 +97,9 @@ function ConfigurableRow({
           className="text-muted-foreground hover:text-foreground aria-expanded:text-muted-foreground hover:aria-expanded:bg-muted hover:aria-expanded:text-foreground aria-expanded:bg-transparent"
         >
           {t('tools.configure')}
-          <ChevronDownIcon
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            strokeWidth={2}
             className={cn(
               'transition-transform duration-200 ease-out',
               open && 'rotate-180'

@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { SmartphoneIcon, TabletIcon } from 'lucide-react'
+import { SmartPhone01Icon, Tablet01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -57,7 +58,11 @@ function DeviceRow({
       data-testid={TEST_IDS.devices.deviceRow}
       className={ENTER_UP}
       icon={
-        /ipad|tablet/iu.test(device.name) ? <TabletIcon /> : <SmartphoneIcon />
+        /ipad|tablet/iu.test(device.name) ? (
+          <HugeiconsIcon icon={Tablet01Icon} strokeWidth={2} />
+        ) : (
+          <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={2} />
+        )
       }
       title={<span className="truncate">{device.name}</span>}
       description={
@@ -143,7 +148,7 @@ export function Devices() {
         <SettingsSection title={t('devices.heading')}>
           {data.devices.length === 0 ? (
             <SettingsEmpty
-              icon={SmartphoneIcon}
+              icon={SmartPhone01Icon}
               title={t('devices.empty')}
               description={t('devices.emptyHint')}
             />

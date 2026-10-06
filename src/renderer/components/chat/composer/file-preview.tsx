@@ -1,6 +1,7 @@
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import { XIcon } from 'lucide-react'
 
 import { attachmentAtom } from '@/stores/chat'
 
@@ -22,7 +23,8 @@ export function FilePreview() {
       {attachments.map((attachment, idx) => (
         <section className="group relative" key={attachment.url}>
           <span className="border-background bg-foreground absolute -top-2 -right-2 rounded-full border-3 p-0.75">
-            <XIcon
+            <HugeiconsIcon
+              icon={Cancel01Icon}
               data-icon="close"
               onClick={() => deleteAttachment(idx)}
               className="text-background size-2.5"

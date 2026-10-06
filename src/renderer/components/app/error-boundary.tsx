@@ -1,4 +1,5 @@
-import { AlertTriangleIcon, RotateCcwIcon } from 'lucide-react'
+import { Alert02Icon, RotateLeft01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
@@ -40,7 +41,8 @@ export function RouteErrorBoundary() {
       )}
     >
       <div className="bg-destructive/10 flex size-16 items-center justify-center rounded-full">
-        <AlertTriangleIcon
+        <HugeiconsIcon
+          icon={Alert02Icon}
           className="text-destructive size-8"
           strokeWidth={1.5}
         />
@@ -58,7 +60,11 @@ export function RouteErrorBoundary() {
           {t('routeBoundary.backToHome')}
         </Button>
         <Button onClick={() => window.location.reload()}>
-          <RotateCcwIcon className="mr-1.5" />
+          <HugeiconsIcon
+            icon={RotateLeft01Icon}
+            strokeWidth={2}
+            className="mr-1.5"
+          />
           {t('routeBoundary.reload')}
         </Button>
       </div>

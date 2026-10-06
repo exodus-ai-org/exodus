@@ -1,6 +1,6 @@
-// src/renderer/components/philharmonic/chat/attachment-preview.tsx
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useAtom } from 'jotai'
-import { XIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { philharmonicAttachmentAtom } from '@/stores/philharmonic'
@@ -30,7 +30,11 @@ export function AttachmentPreview() {
             }
             className="bg-foreground text-background ring-card absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full ring-2"
           >
-            <XIcon className="h-2.5 w-2.5" strokeWidth={2.5} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              className="h-2.5 w-2.5"
+              strokeWidth={2.5}
+            />
           </button>
         </div>
       ))}

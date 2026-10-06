@@ -1,5 +1,6 @@
+import { SearchIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useAtom } from 'jotai'
-import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -38,7 +39,7 @@ export function SearchDialog() {
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-2 border-b px-3 py-1">
-              <SearchIcon size={20} />
+              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} size={20} />
               <input
                 placeholder={t('sidebar.search.placeholder')}
                 aria-label={t('sidebar.search.ariaLabel')}

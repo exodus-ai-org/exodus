@@ -6,15 +6,16 @@ import type {
 } from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
-  BrainIcon,
+  AiBrainIcon,
+  Tick02Icon,
+  ArrowDown01Icon,
+  Globe02Icon,
   MessageSquareTextIcon,
-  CheckIcon,
-  ChevronDownIcon,
   CircleCheckBigIcon,
   ClockFadingIcon,
-  GlobeIcon,
-  XCircleIcon
-} from 'lucide-react'
+  CancelCircleIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -83,15 +84,51 @@ function StepIcon({
   status: StepStatus
 }) {
   if (step.type === 'toolResult' && step.isError) {
-    return <XCircleIcon size={15} className="text-destructive shrink-0" />
+    return (
+      <HugeiconsIcon
+        icon={CancelCircleIcon}
+        strokeWidth={2}
+        size={15}
+        className="text-destructive shrink-0"
+      />
+    )
   }
   const cls = cn('shrink-0', STATUS_TEXT[status])
   if (step.toolName === TOOL_NAMES.webSearch)
-    return <GlobeIcon size={15} className={cls} />
-  if (step.type === 'thinking') return <BrainIcon size={15} className={cls} />
+    return (
+      <HugeiconsIcon
+        icon={Globe02Icon}
+        strokeWidth={2}
+        size={15}
+        className={cls}
+      />
+    )
+  if (step.type === 'thinking')
+    return (
+      <HugeiconsIcon
+        icon={AiBrainIcon}
+        strokeWidth={2}
+        size={15}
+        className={cls}
+      />
+    )
   if (step.type === 'narration')
-    return <MessageSquareTextIcon size={15} className={cls} />
-  return <ClockFadingIcon size={15} className={cls} />
+    return (
+      <HugeiconsIcon
+        icon={MessageSquareTextIcon}
+        strokeWidth={2}
+        size={15}
+        className={cls}
+      />
+    )
+  return (
+    <HugeiconsIcon
+      icon={ClockFadingIcon}
+      strokeWidth={2}
+      size={15}
+      className={cls}
+    />
+  )
 }
 
 const SearchResultPill = memo(function SearchResultPill({
@@ -158,7 +195,9 @@ function FoldedCard({
         onClick={() => setOpen((prev) => !prev)}
         className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-mono text-[11.5px] transition-colors"
       >
-        <ChevronDownIcon
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           size={13}
           className={cn('shrink-0 transition-transform', !open && '-rotate-90')}
         />
@@ -303,7 +342,12 @@ export function ThinkingTimeline({
             className="shrink-0"
           />
         ) : (
-          <CheckIcon size={16} className="shrink-0" />
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            strokeWidth={2}
+            size={16}
+            className="shrink-0"
+          />
         )}
         {isStreaming ? (
           <ShimmeringText
@@ -314,7 +358,9 @@ export function ThinkingTimeline({
         ) : (
           <span className="truncate font-medium">{headerText}</span>
         )}
-        <ChevronDownIcon
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
           size={16}
           className={cn(
             'shrink-0 transition-transform duration-200',
@@ -403,7 +449,9 @@ export function ThinkingTimeline({
               <TimelineNode
                 isLast
                 icon={
-                  <CircleCheckBigIcon
+                  <HugeiconsIcon
+                    icon={CircleCheckBigIcon}
+                    strokeWidth={2}
                     size={15}
                     className="text-muted-foreground shrink-0"
                   />

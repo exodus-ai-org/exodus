@@ -1,16 +1,17 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { EffortLevel } from '@exodus/shared/schemas/settings-schema'
 import { AdvancedTools as AdvancedToolsType } from '@exodus/shared/types/ai'
+import {
+  AiBrainIcon,
+  AttachmentIcon,
+  Add01Icon,
+  Cancel01Icon,
+  HammerIcon,
+  TelescopeIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import {
-  BrainIcon,
-  HammerIcon,
-  PaperclipIcon,
-  PlusIcon,
-  TelescopeIcon,
-  XIcon
-} from 'lucide-react'
 import { ChangeEvent, useMemo, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -154,7 +155,7 @@ export function ComposerToolsButton() {
             hasActiveTool && 'text-[#0285ff] dark:text-[#48aaff]'
           )}
         >
-          <PlusIcon />
+          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
@@ -164,7 +165,7 @@ export function ComposerToolsButton() {
           <DropdownMenuItem
             onClick={() => setTimeout(() => fileRef.current?.click(), 0)}
           >
-            <PaperclipIcon />
+            <HugeiconsIcon icon={AttachmentIcon} strokeWidth={2} />
             {t('chat:composerTools.attachFiles')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -173,7 +174,7 @@ export function ComposerToolsButton() {
               <DropdownMenuSubTrigger
                 data-testid={TEST_IDS.composer.reasoningEffortItem}
               >
-                <BrainIcon />
+                <HugeiconsIcon icon={AiBrainIcon} strokeWidth={2} />
                 {t('composer.reasoning')}
                 {reasoningEffort !== 'off' && (
                   <span className="text-muted-foreground ml-auto text-xs">
@@ -208,7 +209,7 @@ export function ComposerToolsButton() {
               checked={advancedTools.includes(key)}
               onCheckedChange={() => toggle(key)}
             >
-              <Icon />
+              <HugeiconsIcon icon={Icon} strokeWidth={2} />
               {t(labelKey)}
             </DropdownMenuCheckboxItem>
           ))}
@@ -216,7 +217,7 @@ export function ComposerToolsButton() {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setMcpOpen(true)}>
-                <HammerIcon />
+                <HugeiconsIcon icon={HammerIcon} strokeWidth={2} />
                 {t('chat:composerTools.mcpTools')}
                 <span className="text-muted-foreground ml-auto text-xs">
                   {mcpCount}
@@ -294,9 +295,13 @@ export function ActiveToolPills() {
           onClick={() => setEffort('off')}
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
-          <BrainIcon />
+          <HugeiconsIcon icon={AiBrainIcon} strokeWidth={2} />
           {t('composer.reasoningPill', { label: t(effortLabelKey) })}
-          <XIcon className="opacity-60" />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            strokeWidth={2}
+            className="opacity-60"
+          />
         </button>
       )}
       {active.map(({ key, labelKey, icon: Icon }) => (
@@ -306,9 +311,13 @@ export function ActiveToolPills() {
           onClick={() => toggle(key)}
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
-          <Icon />
+          <HugeiconsIcon icon={Icon} strokeWidth={2} />
           {t(labelKey)}
-          <XIcon className="opacity-60" />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            strokeWidth={2}
+            className="opacity-60"
+          />
         </button>
       ))}
     </div>

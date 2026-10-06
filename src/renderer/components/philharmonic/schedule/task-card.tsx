@@ -1,6 +1,6 @@
-// src/renderer/components/philharmonic/schedule/task-card.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { Loader2Icon, XIcon } from 'lucide-react'
+import { Loading03Icon, Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -80,9 +80,17 @@ export function TaskCard({
           aria-label={t('schedule.taskCard.cancelAria')}
         >
           {cancelling ? (
-            <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5 animate-spin"
+            />
           ) : (
-            <XIcon className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5"
+            />
           )}
         </Button>
       )}

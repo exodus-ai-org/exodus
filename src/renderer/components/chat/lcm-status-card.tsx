@@ -1,4 +1,5 @@
-import { CheckIcon, TriangleAlertIcon } from 'lucide-react'
+import { Tick02Icon, Alert02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -60,7 +61,13 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
         tone="destructive"
         leaving={leaving}
         className={place}
-        icon={<TriangleAlertIcon className="size-3.5 shrink-0" />}
+        icon={
+          <HugeiconsIcon
+            icon={Alert02Icon}
+            strokeWidth={2}
+            className="size-3.5 shrink-0"
+          />
+        }
       >
         <span>{t('lcm.compactionFailed')}</span>
       </StatusStrip>
@@ -76,7 +83,11 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
         shown.kind === 'running' ? (
           <Spinner className="size-3.5 shrink-0" />
         ) : (
-          <CheckIcon className="size-3.5 shrink-0" />
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            strokeWidth={2}
+            className="size-3.5 shrink-0"
+          />
         )
       }
     >

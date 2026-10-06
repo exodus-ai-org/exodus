@@ -1,7 +1,8 @@
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { ChatToolResultMessage } from '@exodus/shared/types/chat'
+import { AlertCircleIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { capitalCase } from 'change-case'
-import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -93,7 +94,12 @@ function CallingTools({
     return (
       <section className="mb-4">
         <div className="text-destructive border-destructive/30 bg-destructive/10 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
-          <AlertCircleIcon size={14} className="mt-0.5 shrink-0" />
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
+            strokeWidth={2}
+            size={14}
+            className="mt-0.5 shrink-0"
+          />
           <span>{errorMessage}</span>
         </div>
       </section>

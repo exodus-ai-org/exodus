@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { SearchIcon, PencilEdit02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
-import { SearchIcon, SquarePenIcon } from 'lucide-react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -61,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               data-testid={TEST_IDS.chatLayout.newChat}
               onClick={() => navigate('/')}
             >
-              <SquarePenIcon />
+              <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={2} />
               <span>{t('sidebar.newChat')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -70,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               data-testid={TEST_IDS.chatLayout.searchButton}
               onClick={() => setIsFullTextSearchVisible(true)}
             >
-              <SearchIcon />
+              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
               <span className="flex-1">{t('sidebar.searchChats')}</span>
               <span className="text-muted-foreground text-xs tracking-wide">
                 {MOD_KEY}⇧F

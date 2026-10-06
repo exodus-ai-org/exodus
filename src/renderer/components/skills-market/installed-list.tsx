@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { InstalledSkill } from '@exodus/shared/types/skills'
-import { PackageOpenIcon, Trash2Icon } from 'lucide-react'
+import { Delete02Icon, PackageOpenIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -113,7 +114,7 @@ export function InstalledSkillsList({
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => setPendingUninstall(skill)}
                   >
-                    <Trash2Icon />
+                    <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
                   </Button>
                 </>
               }

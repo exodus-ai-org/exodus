@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { PlayIcon } from 'lucide-react'
+import { PlayIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
@@ -37,7 +38,12 @@ export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="flex size-10 items-center justify-center rounded-full bg-black/60 text-white">
-                <PlayIcon size={18} className="translate-x-px fill-current" />
+                <HugeiconsIcon
+                  icon={PlayIcon}
+                  strokeWidth={2}
+                  size={18}
+                  className="translate-x-px fill-current"
+                />
               </span>
             </div>
             {video.duration && (

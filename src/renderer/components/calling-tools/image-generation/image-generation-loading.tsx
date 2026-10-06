@@ -1,11 +1,9 @@
-/**
- * An image forming: a dither field that drifts (and follows a fine pointer)
- * while the image is generated, then the image resolving out of a blur.
- * Adapted from beui.dev (agents/image-generation) — strings through the
- * `chat` catalog, curves from `lib/motion.ts`, the press on the retry button
- * a CSS scale rather than a spring.
- */
-import { Check, CircleAlert, RotateCcw } from 'lucide-react'
+import {
+  Tick02Icon,
+  AlertCircleIcon,
+  RotateLeft01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
@@ -83,11 +81,25 @@ function DitherMark({
   reduce: boolean
 }) {
   if (status === 'complete') {
-    return <Check aria-hidden="true" className="size-3.5" />
+    return (
+      <HugeiconsIcon
+        icon={Tick02Icon}
+        strokeWidth={2}
+        aria-hidden="true"
+        className="size-3.5"
+      />
+    )
   }
 
   if (status === 'error') {
-    return <CircleAlert aria-hidden="true" className="size-3.5" />
+    return (
+      <HugeiconsIcon
+        icon={AlertCircleIcon}
+        strokeWidth={2}
+        aria-hidden="true"
+        className="size-3.5"
+      />
+    )
   }
 
   return (
@@ -394,7 +406,12 @@ export function ImageGeneration({
             onClick={onRetry}
             className="text-foreground hover:bg-muted focus-visible:ring-ring mt-3 inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-medium transition-[background-color,scale] duration-100 ease-out outline-none focus-visible:ring-2 active:scale-[0.97] motion-reduce:active:scale-100"
           >
-            <RotateCcw aria-hidden="true" className="size-4" />
+            <HugeiconsIcon
+              icon={RotateLeft01Icon}
+              strokeWidth={2}
+              aria-hidden="true"
+              className="size-4"
+            />
             {t('imageGeneration.retry')}
           </button>
         ) : null}

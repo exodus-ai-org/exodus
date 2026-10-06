@@ -1,10 +1,10 @@
-// src/renderer/components/philharmonic/employees/employee-editor.tsx
-import { Pencil } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { EditIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 // NOTE: useEffect to sync draft from employee prop removed — key={employee.id}
 // at the call site causes React to remount when the employee changes, so the
 // useState initializer always receives the fresh value on mount.
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -105,7 +105,11 @@ export function EmployeeEditor({
                 className="bg-card absolute right-0 bottom-0 flex h-6 w-6 items-center justify-center rounded-full"
                 style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}
               >
-                <Pencil className="text-muted-foreground h-3 w-3" />
+                <HugeiconsIcon
+                  icon={EditIcon}
+                  strokeWidth={2}
+                  className="text-muted-foreground h-3 w-3"
+                />
               </span>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-80">

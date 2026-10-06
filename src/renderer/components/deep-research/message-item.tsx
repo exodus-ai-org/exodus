@@ -2,7 +2,13 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@exodus/shared/types/deep-research'
-import { AlertCircleIcon, BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
+import {
+  AlertCircleIcon,
+  RoboticIcon,
+  Tick02Icon,
+  SearchIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useTranslation } from 'react-i18next'
 
 import { DeepResearchMessage } from '@/types/db'
@@ -23,7 +29,8 @@ export function MessageItem({
     <>
       {payload.type === DeepResearchProgress.StartDeepResearch && (
         <div className="flex gap-2">
-          <BotIcon
+          <HugeiconsIcon
+            icon={RoboticIcon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -39,7 +46,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitLearnings && (
         <div className="flex gap-2">
-          <BotIcon
+          <HugeiconsIcon
+            icon={RoboticIcon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -61,7 +69,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitSearchQueries && (
         <div className="flex gap-2">
-          <BotIcon
+          <HugeiconsIcon
+            icon={RoboticIcon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -88,7 +97,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitSearchResults && (
         <div className="flex gap-2">
-          <SearchIcon
+          <HugeiconsIcon
+            icon={SearchIcon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -102,7 +112,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.StartWritingFinalReport && (
         <div className="flex gap-2">
-          <BotIcon
+          <HugeiconsIcon
+            icon={RoboticIcon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -118,7 +129,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.CompleteDeepResearch && (
         <div className="flex gap-2">
-          <CheckIcon
+          <HugeiconsIcon
+            icon={Tick02Icon}
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -134,7 +146,8 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.FailDeepResearch && (
         <div className="flex gap-2">
-          <AlertCircleIcon
+          <HugeiconsIcon
+            icon={AlertCircleIcon}
             className="text-destructive mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}

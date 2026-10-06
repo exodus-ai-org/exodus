@@ -1,7 +1,8 @@
 import { BASE_URL } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import { ImageIcon } from 'lucide-react'
+import { Image01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { createContext, useContext, useReducer } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -193,7 +194,12 @@ export function RemoteImage({
       data-testid={TEST_IDS.chat.remoteImage.placeholder}
       className="border-border/50 bg-background/70 text-muted-foreground mb-3 flex max-w-full flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm backdrop-blur-md"
     >
-      <ImageIcon className="size-3.5 shrink-0" aria-hidden />
+      <HugeiconsIcon
+        icon={Image01Icon}
+        strokeWidth={2}
+        className="size-3.5 shrink-0"
+        aria-hidden
+      />
       <span className="text-foreground min-w-0 truncate font-medium">
         {label}
       </span>

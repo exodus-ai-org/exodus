@@ -1,6 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { Key01Icon, ShieldAlertIcon } from '@hugeicons/core-free-icons'
 import type { ParseKeys, TFunction } from 'i18next'
-import { KeyRoundIcon, ShieldAlertIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useSecretsStatus } from '@/hooks/use-secrets-status'
@@ -57,7 +57,7 @@ export function SecretsNotices() {
       )}
       {data.needsReentry.length > 0 && (
         <div data-testid={TEST_IDS.secrets.reentryNotice}>
-          <SettingsNotice icon={KeyRoundIcon} className={ENTER_UP}>
+          <SettingsNotice icon={Key01Icon} className={ENTER_UP}>
             <p>{t('secrets.notice.needsReentry')}</p>
             <ul className="mt-1 list-disc pl-4">
               {data.needsReentry.map((path) => (

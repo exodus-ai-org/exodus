@@ -1,17 +1,17 @@
-// src/renderer/components/philharmonic/workforce/workforce-page.tsx
 import {
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
 } from '@exodus/shared/constants/avatar'
 import {
-  Building2Icon,
-  ChevronRight,
-  Pencil,
-  Plus,
-  Trash2,
-  UserPlus,
-  UsersIcon
-} from 'lucide-react'
+  Building03Icon,
+  ArrowRight01Icon,
+  EditIcon,
+  Add01Icon,
+  Delete02Icon,
+  UserGroupIcon,
+  UserAdd01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -115,7 +115,11 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem onClick={() => onEdit(employee)}>
-          <Pencil className="mr-1.5 h-3.5 w-3.5" />
+          <HugeiconsIcon
+            icon={EditIcon}
+            strokeWidth={2}
+            className="mr-1.5 h-3.5 w-3.5"
+          />
           {t('action.edit')}
         </ContextMenuItem>
         <ContextMenuSeparator />
@@ -123,7 +127,11 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
           variant="destructive"
           onClick={() => onAskDelete(employee)}
         >
-          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+          <HugeiconsIcon
+            icon={Delete02Icon}
+            strokeWidth={2}
+            className="mr-1.5 h-3.5 w-3.5"
+          />
           {t('action.delete')}
         </ContextMenuItem>
       </ContextMenuContent>
@@ -161,7 +169,9 @@ function TeamSection({
       onClick={onToggle}
       className="hover:bg-background flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left transition-colors"
     >
-      <ChevronRight
+      <HugeiconsIcon
+        icon={ArrowRight01Icon}
+        strokeWidth={2}
         className={cn(
           'text-muted-foreground h-4 w-4 transition-transform',
           !collapsed && 'rotate-90'
@@ -176,9 +186,17 @@ function TeamSection({
       >
         {team?.icon ??
           (team ? (
-            <Building2Icon className="h-4 w-4 opacity-60" />
+            <HugeiconsIcon
+              icon={Building03Icon}
+              strokeWidth={2}
+              className="h-4 w-4 opacity-60"
+            />
           ) : (
-            <UsersIcon className="h-4 w-4 opacity-60" />
+            <HugeiconsIcon
+              icon={UserGroupIcon}
+              strokeWidth={2}
+              className="h-4 w-4 opacity-60"
+            />
           ))}
       </span>
       <span className="text-foreground text-sm font-semibold">
@@ -203,11 +221,19 @@ function TeamSection({
             <ContextMenuTrigger>{headerContent}</ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem onClick={() => onEditTeam?.(team)}>
-                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                <HugeiconsIcon
+                  icon={EditIcon}
+                  strokeWidth={2}
+                  className="mr-1.5 h-3.5 w-3.5"
+                />
                 {t('workforce.teamSection.editTeam')}
               </ContextMenuItem>
               <ContextMenuItem onClick={() => onAddEmployeeToTeam(team.id)}>
-                <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                <HugeiconsIcon
+                  icon={UserAdd01Icon}
+                  strokeWidth={2}
+                  className="mr-1.5 h-3.5 w-3.5"
+                />
                 {t('workforce.teamSection.addEmployeeHere')}
               </ContextMenuItem>
               <ContextMenuSeparator />
@@ -215,7 +241,11 @@ function TeamSection({
                 variant="destructive"
                 onClick={() => onAskDeleteTeam?.(team)}
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  strokeWidth={2}
+                  className="mr-1.5 h-3.5 w-3.5"
+                />
                 {t('workforce.teamSection.deleteTeam')}
               </ContextMenuItem>
             </ContextMenuContent>
@@ -242,7 +272,11 @@ function TeamSection({
               onClick={() => onAddEmployeeToTeam(team.id)}
               className="border-border text-muted-foreground hover:text-primary-ink flex min-h-[88px] items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <HugeiconsIcon
+                icon={Add01Icon}
+                strokeWidth={2}
+                className="h-3.5 w-3.5"
+              />
               {t('workforce.teamSection.addEmployeeButton')}
             </button>
           )}
@@ -439,7 +473,11 @@ export function WorkforcePage() {
         </div>
         <div className="flex items-center gap-1.5">
           <Button variant="ghost" size="sm" onClick={openNewTeam}>
-            <Plus className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5"
+            />
             {t('philharmonic:workforce.header.addTeamButton')}
           </Button>
           <Button
@@ -452,7 +490,11 @@ export function WorkforcePage() {
                 : undefined
             }
           >
-            <UserPlus className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={UserAdd01Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5"
+            />
             {t('philharmonic:workforce.header.addEmployeeButton')}
           </Button>
         </div>

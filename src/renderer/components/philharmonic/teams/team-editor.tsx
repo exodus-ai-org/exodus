@@ -1,7 +1,3 @@
-// src/renderer/components/philharmonic/teams/team-editor.tsx
-// NOTE: useEffect to sync draft from team prop removed — key={team.id} at the
-// call site causes React to remount when the team changes, so the useState
-// initializer always receives the fresh value on mount.
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 

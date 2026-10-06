@@ -1,4 +1,3 @@
-// src/renderer/components/philharmonic/schedule/recurring-list.tsx
 import { CronExpressionParser } from 'cron-parser'
 import { format } from 'date-fns'
 import { useTranslation } from 'react-i18next'

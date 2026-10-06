@@ -1,27 +1,26 @@
-import type { ParseKeys } from 'i18next'
 import {
   CloudIcon,
   CogIcon,
   DatabaseIcon,
   HammerIcon,
-  InfoIcon,
+  InformationCircleIcon,
   KeyboardIcon,
   NetworkIcon,
-  ScrollTextIcon,
-  DatabaseZapIcon,
-  TextSearch,
+  Scroll01Icon,
+  TextSearchIcon,
   ShoppingBagIcon,
   TelescopeIcon,
   UserIcon,
-  WrenchIcon,
-  MousePointer2Icon,
-  CircleUserRoundIcon,
+  Wrench01Icon,
+  MousePointer2,
+  CircleUserRound,
   MicIcon,
   CompassIcon,
   MonitorSmartphoneIcon,
   SparklesIcon,
   BrainCircuitIcon
-} from 'lucide-react'
+} from '@hugeicons/core-free-icons'
+import type { ParseKeys } from 'i18next'
 
 export enum SettingsLabel {
   Profile = 'Profile',
@@ -98,7 +97,7 @@ export const menus = {
       label: 'nav.group.personal',
       items: [
         { title: SettingsLabel.General, icon: CogIcon },
-        { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
+        { title: SettingsLabel.Profile, icon: CircleUserRound },
         { title: SettingsLabel.Personality, icon: UserIcon },
         { title: SettingsLabel.Memory, icon: BrainCircuitIcon },
         { title: SettingsLabel.Discover, icon: CompassIcon },
@@ -110,7 +109,7 @@ export const menus = {
       label: 'nav.group.aiTools',
       items: [
         { title: SettingsLabel.AiProviders, icon: SparklesIcon },
-        { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
+        { title: SettingsLabel.BuiltinTools, icon: Wrench01Icon },
         { title: SettingsLabel.DeepResearch, icon: TelescopeIcon }
       ]
     },
@@ -120,9 +119,9 @@ export const menus = {
       // marketplace — and the devices allowed to connect to this one.
       label: 'nav.group.integrations',
       items: [
-        { title: SettingsLabel.FullTextSearch, icon: TextSearch },
+        { title: SettingsLabel.FullTextSearch, icon: TextSearchIcon },
         { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
-        { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
+        { title: SettingsLabel.ComputerUse, icon: MousePointer2 },
         { title: SettingsLabel.McpServers, icon: HammerIcon },
         { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon },
         { title: SettingsLabel.Devices, icon: MonitorSmartphoneIcon }
@@ -139,13 +138,13 @@ export const menus = {
     {
       label: 'nav.group.developer',
       items: [
-        { title: SettingsLabel.Logger, icon: ScrollTextIcon },
-        { title: SettingsLabel.ChatAudit, icon: DatabaseZapIcon }
+        { title: SettingsLabel.Logger, icon: Scroll01Icon },
+        { title: SettingsLabel.ChatAudit, icon: DatabaseIcon }
       ]
     },
     {
       label: '',
-      items: [{ title: SettingsLabel.AboutExodus, icon: InfoIcon }]
+      items: [{ title: SettingsLabel.AboutExodus, icon: InformationCircleIcon }]
     }
   ]
 } as const

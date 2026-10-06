@@ -1,14 +1,15 @@
 import { BASE_URL } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
   DownloadIcon,
   FolderOpenIcon,
-  ScrollTextIcon,
-  Trash2Icon,
-  XIcon
-} from 'lucide-react'
+  Delete02Icon,
+  Cancel01Icon,
+  Scroll01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -253,7 +254,11 @@ export function Logger() {
             }}
           >
             {t('logger.filters.traceChip', { id: traceId.slice(0, 8) })}
-            <XIcon className="h-3 w-3" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              strokeWidth={2}
+              className="h-3 w-3"
+            />
           </button>
         )}
 
@@ -263,11 +268,11 @@ export function Logger() {
 
         {/* Action buttons */}
         <Button variant="outline" size="sm" onClick={handleOpenDir}>
-          <FolderOpenIcon />
+          <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
           {t('logger.actions.openDirectory')}
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
-          <DownloadIcon />
+          <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
           {t('logger.actions.export')}
         </Button>
         {/* Destructive, so it looks it and asks first. */}
@@ -277,7 +282,7 @@ export function Logger() {
           className="ml-auto"
           onClick={() => setClearing(true)}
         >
-          <Trash2Icon />
+          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
           {t('logger.actions.clearAll')}
         </Button>
       </div>
@@ -297,7 +302,7 @@ export function Logger() {
         <div className="max-h-[480px] overflow-y-auto">
           {entries.length === 0 && (
             <SettingsEmpty
-              icon={ScrollTextIcon}
+              icon={Scroll01Icon}
               title={t('logger.table.empty')}
             />
           )}
@@ -404,7 +409,11 @@ export function Logger() {
               setExpandedIndex(null)
             }}
           >
-            <ChevronLeftIcon className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5"
+            />
             {t('logger.pagination.prev')}
           </Button>
           <span className="text-muted-foreground text-xs">
@@ -420,7 +429,11 @@ export function Logger() {
             }}
           >
             {t('logger.pagination.next')}
-            <ChevronRightIcon className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              strokeWidth={2}
+              className="h-3.5 w-3.5"
+            />
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { ArrowLeftIcon, Search } from 'lucide-react'
+import { ArrowLeft02Icon, SearchIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { ComponentProps, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -55,7 +56,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           onClick={() => navigate(-1)}
           className="no-drag text-muted-foreground flex justify-start gap-2"
         >
-          <ArrowLeftIcon />
+          <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
           {t('common.backToApp')}
         </Button>
 
@@ -72,7 +73,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             placeholder={t('common.searchPlaceholder')}
           />
           <InputGroupAddon align="inline-start">
-            <Search />
+            <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
           </InputGroupAddon>
         </InputGroup>
       </SidebarHeader>
@@ -91,7 +92,9 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                     isActive={item.title === active}
                     onClick={() => setActive(item.title)}
                   >
-                    {item.icon && <item.icon />}
+                    {item.icon && (
+                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />
+                    )}
                     {t(NAV_TITLE_KEYS[item.title])}
                   </SidebarMenuButton>
                 </SidebarMenuItem>

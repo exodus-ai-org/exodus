@@ -1,4 +1,5 @@
-import { Globe } from 'lucide-react'
+import { Globe02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 import { cn } from '@/lib/utils'
 
@@ -37,7 +38,9 @@ export function Flag({
   const url = flagUrl(code)
   if (!url) {
     return (
-      <Globe
+      <HugeiconsIcon
+        icon={Globe02Icon}
+        strokeWidth={2}
         aria-hidden
         className={cn('text-muted-foreground size-4 shrink-0', className)}
       />

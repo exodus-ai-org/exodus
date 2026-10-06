@@ -6,15 +6,16 @@ import type {
   LightRagHealthDto
 } from '@exodus/shared/types/knowledge-base'
 import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
-import { formatDistanceToNow } from 'date-fns'
 import {
-  BookOpenIcon,
-  FileTextIcon,
-  Loader2Icon,
-  PencilIcon,
-  PlusIcon,
-  Trash2Icon
-} from 'lucide-react'
+  File01Icon,
+  Loading03Icon,
+  EditIcon,
+  Add01Icon,
+  Delete02Icon,
+  BookOpen02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { formatDistanceToNow } from 'date-fns'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
@@ -220,7 +221,7 @@ function DocListItem({
   return (
     <div className={cn('flex items-center gap-3.5', ENTER_UP)}>
       <IconTile>
-        <FileTextIcon />
+        <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
       </IconTile>
       <button
         type="button"
@@ -251,7 +252,7 @@ function DocListItem({
           title={t('action.edit')}
           onClick={() => onEdit(doc)}
         >
-          <PencilIcon />
+          <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
         </Button>
         <Button
           variant="ghost"
@@ -260,7 +261,7 @@ function DocListItem({
           title={t('action.delete')}
           onClick={() => onDelete(doc)}
         >
-          <Trash2Icon />
+          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
         </Button>
       </div>
     </div>
@@ -541,7 +542,11 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 idle: t('knowledgeBase:connection.testButton'),
                 testing: (
                   <>
-                    <Loader2Icon className="animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="animate-spin"
+                    />
                     {t('knowledgeBase:connection.testingLabel')}
                   </>
                 )
@@ -577,7 +582,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 onClick={openAdd}
                 data-testid={TEST_IDS.knowledgeBase.addButton}
               >
-                <PlusIcon />
+                <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
                 {t('knowledgeBase:docDialog.addTitle')}
               </Button>
             </div>
@@ -591,7 +596,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               </div>
             ) : docs.length === 0 ? (
               <SettingsEmpty
-                icon={BookOpenIcon}
+                icon={BookOpen02Icon}
                 title={t('knowledgeBase:documents.empty')}
               />
             ) : (
@@ -609,7 +614,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       ) : (
         <SettingsSection title={t('knowledgeBase:documents.title')}>
           <SettingsEmpty
-            icon={BookOpenIcon}
+            icon={BookOpen02Icon}
             title={t('knowledgeBase:documents.needsUrlHint')}
           />
         </SettingsSection>

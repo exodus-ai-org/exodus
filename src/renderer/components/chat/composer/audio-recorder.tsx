@@ -1,4 +1,9 @@
-import { AudioLinesIcon, LoaderIcon, SquareIcon } from 'lucide-react'
+import {
+  AudioWave01Icon,
+  Loading03Icon,
+  StopIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -107,11 +112,19 @@ export function AudioRecorder({
       onClick={isRecording ? stopRecording : startRecording}
     >
       {loading ? (
-        <LoaderIcon className="animate-spin" />
+        <HugeiconsIcon
+          icon={Loading03Icon}
+          strokeWidth={2}
+          className="animate-spin"
+        />
       ) : isRecording ? (
-        <SquareIcon className="size-3 fill-current" />
+        <HugeiconsIcon
+          icon={StopIcon}
+          strokeWidth={2}
+          className="size-3 fill-current"
+        />
       ) : (
-        <AudioLinesIcon />
+        <HugeiconsIcon icon={AudioWave01Icon} strokeWidth={2} />
       )}
     </Button>
   )

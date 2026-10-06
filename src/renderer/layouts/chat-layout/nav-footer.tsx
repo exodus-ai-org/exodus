@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { ChevronsUpDown, SettingsIcon } from 'lucide-react'
+import { UnfoldMoreIcon, SettingsIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
@@ -59,7 +60,11 @@ export function NavFooter({
                   {t('state.runOnLocal')}
                 </span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <HugeiconsIcon
+                icon={UnfoldMoreIcon}
+                strokeWidth={2}
+                className="ml-auto size-4"
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -95,7 +100,7 @@ export function NavFooter({
                 data-testid={TEST_IDS.chatLayout.accountSettings}
                 onClick={() => navigate('/settings')}
               >
-                <SettingsIcon />
+                <HugeiconsIcon icon={SettingsIcon} strokeWidth={2} />
                 {t('nav.settings')}
               </DropdownMenuItem>
             </DropdownMenuGroup>

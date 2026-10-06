@@ -1,7 +1,3 @@
-// What a reply's blocks read: the turn's own block (found once over its whole
-// answer, so a second block in a later paragraph stays code), and the chat's
-// answers and send. Nothing is stored: a block is answered when the chat
-// holds a user message whose answer fence names its run.
 import type {
   ChatMessage,
   ChatStatus,

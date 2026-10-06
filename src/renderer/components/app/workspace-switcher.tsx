@@ -1,5 +1,10 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { CheckIcon, ChevronDownIcon, MessageSquareIcon } from 'lucide-react'
+import {
+  Tick02Icon,
+  ArrowDown01Icon,
+  Message01Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { MusicConductor } from '@/components/icons/music-conductor'
@@ -12,7 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 
 const WORKSPACES = [
-  { id: 'chat', label: 'Chat', icon: MessageSquareIcon, path: '/' },
+  { id: 'chat', label: 'Chat', icon: Message01Icon, path: '/' },
   {
     id: 'philharmonic',
     label: 'Philharmonic',
@@ -43,7 +48,11 @@ export function WorkspaceSwitcher() {
         )}
       >
         <span className="font-semibold">{active.label}</span>
-        <ChevronDownIcon className="text-muted-foreground size-4" />
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          strokeWidth={2}
+          className="text-muted-foreground size-4"
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="no-drag w-48 rounded-lg">
         {WORKSPACES.map((w) => (
@@ -52,9 +61,19 @@ export function WorkspaceSwitcher() {
             className="gap-2"
             onClick={() => navigate(w.path)}
           >
-            <w.icon className="text-muted-foreground size-4" />
+            <HugeiconsIcon
+              icon={w.icon}
+              strokeWidth={2}
+              className="text-muted-foreground size-4"
+            />
             <span className="flex-1">{w.label}</span>
-            {w.id === active.id && <CheckIcon className="size-4" />}
+            {w.id === active.id && (
+              <HugeiconsIcon
+                icon={Tick02Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

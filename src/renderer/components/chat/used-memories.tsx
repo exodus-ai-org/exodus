@@ -1,7 +1,8 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { UsedMemory } from '@exodus/shared/types/memory'
+import { AiBrainIcon, EditIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
-import { BrainIcon, PencilLineIcon } from 'lucide-react'
 import { memo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -70,7 +71,11 @@ function UsedMemoriesLine({ used }: { used: UsedMemory[] }) {
           'text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 self-start text-xs'
         )}
       >
-        <BrainIcon className="size-3.5 shrink-0" />
+        <HugeiconsIcon
+          icon={AiBrainIcon}
+          strokeWidth={2}
+          className="size-3.5 shrink-0"
+        />
         <span className="truncate">
           {t('usedMemories.label', {
             count: used.length,
@@ -153,7 +158,7 @@ function UsedMemoriesList({
                     // entry, so it reads as a button at a glance.
                     className="bg-primary/12 text-primary-ink hover:bg-primary/20 hover:text-primary-ink dark:bg-primary/20 dark:hover:bg-primary/30 shrink-0 rounded-full"
                   >
-                    <PencilLineIcon />
+                    <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
                     {t('usedMemories.wrong')}
                   </Button>
                 )}

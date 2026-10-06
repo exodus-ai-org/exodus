@@ -1,5 +1,6 @@
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useAtom } from 'jotai'
-import { XIcon } from 'lucide-react'
 import { useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -71,7 +72,7 @@ export function ChatTabs() {
                 active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
               )}
             >
-              <XIcon size={11} />
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={11} />
             </Button>
           </Link>
         )

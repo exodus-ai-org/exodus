@@ -2,10 +2,11 @@ import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import {
   EyeIcon,
-  FileTextIcon,
+  File01Icon,
   FolderOpenIcon,
-  ExternalLinkIcon
-} from 'lucide-react'
+  LinkSquare02Icon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -96,7 +97,7 @@ export function WorkspaceFileCard({
       }}
     >
       <div className="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md">
-        <FileTextIcon className="size-4" />
+        <HugeiconsIcon icon={File01Icon} strokeWidth={2} className="size-4" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium" title={path}>
@@ -116,7 +117,7 @@ export function WorkspaceFileCard({
             aria-label={t('workspaceFile.quickLook')}
             onClick={() => setPreviewing(true)}
           >
-            <EyeIcon />
+            <HugeiconsIcon icon={EyeIcon} strokeWidth={2} />
           </Button>
           <Button
             data-testid={TEST_IDS.chat.workspaceFile.reveal}
@@ -126,7 +127,7 @@ export function WorkspaceFileCard({
             aria-label={t(revealLabelKey())}
             onClick={() => void revealWorkspaceFileWithFeedback(file.path, t)}
           >
-            <FolderOpenIcon />
+            <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
           </Button>
           <Button
             data-testid={TEST_IDS.chat.workspaceFile.open}
@@ -134,7 +135,7 @@ export function WorkspaceFileCard({
             size="sm"
             onClick={() => void openWorkspaceFileWithFeedback(file.path, t)}
           >
-            <ExternalLinkIcon />
+            <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} />
             {t('workspaceFile.open')}
           </Button>
         </div>

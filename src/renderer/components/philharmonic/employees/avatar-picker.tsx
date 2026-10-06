@@ -2,7 +2,8 @@ import {
   AVATAR_STYLES,
   randomAvatarSeed
 } from '@exodus/shared/constants/avatar'
-import { RefreshCwIcon } from 'lucide-react'
+import { RefreshIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -42,7 +43,11 @@ export function AvatarPicker({
             })
           }
         >
-          <RefreshCwIcon className="h-3.5 w-3.5" />
+          <HugeiconsIcon
+            icon={RefreshIcon}
+            strokeWidth={2}
+            className="h-3.5 w-3.5"
+          />
           {t('employees.picker.reroll')}
         </Button>
       </div>

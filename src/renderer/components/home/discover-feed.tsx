@@ -4,8 +4,9 @@ import type {
   DiscoverGroup
 } from '@exodus/shared/types/discover'
 import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
+import { RefreshIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { formatDistanceToNow } from 'date-fns'
-import { RefreshCwIcon } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -189,7 +190,11 @@ export function DiscoverFeed() {
           onClick={handleRefresh}
           title={t('discover:refreshButton')}
         >
-          <RefreshCwIcon className={cn('size-4', isBusy && 'animate-spin')} />
+          <HugeiconsIcon
+            icon={RefreshIcon}
+            strokeWidth={2}
+            className={cn('size-4', isBusy && 'animate-spin')}
+          />
         </Button>
       </div>
 

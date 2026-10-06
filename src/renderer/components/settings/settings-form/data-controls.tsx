@@ -1,11 +1,12 @@
 import {
-  ArchiveIcon,
-  HardDriveDownload,
-  HardDriveUpload,
-  Loader2,
-  ShieldCheck,
-  Trash2
-} from 'lucide-react'
+  Archive02Icon,
+  Loading03Icon,
+  Delete02Icon,
+  HardDriveDownloadIcon,
+  HardDriveUploadIcon,
+  ShieldCheckIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -113,9 +114,13 @@ export function DataControls() {
             onClick={() => createBackup.mutate()}
           >
             {createBackup.isPending ? (
-              <Loader2 className="animate-spin" />
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                strokeWidth={2}
+                className="animate-spin"
+              />
             ) : (
-              <ShieldCheck />
+              <HugeiconsIcon icon={ShieldCheckIcon} strokeWidth={2} />
             )}
             {t('settings:dataControls.backupNow.button')}
           </Button>
@@ -138,7 +143,11 @@ export function DataControls() {
                   style={staggerDelay(index)}
                 >
                   <span className="flex items-center gap-2 font-mono">
-                    <ArchiveIcon className="size-3.5" />
+                    <HugeiconsIcon
+                      icon={Archive02Icon}
+                      strokeWidth={2}
+                      className="size-3.5"
+                    />
                     {b.name}
                   </span>
                   <span className="tabular-nums">{formatBytes(b.size)}</span>
@@ -161,9 +170,13 @@ export function DataControls() {
             onClick={exportData}
           >
             {exportLoading ? (
-              <Loader2 className="animate-spin" />
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                strokeWidth={2}
+                className="animate-spin"
+              />
             ) : (
-              <HardDriveDownload />
+              <HugeiconsIcon icon={HardDriveDownloadIcon} strokeWidth={2} />
             )}
             {t('settings:dataControls.export.button')}
           </Button>
@@ -179,9 +192,13 @@ export function DataControls() {
               render={
                 <Button variant="outline" disabled={importLoading}>
                   {importLoading ? (
-                    <Loader2 className="animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="animate-spin"
+                    />
                   ) : (
-                    <HardDriveUpload />
+                    <HugeiconsIcon icon={HardDriveUploadIcon} strokeWidth={2} />
                   )}
                   {t('settings:dataControls.import.button')}
                 </Button>
@@ -213,7 +230,13 @@ export function DataControls() {
                   disabled={!selectedFile || importLoading}
                   onClick={handleImportConfirm}
                 >
-                  {importLoading && <Loader2 className="animate-spin" />}
+                  {importLoading && (
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="animate-spin"
+                    />
+                  )}
                   {t('settings:dataControls.import.confirmButton')}
                 </Button>
               </DialogFooter>
@@ -234,9 +257,13 @@ export function DataControls() {
               render={
                 <Button variant="destructive" disabled={deleteLoading}>
                   {deleteLoading ? (
-                    <Loader2 className="animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="animate-spin"
+                    />
                   ) : (
-                    <Trash2 />
+                    <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
                   )}
                   {t('settings:dataControls.delete.label')}
                 </Button>
@@ -281,7 +308,13 @@ export function DataControls() {
                   disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
                   onClick={handleDeleteConfirm}
                 >
-                  {deleteLoading && <Loader2 className="animate-spin" />}
+                  {deleteLoading && (
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="animate-spin"
+                    />
+                  )}
                   {t('settings:dataControls.delete.confirmButton')}
                 </Button>
               </DialogFooter>

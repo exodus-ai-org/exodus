@@ -40,7 +40,7 @@ AVAILABLE IMPORTS:
 - react (React, useState, useEffect, useMemo, useCallback, useRef, …)
 - recharts (LineChart, AreaChart, BarChart, PieChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Area, Bar, Pie, Cell, …)
 - framer-motion (motion, AnimatePresence, useMotionValue, useTransform, …)
-- lucide-react (any icon)
+- @hugeicons/react (HugeiconsIcon) and @hugeicons/core-free-icons (the icons): \`import { HugeiconsIcon } from '@hugeicons/react'\`, \`import { Search01Icon, Add01Icon } from '@hugeicons/core-free-icons'\`, \`<HugeiconsIcon icon={Search01Icon} size={16} strokeWidth={1.5} />\`. Names end in \`Icon\`, most with a two-digit variant: Search01Icon, Add01Icon, Tick02Icon, Cancel01Icon, ArrowRight01Icon, ArrowDown01Icon, ArrowUpIcon, Calendar03Icon, Clock01Icon, Settings01Icon, UserIcon, UserGroupIcon, Globe02Icon, Download01Icon, Copy01Icon, Delete02Icon, EditIcon, AlertCircleIcon, Alert02Icon, CheckmarkCircle02Icon, InformationCircleIcon, HelpCircleIcon, Loading03Icon, RefreshIcon, FilterIcon, ChartHistogramIcon, ChartUpIcon, ChartDownIcon, PieChartIcon, MoneyBag02Icon, Wallet01Icon, File01Icon, Folder01Icon, Image01Icon, LinkIcon, StarIcon, ZapIcon, SparklesIcon, Location01Icon, HomeIcon, Mail01Icon, Message01Icon, Notification03Icon, SidebarLeftIcon. A name the sandbox does not hold draws a help-circle placeholder instead of failing.
 - @/ui/button (Button)
 - @/ui/card (Card, CardContent, CardHeader, CardTitle)
 - @/ui/badge (Badge)
@@ -74,7 +74,7 @@ Typography
 - Inherit the app's font; never set font-family except \`ui-monospace, Menlo, monospace\` for code, paths and identifiers — never as shorthand for "technical".
 - At most three sizes, at least 1.25× apart, weights 400 / 500 / 600. One heading. Labels 11–12px in \`text-muted-foreground\`; uppercase with letter-spacing only for a section label, never for body or values.
 - Numbers get \`tabular-nums\`; a large numeral gets \`tracking-tight\` and a light or medium weight, its unit smaller and muted beside it.
-- Left-align. Sentence case. Real words, no lorem ipsum, no exclamation marks, no emoji anywhere (lucide icons, size 16, strokeWidth 1.5–1.75, are the only pictures).
+- Left-align. Sentence case. Real words, no lorem ipsum, no exclamation marks, no emoji anywhere (Hugeicons, size 16, strokeWidth 1.5–1.75, are the only pictures).
 
 Surface and space
 - One \`Card\` is a surface; rows inside it are separated by hairlines (\`divide-y\`, \`border-border\`), not by boxes inside boxes. Two levels of surface at most.

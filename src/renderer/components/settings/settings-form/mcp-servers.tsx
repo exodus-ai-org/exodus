@@ -3,18 +3,6 @@ import { MCP_HOMEPAGE } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { HttpError } from '@exodus/shared/utils/http'
 import { argsHoldSecret } from '@exodus/shared/utils/secret-detect'
-import {
-  ChevronDownIcon,
-  EyeIcon,
-  CloudIcon,
-  Loader2Icon,
-  PencilIcon,
-  PlugIcon,
-  PlusIcon,
-  TerminalIcon,
-  Trash2Icon,
-  XIcon
-} from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -26,6 +14,20 @@ const CodeEditor = lazy(() =>
     default: m.StandaloneCodeEditor
   }))
 )
+import {
+  ArrowDown01Icon,
+  CloudIcon,
+  Loading03Icon,
+  EditIcon,
+  Add01Icon,
+  ComputerTerminal01Icon,
+  Delete02Icon,
+  Cancel01Icon,
+  ViewIcon,
+  PlugIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -156,7 +158,13 @@ function ServerCard({
   return (
     <SettingsItem
       className={ENTER_UP}
-      icon={isRemote ? <CloudIcon /> : <TerminalIcon />}
+      icon={
+        isRemote ? (
+          <HugeiconsIcon icon={CloudIcon} strokeWidth={2} />
+        ) : (
+          <HugeiconsIcon icon={ComputerTerminal01Icon} strokeWidth={2} />
+        )
+      }
       title={
         <>
           <span className="truncate">{server.name}</span>
@@ -183,7 +191,7 @@ function ServerCard({
             aria-label={t('mcpServers.serverCard.editAria')}
             onClick={onEdit}
           >
-            <PencilIcon />
+            <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
           </Button>
           <Button
             variant="ghost"
@@ -192,7 +200,7 @@ function ServerCard({
             aria-label={t('mcpServers.serverCard.deleteAria')}
             onClick={onDelete}
           >
-            <Trash2Icon />
+            <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
           </Button>
         </>
       }
@@ -222,7 +230,9 @@ function ServerCard({
               aria-expanded={expanded}
               onClick={() => setExpanded(!expanded)}
             >
-              <ChevronDownIcon
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                strokeWidth={2}
                 className={cn(
                   'transition-transform duration-200',
                   !expanded && '-rotate-90'
@@ -568,12 +578,12 @@ export function McpServers() {
             {!showForm && (
               <SettingsSection>
                 <SettingsItem
-                  icon={<PlugIcon />}
+                  icon={<HugeiconsIcon icon={PlugIcon} strokeWidth={2} />}
                   title={t('settings:mcpServers.addCard.title')}
                   description={t('settings:mcpServers.addCard.description')}
                   actions={
                     <Button onClick={startNew}>
-                      <PlusIcon />
+                      <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
                       {t('settings:mcpServers.form.addServerButton')}
                     </Button>
                   }
@@ -731,7 +741,11 @@ export function McpServers() {
                                 { index: i + 1 }
                               )}
                             >
-                              <XIcon className="h-4 w-4" />
+                              <HugeiconsIcon
+                                icon={Cancel01Icon}
+                                strokeWidth={2}
+                                className="h-4 w-4"
+                              />
                             </Button>
                           </div>
                         ))}
@@ -741,7 +755,11 @@ export function McpServers() {
                           className="self-start"
                           onClick={() => setArgs((prev) => [...prev, ''])}
                         >
-                          <PlusIcon className="h-3.5 w-3.5" />
+                          <HugeiconsIcon
+                            icon={Add01Icon}
+                            strokeWidth={2}
+                            className="h-3.5 w-3.5"
+                          />
                           {t('settings:mcpServers.form.args.addButton')}
                         </Button>
                         {refusal('args')}
@@ -751,7 +769,7 @@ export function McpServers() {
                             className={ENTER}
                             data-testid={TEST_IDS.mcpServers.argsSecretNotice}
                           >
-                            <SettingsNotice icon={EyeIcon}>
+                            <SettingsNotice icon={ViewIcon}>
                               {t('settings:mcpServers.form.args.secretNotice')}
                             </SettingsNotice>
                           </div>
@@ -861,7 +879,11 @@ export function McpServers() {
                     <Suspense
                       fallback={
                         <div className="flex h-32 items-center justify-center">
-                          <Loader2Icon className="text-muted-foreground h-4 w-4 animate-spin" />
+                          <HugeiconsIcon
+                            icon={Loading03Icon}
+                            strokeWidth={2}
+                            className="text-muted-foreground h-4 w-4 animate-spin"
+                          />
                         </div>
                       }
                     >
@@ -904,7 +926,11 @@ export function McpServers() {
                     disabled={!canSave || saving}
                   >
                     {saving && (
-                      <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
+                      <HugeiconsIcon
+                        icon={Loading03Icon}
+                        strokeWidth={2}
+                        className="mr-1 h-3.5 w-3.5 animate-spin"
+                      />
                     )}
                     {editing
                       ? t('settings:mcpServers.form.updateButton')
@@ -926,7 +952,11 @@ export function McpServers() {
               <Suspense
                 fallback={
                   <div className="flex h-80 items-center justify-center">
-                    <Loader2Icon className="text-muted-foreground h-5 w-5 animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      strokeWidth={2}
+                      className="text-muted-foreground h-5 w-5 animate-spin"
+                    />
                   </div>
                 }
               >

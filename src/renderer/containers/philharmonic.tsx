@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { MessageSquarePlus } from 'lucide-react'
+import { MessageAdd01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   lazy,
   Suspense,
@@ -178,7 +179,11 @@ export function PhilharmonicContainer({
     }
     return (
       <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <MessageSquarePlus className="h-12 w-12 opacity-30" />
+        <HugeiconsIcon
+          icon={MessageAdd01Icon}
+          strokeWidth={2}
+          className="h-12 w-12 opacity-30"
+        />
         <div className="text-foreground text-sm font-medium">
           {t('container.noGroupSelected.title')}
         </div>

@@ -1,4 +1,9 @@
-import { LoaderIcon, SquareIcon, Volume2Icon } from 'lucide-react'
+import {
+  Loading03Icon,
+  StopIcon,
+  VolumeHighIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -56,19 +61,29 @@ export function AudioPlayer({ content }: { content: string }) {
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper onClick={fetchSpeech}>
-            <Volume2Icon size={16} />
+            <HugeiconsIcon icon={VolumeHighIcon} strokeWidth={2} size={16} />
           </IconWrapper>
         )}
 
         {loading && (
           <IconWrapper>
-            <LoaderIcon size={16} className={cn('animate-spin')} />
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              strokeWidth={2}
+              size={16}
+              className={cn('animate-spin')}
+            />
           </IconWrapper>
         )}
 
         {isPlaying && (
           <IconWrapper onClick={handleStop}>
-            <SquareIcon size={11} className="fill-current" />
+            <HugeiconsIcon
+              icon={StopIcon}
+              strokeWidth={2}
+              size={11}
+              className="fill-current"
+            />
           </IconWrapper>
         )}
 

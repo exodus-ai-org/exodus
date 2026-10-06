@@ -1,5 +1,6 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react'
+import { ArrowLeft02Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { createContext, memo, useContext, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import removeMd from 'remove-markdown'
@@ -120,7 +121,7 @@ function SourcePager({
         disabled={index === 0}
         onClick={() => onChange(index - 1)}
       >
-        <ArrowLeftIcon />
+        <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
       </Button>
       <Button
         variant="ghost"
@@ -130,7 +131,7 @@ function SourcePager({
         disabled={index === total - 1}
         onClick={() => onChange(index + 1)}
       >
-        <ArrowRightIcon />
+        <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
       </Button>
       <span className="text-muted-foreground ml-auto pr-1.5 text-xs tabular-nums">
         {t('citation.position', { current: index + 1, total })}

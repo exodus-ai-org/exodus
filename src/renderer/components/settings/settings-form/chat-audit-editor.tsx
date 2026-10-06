@@ -1,6 +1,7 @@
 import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { Loader2Icon } from 'lucide-react'
+import { Loading03Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
 
 import type { EditorMountHandler } from '@/components/markdown/code-editor'
@@ -85,7 +86,11 @@ export function ChatAuditEditor({
       <Suspense
         fallback={
           <div className="flex h-full items-center justify-center">
-            <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              strokeWidth={2}
+              className="text-muted-foreground size-4 animate-spin"
+            />
           </div>
         }
       >

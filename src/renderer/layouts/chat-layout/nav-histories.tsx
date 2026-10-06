@@ -1,13 +1,14 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { useSetAtom } from 'jotai'
 import {
-  ChevronRightIcon,
-  CopyIcon,
-  Edit2Icon,
-  MoreHorizontalIcon,
+  ArrowRight01Icon,
+  Copy01Icon,
+  MoreHorizontalCircle01Icon,
   StarIcon,
-  Trash2Icon
-} from 'lucide-react'
+  Delete02Icon,
+  EditIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { useSetAtom } from 'jotai'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
@@ -134,7 +135,10 @@ export const NavItems = memo(function NavItems({
               showOnHover
               data-testid={TEST_IDS.chatLayout.historyItemMenu}
             >
-              <MoreHorizontalIcon />
+              <HugeiconsIcon
+                icon={MoreHorizontalCircle01Icon}
+                strokeWidth={2}
+              />
               <span className="sr-only">{t('chat:sidebar.history.more')}</span>
             </SidebarMenuAction>
           }
@@ -145,7 +149,9 @@ export const NavItems = memo(function NavItems({
           align={isMobile ? 'end' : 'start'}
         >
           <DropdownMenuItem onClick={() => onToggleFavorite(chat)}>
-            <StarIcon
+            <HugeiconsIcon
+              icon={StarIcon}
+              strokeWidth={2}
               className={cn('text-muted-foreground', {
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
@@ -165,19 +171,31 @@ export const NavItems = memo(function NavItems({
               })
             }}
           >
-            <Edit2Icon className="text-muted-foreground" />
+            <HugeiconsIcon
+              icon={EditIcon}
+              strokeWidth={2}
+              className="text-muted-foreground"
+            />
             <span>{t('chat:sidebar.history.rename')}</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={copyId}
             data-testid={TEST_IDS.chatLayout.copyChatId}
           >
-            <CopyIcon className="text-muted-foreground" />
+            <HugeiconsIcon
+              icon={Copy01Icon}
+              strokeWidth={2}
+              className="text-muted-foreground"
+            />
             <span>{t('chat:sidebar.history.copyId')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
-            <Trash2Icon className="text-destructive" />
+            <HugeiconsIcon
+              icon={Delete02Icon}
+              strokeWidth={2}
+              className="text-destructive"
+            />
             <span className="text-destructive hover:text-destructive">
               {t('action.delete')}
             </span>
@@ -242,7 +260,11 @@ export function NavHistories() {
                   <SidebarGroupLabel className="p-0">
                     {t('sidebar.history.favoritesGroup')}
                   </SidebarGroupLabel>
-                  <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    strokeWidth={2}
+                    className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90"
+                  />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent>

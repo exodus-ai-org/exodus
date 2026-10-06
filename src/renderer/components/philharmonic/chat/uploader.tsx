@@ -1,5 +1,5 @@
-// src/renderer/components/philharmonic/chat/uploader.tsx
-import { Loader2Icon, PaperclipIcon } from 'lucide-react'
+import { Loading03Icon, AttachmentIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { type ChangeEvent, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -27,9 +27,17 @@ export function ComposerUploader() {
       className="text-muted-foreground hover:bg-background hover:text-foreground relative shrink-0 rounded-lg"
     >
       {uploading ? (
-        <Loader2Icon className="h-4 w-4 animate-spin" />
+        <HugeiconsIcon
+          icon={Loading03Icon}
+          strokeWidth={2}
+          className="h-4 w-4 animate-spin"
+        />
       ) : (
-        <PaperclipIcon className="h-4 w-4" />
+        <HugeiconsIcon
+          icon={AttachmentIcon}
+          strokeWidth={2}
+          className="h-4 w-4"
+        />
       )}
       <input
         ref={inputRef}

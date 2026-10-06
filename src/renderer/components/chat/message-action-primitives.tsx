@@ -1,8 +1,3 @@
-/**
- * Shared atomic UI pieces used by both audio-player and massage-action.
- * Extracted into a third module to break the circular import cycle:
- *   audio-player ↔ massage-action (react-doctor/circular-dependency)
- */
 import { ReactNode } from 'react'
 
 import { Button } from '../ui/button'

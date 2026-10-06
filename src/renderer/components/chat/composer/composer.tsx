@@ -1,13 +1,14 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { composeQuoted } from '@exodus/shared/utils/quoted-text'
-import { BorderBeam } from 'border-beam'
-import { useAtom, useAtomValue } from 'jotai'
 import {
   ArrowUpIcon,
-  CornerDownRightIcon,
-  SquareIcon,
-  XIcon
-} from 'lucide-react'
+  StopIcon,
+  Cancel01Icon,
+  ArrowTurnForwardIcon
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { BorderBeam } from 'border-beam'
+import { useAtom, useAtomValue } from 'jotai'
 import { useTheme } from 'next-themes'
 import {
   ChangeEvent,
@@ -180,7 +181,11 @@ function InputBox({
             data-testid={TEST_IDS.composer.quote}
             className="bg-muted/60 text-muted-foreground flex items-start gap-2 rounded-[20px] py-2 pr-1.5 pl-3 text-sm"
           >
-            <CornerDownRightIcon className="mt-0.5 size-4 shrink-0" />
+            <HugeiconsIcon
+              icon={ArrowTurnForwardIcon}
+              strokeWidth={2}
+              className="mt-0.5 size-4 shrink-0"
+            />
             <p
               title={quote}
               className="line-clamp-2 min-w-0 flex-1 wrap-break-word whitespace-pre-wrap"
@@ -195,7 +200,7 @@ function InputBox({
               data-testid={TEST_IDS.composer.quoteRemove}
               onClick={() => setQuote(null)}
             >
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
             </Button>
           </div>
         )}
@@ -255,7 +260,11 @@ function InputBox({
               aria-label={t('composer.stop')}
               onClick={stop ?? undefined}
             >
-              <SquareIcon className="size-3 fill-current" />
+              <HugeiconsIcon
+                icon={StopIcon}
+                strokeWidth={2}
+                className="size-3 fill-current"
+              />
             </Button>
           ) : input.trim() === '' ? (
             <AudioRecorder input={input} setInput={setInput} />
@@ -269,7 +278,7 @@ function InputBox({
               aria-label={t('composer.send')}
               onClick={submitForm}
             >
-              <ArrowUpIcon />
+              <HugeiconsIcon icon={ArrowUpIcon} strokeWidth={2} />
             </Button>
           )}
         </div>

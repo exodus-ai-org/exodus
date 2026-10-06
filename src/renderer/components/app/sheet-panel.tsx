@@ -1,4 +1,5 @@
-import { XIcon } from 'lucide-react'
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -40,7 +41,7 @@ export function SheetPanel({
         className="absolute top-2 right-3 z-20 rounded-full"
         onClick={onClose}
       >
-        <XIcon />
+        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
         <span className="sr-only">{t('action.close')}</span>
       </Button>
     </section>

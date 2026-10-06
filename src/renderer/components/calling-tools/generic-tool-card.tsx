@@ -1,5 +1,6 @@
+import { ArrowRight01Icon, Wrench01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { capitalCase } from 'change-case'
-import { ChevronRightIcon, WrenchIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -46,12 +47,18 @@ export function GenericToolCard({
         onClick={() => setOpen((v) => !v)}
         className="hover:bg-accent/40 flex w-full items-center gap-2 px-3 py-2 text-left"
       >
-        <WrenchIcon className="text-muted-foreground size-3.5 shrink-0" />
+        <HugeiconsIcon
+          icon={Wrench01Icon}
+          strokeWidth={2}
+          className="text-muted-foreground size-3.5 shrink-0"
+        />
         <span className="font-medium">{label}</span>
         <Badge variant="secondary" className="text-[10px]">
           {t('genericToolCard.badge')}
         </Badge>
-        <ChevronRightIcon
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          strokeWidth={2}
           className={cn(
             'text-muted-foreground ml-auto size-3.5 shrink-0 transition-transform',
             open && 'rotate-90'

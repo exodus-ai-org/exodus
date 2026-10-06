@@ -1,6 +1,7 @@
+import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { Questionnaire as QuestionnairePrimitive } from '@shadcn/react/questionnaire'
 import { cn } from 'cn'
-import { CheckIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { buttonVariants, type Button } from '@/components/ui/button'
@@ -126,7 +127,9 @@ function QuestionnaireChoice({
           data-slot="questionnaire-choice-indicator-dot"
           className="bg-primary-foreground hidden size-2 rounded-full group-data-checked/questionnaire-choice:block group-data-[type=checkbox]/questionnaire-choice:hidden"
         />
-        <CheckIcon
+        <HugeiconsIcon
+          icon={Tick02Icon}
+          strokeWidth={2}
           data-slot="questionnaire-choice-indicator-check"
           className="hidden size-3.5 group-data-checked/questionnaire-choice:block group-data-[type=radio]/questionnaire-choice:hidden"
         />

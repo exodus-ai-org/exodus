@@ -1,7 +1,7 @@
-// src/renderer/components/philharmonic/chat/composer.tsx
 import type { Attachment } from '@exodus/shared/types/chat'
+import { SentIcon, StopIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useAtom } from 'jotai'
-import { SendIcon, SquareIcon } from 'lucide-react'
 import { type ClipboardEvent, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -97,7 +97,11 @@ export function Composer({
               aria-label={t('chat.composer.stopAria')}
               className="shrink-0 rounded-lg"
             >
-              <SquareIcon className="h-3 w-3 fill-current" />
+              <HugeiconsIcon
+                icon={StopIcon}
+                strokeWidth={2}
+                className="h-3 w-3 fill-current"
+              />
             </Button>
           ) : (
             <Button
@@ -107,7 +111,11 @@ export function Composer({
               aria-label={t('chat.composer.sendAria')}
               className="shrink-0 rounded-lg"
             >
-              <SendIcon className="h-3.5 w-3.5" />
+              <HugeiconsIcon
+                icon={SentIcon}
+                strokeWidth={2}
+                className="h-3.5 w-3.5"
+              />
             </Button>
           )}
         </div>
