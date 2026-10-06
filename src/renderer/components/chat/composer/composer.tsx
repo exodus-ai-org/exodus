@@ -1,11 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { composeQuoted } from '@exodus/shared/utils/quoted-text'
-import {
-  ArrowUpIcon,
-  StopIcon,
-  Cancel01Icon,
-  ArrowTurnForwardIcon
-} from '@hugeicons/core-free-icons'
+import { Cancel01Icon, ArrowTurnForwardIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { BorderBeam } from 'border-beam'
 import { useAtom, useAtomValue } from 'jotai'
@@ -16,7 +11,9 @@ import {
   memo,
   useCallback,
   useEffect,
-  useRef
+  useLayoutEffect,
+  useRef,
+  useState
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
@@ -41,9 +38,13 @@ import {
 
 import { Button } from '../../ui/button'
 import { Textarea } from '../../ui/textarea'
-import { AudioRecorder } from './audio-recorder'
+import { compactFieldWidth, wrapsPastOneLine } from './composer-layout'
 import { ActiveToolPills, ComposerToolsButton } from './composer-tools'
+import { ComposerTurnButton } from './composer-turn-button'
 import { FilePreview } from './file-preview'
+
+/** `gap-x-1` on the row, in pixels: what the field's compact width is measured with. */
+const ROW_GAP = 4
 
 // Props are deliberately few and stable: this is `memo`'d, and `<Chat>`
 // re-renders on every streamed frame. It used to also take `messages`,
@@ -73,21 +74,45 @@ function InputBox({
   const { id } = useParams()
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const leadingRef = useRef<HTMLDivElement>(null)
+  const trailingRef = useRef<HTMLDivElement>(null)
   // isTyping tracks IME composition state; never shown on screen, so useRef
   // avoids the unnecessary re-render that useState would cause on each keystroke.
   const isTypingRef = useRef(false)
   const { resolvedTheme } = useTheme()
+  // As ChatGPT's: one line and the field sits between `+` and the round
+  // button; more and it takes the top on its own, the buttons a row under it
+  // (see composer-layout.ts).
+  const [expanded, setExpanded] = useState(false)
 
-  const adjustHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }
+  // Sizes the field to its text and decides the layout. Measured at the
+  // width the field has beside the buttons whatever width it has now, else a
+  // text that wraps beside them but fits the wide line alone would flip the
+  // layout on every pass.
+  const fitField = useCallback(() => {
+    const el = textareaRef.current
+    if (!el) return
+    const row = rowRef.current
+    const compact = row
+      ? compactFieldWidth({
+          rowWidth: row.clientWidth,
+          leadingWidth: leadingRef.current?.offsetWidth ?? 0,
+          trailingWidth: trailingRef.current?.offsetWidth ?? 0,
+          gap: ROW_GAP
+        })
+      : el.clientWidth
+    el.style.height = 'auto'
+    const width = el.style.width
+    el.style.width = `${compact}px`
+    const wraps = wrapsPastOneLine(el.scrollHeight)
+    el.style.width = width
+    setExpanded(wraps)
+    el.style.height = `${el.scrollHeight}px`
+  }, [])
 
   const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value)
-    adjustHeight()
   }
 
   const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
@@ -127,10 +152,6 @@ function InputBox({
     setAttachments(undefined)
     setInput('')
     if (quote !== null) setQuote(null)
-    // Inline reset so we don't add a recreated-each-render function to deps.
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-    }
   }, [
     attachments,
     chatId,
@@ -139,17 +160,13 @@ function InputBox({
     sendMessage,
     setAttachments,
     setInput,
-    setQuote,
-    textareaRef
+    setQuote
   ])
 
-  useEffect(() => {
-    const el = textareaRef.current
-    if (el) {
-      el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight}px`
-    }
-  }, [])
+  // Before paint, on every change of the text (typed, dictated, prefilled or
+  // cleared by a send) and once more when the layout it decided has applied,
+  // so the height is read at the width the field then has.
+  useLayoutEffect(() => fitField(), [input, expanded, fitField])
 
   // Someone outside the composer wrote `chatInputAtom` and asked for focus
   // ("Fix in chat" on a used memory): take it, caret after the prefilled text.
@@ -163,8 +180,6 @@ function InputBox({
     if (!el) return
     el.focus()
     el.setSelectionRange(el.value.length, el.value.length)
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
   }, [focusRequest])
 
   return (
@@ -206,8 +221,21 @@ function InputBox({
         )}
         <FilePreview />
         <ActiveToolPills />
-        <div className="flex items-end gap-1">
-          <ComposerToolsButton />
+        {/*
+          Two named rows: the field alone on the first, `+`, the middle and
+          the round button on the second. Compact, the field takes the middle
+          and the first row, empty, is no height; expanded, it takes the first
+          row and the middle is left to the buttons' spacing. The same three
+          children either way, so the field keeps its focus across the change.
+        */}
+        <div
+          ref={rowRef}
+          data-expanded={expanded || undefined}
+          className="grid grid-cols-[auto_1fr_auto] items-end gap-x-1 [grid-template-areas:'field_field_field'_'leading_middle_trailing']"
+        >
+          <div ref={leadingRef} className="flex [grid-area:leading]">
+            <ComposerToolsButton />
+          </div>
           {/*
             Pin to 14px (matching the message body) on a 24px line, so one
             line is the 32px row. The base Textarea is `text-base md:text-sm`,
@@ -220,7 +248,10 @@ function InputBox({
             placeholder={t('composer.placeholder')}
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm"
+            className={cn(
+              'max-h-[45dvh] min-h-8 w-full min-w-0 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm',
+              expanded ? 'mb-1 [grid-area:field]' : '[grid-area:middle]'
+            )}
             rows={1}
             autoFocus
             onKeyDown={(event) => {
@@ -249,38 +280,18 @@ function InputBox({
             }}
             onPaste={handlePaste}
           />
-
-          {status === 'submitted' || status === 'streaming' ? (
-            <Button
-              size="icon"
-              // Neutral, whatever the tone, as ChatGPT's: a dark square on a
-              // soft tone fill (emerald, yellow) read as a stray black blot,
-              // and a stop that differs from send says a reply is running.
-              className="bg-foreground text-background hover:bg-foreground/85 rounded-full"
-              aria-label={t('composer.stop')}
-              onClick={stop ?? undefined}
-            >
-              <HugeiconsIcon
-                icon={StopIcon}
-                strokeWidth={2}
-                className="size-3 fill-current"
-              />
-            </Button>
-          ) : input.trim() === '' ? (
-            <AudioRecorder input={input} setInput={setInput} />
-          ) : (
-            <Button
-              size="icon"
-              // Light: the tone's ink with a white arrow (a white arrow on the
-              // soft fill is 1.6:1 in yellow). Dark: the fill and its glyph.
-              className="bg-primary-ink hover:bg-primary-ink/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full text-white"
-              type="button"
-              aria-label={t('composer.send')}
-              onClick={submitForm}
-            >
-              <HugeiconsIcon icon={ArrowUpIcon} strokeWidth={2} />
-            </Button>
-          )}
+          <div
+            ref={trailingRef}
+            className="flex justify-end [grid-area:trailing]"
+          >
+            <ComposerTurnButton
+              status={status}
+              input={input}
+              setInput={setInput}
+              stop={stop}
+              submit={submitForm}
+            />
+          </div>
         </div>
       </div>
       {/* {lastUsage && (
