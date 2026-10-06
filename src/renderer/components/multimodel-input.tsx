@@ -242,33 +242,41 @@ function InputBox({
             onPaste={handlePaste}
           />
 
-          {status === 'submitted' || status === 'streaming' ? (
-            <Button
-              size="icon"
-              // Neutral, whatever the tone, as ChatGPT's: a dark square on a
-              // soft tone fill (emerald, yellow) read as a stray black blot,
-              // and a stop that differs from send says a reply is running.
-              className="bg-foreground text-background hover:bg-foreground/85 rounded-full"
-              aria-label={t('composer.stop')}
-              onClick={stop ?? undefined}
-            >
-              <SquareIcon className="size-3 fill-current" />
-            </Button>
-          ) : input.trim() === '' ? (
-            <AudioRecorder input={input} setInput={setInput} />
-          ) : (
-            <Button
-              size="icon"
-              // Light: the tone's ink with a white arrow (a white arrow on the
-              // soft fill is 1.6:1 in yellow). Dark: the fill and its glyph.
-              className="bg-primary-ink hover:bg-primary-ink/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full text-white"
-              type="button"
-              aria-label={t('composer.send')}
-              onClick={submitForm}
-            >
-              <ArrowUpIcon />
-            </Button>
-          )}
+          {/*
+            The buttons are 28px in a 32px row (one textarea line) aligned to
+            its bottom, so a reply's stop, send and the mic would sit 2px low
+            beside the 32px tools button; a one-line box centres them and still
+            keeps them at the bottom when the textarea grows.
+          */}
+          <div className="flex h-8 shrink-0 items-center">
+            {status === 'submitted' || status === 'streaming' ? (
+              <Button
+                size="icon"
+                // Neutral, whatever the tone, as ChatGPT's: a dark square on a
+                // soft tone fill (emerald, yellow) read as a stray black blot,
+                // and a stop that differs from send says a reply is running.
+                className="bg-foreground text-background hover:bg-foreground/85 rounded-full"
+                aria-label={t('composer.stop')}
+                onClick={stop ?? undefined}
+              >
+                <SquareIcon className="size-3 fill-current" />
+              </Button>
+            ) : input.trim() === '' ? (
+              <AudioRecorder input={input} setInput={setInput} />
+            ) : (
+              <Button
+                size="icon"
+                // Light: the tone's ink with a white arrow (a white arrow on the
+                // soft fill is 1.6:1 in yellow). Dark: the fill and its glyph.
+                className="bg-primary-ink hover:bg-primary-ink/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full text-white"
+                type="button"
+                aria-label={t('composer.send')}
+                onClick={submitForm}
+              >
+                <ArrowUpIcon />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       {/* {lastUsage && (
