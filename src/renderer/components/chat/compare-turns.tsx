@@ -158,7 +158,7 @@ function Comparing({
             <TabsContent
               key={turn.runId}
               value={turn.runId}
-              className="text-base"
+              className="text-sm"
             >
               {answer(turn)}
             </TabsContent>

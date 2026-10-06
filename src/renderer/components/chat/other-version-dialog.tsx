@@ -49,7 +49,7 @@ export function OtherVersionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="-mx-2 min-h-0 overflow-y-auto px-2 text-base">
+        <div className="-mx-2 min-h-0 overflow-y-auto px-2 text-sm">
           <AssistantTurnSegment
             chatId={chatId}
             turn={turn}

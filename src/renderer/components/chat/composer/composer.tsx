@@ -204,10 +204,10 @@ function InputBox({
         <div className="flex items-end gap-1">
           <ComposerToolsButton />
           {/*
-            Pin to 16px (matching the message body). The base Textarea is
-            `text-base md:text-sm`, an iOS-zoom guard that's meaningless in
-            Electron — it only made the composer text + line-height jump
-            16↔14px / 24↔20px as the window crossed the `md` breakpoint.
+            Pin to 14px (matching the message body) on a 24px line, so one
+            line is the 32px row. The base Textarea is `text-base md:text-sm`,
+            an iOS-zoom guard that's meaningless in Electron — it only made
+            the composer text jump as the window crossed the `md` breakpoint.
           */}
           <Textarea
             ref={textareaRef}
@@ -215,7 +215,7 @@ function InputBox({
             placeholder={t('composer.placeholder')}
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
