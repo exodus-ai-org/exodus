@@ -30,6 +30,7 @@ import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
 import { ZoomableAttachment } from './attachment-frame'
+import { foldsIntoTimeline } from './calling-tools/folded-tools'
 import { hasToolCard } from './calling-tools/tool-cards'
 import { ChatToc } from './chat-toc'
 import { AssistantTurnSegment } from './chat/assistant-turn-segment'
@@ -260,7 +261,8 @@ function createBlocks() {
       if (name === TOOL_NAMES.imageGeneration) {
         const prompt = typeof args?.prompt === 'string' ? args.prompt : ''
         card({ kind: 'image', key: id, prompt })
-      } else if (hasToolCard(name)) {
+      } else if (hasToolCard(name) && !foldsIntoTimeline(name)) {
+        // A folded tool's card hangs under its timeline row, not here.
         const path = FILE_CARD_TOOLS.has(name) ? args?.path : undefined
         if (typeof path === 'string') {
           if (fileCards.has(path)) {
@@ -288,7 +290,11 @@ function createBlocks() {
         // A result whose call the run does not hold: a row from before calls
         // were kept. Its card goes where the result arrived.
         card({ kind: 'image', key: id, prompt: '', result })
-      } else if (!result.isError && hasToolCard(toolName ?? '')) {
+      } else if (
+        !result.isError &&
+        hasToolCard(toolName ?? '') &&
+        !foldsIntoTimeline(toolName ?? '')
+      ) {
         card({ kind: 'tool', key: id, toolName, result })
       }
     }
@@ -324,6 +330,7 @@ function buildAssistantTurn(
             type: 'toolCall',
             text: preview.text,
             toolName: block.name,
+            toolCallId: block.id,
             codeArgument: preview.codeArgument
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
@@ -343,6 +350,16 @@ function buildAssistantTurn(
       )
       if (pendingIdx >= 0) pendingToolCalls.splice(pendingIdx, 1)
       answer.result(toolResult)
+
+      if (!toolResult.isError && foldsIntoTimeline(toolResult.toolName ?? '')) {
+        // A folded tool's card hangs under its call's row in the timeline.
+        // react-doctor/js-index-maps: false positive — one lookup per result
+        // on a run's short step list.
+        const call = steps.find(
+          (s) => s.type === 'toolCall' && s.toolCallId === toolResult.toolCallId
+        )
+        if (call) call.toolResult = toolResult
+      }
 
       if (toolResult.isError) {
         // react-doctor/js-index-maps: false positive — one-shot lookup on a

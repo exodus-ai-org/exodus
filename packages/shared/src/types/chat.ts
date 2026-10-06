@@ -203,6 +203,13 @@ export interface TimelineStep {
   // monospace block below `text` instead of inline — keeps the timeline row
   // compact while still showing the full command.
   codeArgument?: string
+  /**
+   * A call's id; and, for a tool whose result folds into the timeline
+   * (`FOLDED_TOOL_NAMES`), that result once it arrived — drawn under the
+   * row, not as a card in the answer.
+   */
+  toolCallId?: string
+  toolResult?: ChatToolResultMessage
 }
 
 /**

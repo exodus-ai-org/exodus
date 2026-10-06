@@ -1,6 +1,9 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
-import type { TimelineStep } from '@exodus/shared/types/chat'
+import type {
+  ChatToolResultMessage,
+  TimelineStep
+} from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
   BrainIcon,
@@ -24,13 +27,17 @@ import { i18n } from '@/lib/i18n'
 import { ROW_ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
+import { foldedFileName, terminalExitCode } from './calling-tools/folded-tools'
 import { Markdown } from './markdown'
+import { MessageCallingTools } from './messages-calling-tools'
 import { ShimmeringText } from './shimmering-text'
 import { Badge } from './ui/badge'
 
 export type { TimelineStep }
 
 interface ThinkingTimelineProps {
+  /** For the cards folded under a row. */
+  chatId: string
   steps: TimelineStep[]
   durationMs: number
   isStreaming: boolean
@@ -117,6 +124,62 @@ const SearchResultPill = memo(function SearchResultPill({
   )
 })
 
+/**
+ * The card of a tool whose result folds into the timeline (a command run, a
+ * file written): closed under its row — the exit code or the file's name on
+ * a small toggle — and the full card once opened.
+ */
+function FoldedCard({
+  chatId,
+  step,
+  isStreaming
+}: {
+  chatId: string
+  step: TimelineStep & { toolResult: ChatToolResultMessage }
+  isStreaming: boolean
+}) {
+  const { t } = useTranslation('chat')
+  const [open, setOpen] = useState(false)
+  const terminal = step.toolName === TOOL_NAMES.terminal
+  const exitCode = terminal ? terminalExitCode(step.toolResult) : null
+  const label = terminal
+    ? exitCode === null
+      ? step.toolName
+      : t('terminalCard.exitCode', { code: exitCode })
+    : (foldedFileName(step.toolResult) ?? step.toolName)
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-mono text-[11.5px] transition-colors"
+      >
+        <ChevronDownIcon
+          size={13}
+          className={cn('shrink-0 transition-transform', !open && '-rotate-90')}
+        />
+        <span
+          className={cn(
+            exitCode === 0 && 'text-green-500',
+            exitCode !== null && exitCode !== 0 && 'text-destructive'
+          )}
+        >
+          {label}
+        </span>
+      </button>
+      {open && (
+        <MessageCallingTools
+          chatId={chatId}
+          toolResult={step.toolResult}
+          isStreaming={isStreaming}
+          className="mt-1 w-full"
+        />
+      )}
+    </div>
+  )
+}
+
 function TimelineNode({
   icon,
   isLast,
@@ -179,6 +242,7 @@ function getStepTitle(step: TimelineStep): string {
 }
 
 export function ThinkingTimeline({
+  chatId,
   steps,
   durationMs,
   isStreaming
@@ -304,6 +368,13 @@ export function ThinkingTimeline({
                           <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
                             <code>{step.codeArgument}</code>
                           </pre>
+                        )}
+                        {step.toolResult && (
+                          <FoldedCard
+                            chatId={chatId}
+                            step={{ ...step, toolResult: step.toolResult }}
+                            isStreaming={isStreaming}
+                          />
                         )}
                       </>
                     )}

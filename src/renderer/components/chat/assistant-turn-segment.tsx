@@ -205,6 +205,7 @@ export const AssistantTurnSegment = memo(
         <div className="w-full min-w-0">
           {(turn.steps.length > 0 || isStreaming) && (
             <ThinkingTimeline
+              chatId={chatId}
               steps={turn.steps}
               durationMs={turn.durationMs}
               isStreaming={isStreaming && turn.body.length === 0}

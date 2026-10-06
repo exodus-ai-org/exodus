@@ -23,7 +23,8 @@ import { WorkspaceFileCard } from './calling-tools/workspace-file/workspace-file
 function CallingTools({
   chatId,
   toolResult,
-  isStreaming
+  isStreaming,
+  className = 'mb-4 w-full'
 }: {
   chatId: string
   toolResult: ChatToolResultMessage
@@ -34,6 +35,11 @@ function CallingTools({
    * doesn't, matching a run cut short by Stop leaving the call unresolved.
    */
   isStreaming: boolean
+  /**
+   * The section's classes: an answer block's margin by default; a card
+   * folded under a timeline row sets its own.
+   */
+  className?: string
 }) {
   const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
@@ -142,7 +148,7 @@ function CallingTools({
   })()
 
   return (
-    <section className="mb-4 w-full">
+    <section className={className}>
       {toolName === TOOL_NAMES.mapItinerary &&
         output?.type === 'mapItinerary' && (
           <MapItineraryCard toolResult={output} />
@@ -190,7 +196,8 @@ export const MessageCallingTools = memo(
     return (
       prevProps.chatId === nextProps.chatId &&
       prevProps.toolResult === nextProps.toolResult &&
-      prevProps.isStreaming === nextProps.isStreaming
+      prevProps.isStreaming === nextProps.isStreaming &&
+      prevProps.className === nextProps.className
     )
   }
 )

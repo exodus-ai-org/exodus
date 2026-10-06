@@ -227,12 +227,14 @@ describe("a turn's blocks follow the run's order", () => {
   })
 
   it('a card whose call comes before the text of its step comes first', () => {
+    // weather: a card that is the answer. A terminal's folds into the
+    // timeline instead (messages-folded-cards.test.ts).
     expect(
       blocksOf([
-        step('a1', [call('c1', 'terminal'), text('Running it.')]),
-        result('c1', 'terminal')
+        step('a1', [call('c1', 'weather'), text('Looking it up.')]),
+        result('c1', 'weather')
       ])
-    ).toEqual(['tool:c1', 'text:Running it.'])
+    ).toEqual(['tool:c1', 'text:Looking it up.'])
   })
 
   it('an image holds its place from the call on', () => {
