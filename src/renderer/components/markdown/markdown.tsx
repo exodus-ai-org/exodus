@@ -206,7 +206,7 @@ export function Markdown({
             {/* The strip stays put while the code under it scrolls — the
                 panel (`.markdown pre`) is the scroll container — on the
                 panel's own fill, as ChatGPT's. */}
-            <section className="bg-muted text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-sm">
+            <section className="bg-muted text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-xs">
               <span className="flex items-center gap-2 font-medium">
                 <CodeXmlIcon size={14} />
                 {languageName(match[1])}
