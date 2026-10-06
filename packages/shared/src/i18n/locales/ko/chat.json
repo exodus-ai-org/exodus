@@ -356,6 +356,29 @@
       "veryPleasant": "매우 기분 좋음"
     }
   },
+  "interactive": {
+    "other": "기타…",
+    "otherPlaceholder": "답변 입력",
+    "noteDefault": "더 하고 싶은 말이 있나요?",
+    "notePlaceholder": "선택 사항",
+    "submit": "보내기",
+    "previous": "이전",
+    "next": "다음",
+    "skip": "건너뛰기",
+    "progress": "질문 {{current}}/{{total}}",
+    "chooseOrSkip": "답을 고르거나 이 질문을 건너뛰세요.",
+    "approve": "승인",
+    "reject": "거절",
+    "approved": "승인함",
+    "rejected": "거절함",
+    "answered": "답변함",
+    "answer": {
+      "other": "기타",
+      "addition": "추가",
+      "note": "메모",
+      "title": "내 답변"
+    }
+  },
   "workspaceFile": {
     "created": "생성됨",
     "edited": "편집됨",

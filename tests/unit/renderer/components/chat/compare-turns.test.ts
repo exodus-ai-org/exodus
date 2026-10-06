@@ -23,19 +23,22 @@ vi.mock('@/components/chat/assistant-turn-segment', () => ({
     turn,
     isStreaming,
     regenerate,
-    foot
+    foot,
+    answerable
   }: {
     turn: AssistantTurn
     isStreaming: boolean
     regenerate?: () => void
     foot?: unknown
+    answerable?: boolean
   }) =>
     createElement(
       'div',
       {
         'data-turn': turn.runId,
         'data-streaming': String(isStreaming),
-        'data-can-regenerate': String(regenerate !== undefined)
+        'data-can-regenerate': String(regenerate !== undefined),
+        'data-answerable': String(answerable ?? true)
       },
       foot as never
     )
@@ -149,6 +152,21 @@ describe('<CompareTurns> while two answers are compared', () => {
     expect(streaming).toEqual(['false', 'true'])
   })
 
+  it("gives neither answer's questionnaire or confirmation an answer path", async () => {
+    await show(segment({}))
+    expect(
+      [...host.querySelectorAll('[data-turn]')].map((el) =>
+        el.getAttribute('data-answerable')
+      )
+    ).toEqual(['false', 'false'])
+
+    wide = false
+    await show(segment({}))
+    expect(
+      host.querySelector('[data-turn]')?.getAttribute('data-answerable')
+    ).toBe('false')
+  })
+
   it('in a narrow window shows one answer at a time, behind tabs, the newer first', async () => {
     wide = false
     await show(segment({}))
@@ -187,6 +205,10 @@ describe('<CompareTurns> once an answer was chosen', () => {
     await show(settled(), { showsOtherVersion: true })
 
     expect(turnsShown()).toEqual(['r1'])
+    // The kept answer is the conversation's: its block can be answered.
+    expect(
+      host.querySelector('[data-turn]')?.getAttribute('data-answerable')
+    ).toBe('true')
     expect(all(TEST_IDS.chat.compare.useThis)).toHaveLength(0)
     const [link] = all(TEST_IDS.chat.compare.otherVersionLink)
     expect(link.textContent).toBe('compare.otherVersion {"count":1}')
@@ -207,6 +229,10 @@ describe('<CompareTurns> once an answer was chosen', () => {
     // An answer that is not in the conversation is not one to regenerate.
     expect(
       dialog.querySelector('[data-turn]')?.getAttribute('data-can-regenerate')
+    ).toBe('false')
+    // Nor one whose questionnaire or confirmation could be answered.
+    expect(
+      dialog.querySelector('[data-turn]')?.getAttribute('data-answerable')
     ).toBe('false')
 
     await click(all(TEST_IDS.chat.compare.useInstead, dialog)[0])

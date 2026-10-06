@@ -56,6 +56,7 @@ export function OtherVersionDialog({
             citationSources={citationSources}
             isStreaming={false}
             fresh={false}
+            answerable={false}
           />
         </div>
 

@@ -1,0 +1,138 @@
+// Where a reply's fenced code becomes its block. `markdown.tsx` hands every
+// `<pre>` whose code is labelled `exodus-ask` / `exodus-confirm` to
+// `InteractiveFence`, with the `<pre>` as its fallback. It is drawn as the
+// control only when it is the turn's block (`useInteractiveTurn`, which finds
+// it with `findInteractiveBlock`) inside a chat: the same text, opened at the
+// left margin by exactly ```` ```exodus-ask ```` (a `~~~` fence, a longer info
+// string or an indented one carry the same label but are not blocks), with no
+// block before it in the same text. Outside a turn, invalid, second or still
+// being written, it stays code.
+import {
+  findInteractiveBlock,
+  interactiveKind,
+  type InteractiveKind
+} from '@exodus/shared/types/interactive'
+import { createContext, type ReactNode, useContext, useMemo } from 'react'
+
+import { ErrorBoundary } from '@/components/card-error-boundary'
+
+import { ConfirmationBlock } from './confirmation-block'
+import {
+  InteractiveTurnContext,
+  unixLines,
+  useInteractiveChat
+} from './interactive-context'
+import { QuestionnaireBlock } from './questionnaire-block'
+
+/**
+ * The Markdown text a `<pre>` was parsed from: `src`, the piece the node's
+ * offsets count in, and `before`, the document's text above that piece (a
+ * streaming reply is parsed a piece at a time).
+ */
+export interface MarkdownSource {
+  before: string
+  src: string
+}
+
+export const MarkdownSourceContext = createContext<MarkdownSource | null>(null)
+
+interface HastNode {
+  tagName?: string
+  value?: unknown
+  properties?: { className?: unknown }
+  position?: { start?: { offset?: number } }
+  children?: HastNode[]
+}
+
+const plainCode = (text: string) => unixLines(text).replace(/\n+$/u, '')
+
+/** A `<pre>`'s code as an interactive fence's kind, text and offset, read off the node react-markdown hands it. */
+export function fenceOf(
+  node: unknown
+): { kind: InteractiveKind; source: string; offset: number | null } | null {
+  const pre = node as HastNode | undefined
+  const code = pre?.children?.[0]
+  if (code?.tagName !== 'code') return null
+  const className = code.properties?.className
+  const classes: unknown[] = Array.isArray(className) ? className : []
+  const language = classes.find(
+    (c): c is string => typeof c === 'string' && c.startsWith('language-')
+  )
+  const kind = language
+    ? interactiveKind(language.slice('language-'.length))
+    : null
+  if (!kind) return null
+  const source = (code.children ?? [])
+    .map((child) => (typeof child.value === 'string' ? child.value : ''))
+    .join('')
+  const offset = pre?.position?.start?.offset
+  return { kind, source, offset: typeof offset === 'number' ? offset : null }
+}
+
+/**
+ * Whether the fence at `offset` of the text is one `findInteractiveBlock`
+ * would take: ```` ``` ```` and the name alone at the start of a line, and no
+ * block above it.
+ */
+function opensBlock(
+  text: MarkdownSource,
+  offset: number,
+  kind: InteractiveKind
+): boolean {
+  const { before, src } = text
+  if (offset > 0 && src[offset - 1] !== '\n' && src[offset - 1] !== '\r') {
+    return false
+  }
+  const end = src.indexOf('\n', offset)
+  const line = src.slice(offset, end === -1 ? undefined : end)
+  if (!line.startsWith('```')) return false
+  if (interactiveKind(line.slice(3).trimEnd()) !== kind) return false
+  return findInteractiveBlock(unixLines(before + src.slice(0, offset))) === null
+}
+
+export function InteractiveFence({
+  kind,
+  source,
+  offset,
+  children
+}: {
+  kind: InteractiveKind
+  source: string
+  /** Where the fence starts in the Markdown's text (the node's position). */
+  offset: number | null
+  /** The code block, drawn when this fence is not the turn's block. */
+  children: ReactNode
+}) {
+  const turn = useContext(InteractiveTurnContext)
+  const chat = useInteractiveChat()
+  const text = useContext(MarkdownSourceContext)
+  const fence = turn?.fence
+  const isBlock = useMemo(
+    () =>
+      fence !== null &&
+      fence !== undefined &&
+      fence.kind === kind &&
+      plainCode(fence.source) === plainCode(source) &&
+      text !== null &&
+      offset !== null &&
+      opensBlock(text, offset, kind),
+    [fence, kind, source, text, offset]
+  )
+  if (!turn || !chat || !fence || !isBlock) return children
+  const answerable = turn.answerable
+  const props = {
+    runId: turn.runId,
+    answered: chat.answers.get(turn.runId) ?? null,
+    canSubmit: answerable && chat.canSubmit,
+    submit: answerable ? chat.submit : () => {}
+  }
+  return (
+    <ErrorBoundary scope="interactive-block" fallback={children}>
+      {fence.kind === 'ask' ? (
+        <QuestionnaireBlock block={fence.block} {...props} />
+      ) : (
+        <ConfirmationBlock block={fence.block} {...props} />
+      )}
+    </ErrorBoundary>
+  )
+}

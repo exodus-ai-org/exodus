@@ -18,6 +18,10 @@ import { collectGalleryImages } from '../web-search/collect-gallery-images'
 import { collectGalleryVideos } from '../web-search/collect-gallery-videos'
 import { ImageGallery } from '../web-search/image-gallery'
 import { VideoCards } from '../web-search/video-cards'
+import {
+  InteractiveTurnContext,
+  useInteractiveTurn
+} from './interactive/interactive-context'
 import { MemoryChangeStrip } from './memory-change-strip'
 import { RunApprovals } from './run-approvals'
 import { UsedMemories } from './used-memories'
@@ -43,6 +47,11 @@ export type AssistantTurnSegmentProps = {
    * Compared by identity: hand in the same node while nothing changed.
    */
   foot?: ReactNode
+  /**
+   * Whether a questionnaire or confirmation in this answer can be answered:
+   * not while it is compared with another, nor in the version not kept.
+   */
+  answerable?: boolean
 }
 
 /**
@@ -154,7 +163,8 @@ export const AssistantTurnSegment = memo(
     regenerate,
     error,
     fresh,
-    foot
+    foot,
+    answerable = true
   }: AssistantTurnSegmentProps) {
     const { t } = useTranslation('chat')
     // The turn's own searches drive the per-turn "Sources" panel; the
@@ -172,6 +182,13 @@ export const AssistantTurnSegment = memo(
     const galleryVideos = useMemo(
       () => collectGalleryVideos(turn.webSearchResults),
       [turn.webSearchResults]
+    )
+    // The run's questionnaire or confirmation: the first one of its whole
+    // answer, so one in a later paragraph stays code.
+    const interactiveTurn = useInteractiveTurn(
+      turn.runId,
+      turn.body,
+      answerable
     )
 
     return (
@@ -194,27 +211,31 @@ export const AssistantTurnSegment = memo(
               it called, in the order the run produced them — the text after
               a tool step is the next paragraph, not the next message — with
               one action bar. */}
-          <section className="group relative" data-askable="">
-            {turn.blocks.map((block) => (
-              <TurnBlockView
-                key={block.key}
-                block={block}
-                chatId={chatId}
-                runId={turn.runId}
-                citationResults={citationResults}
-                isStreaming={isStreaming}
-              />
-            ))}
-            {galleryImages.length > 0 && (
-              <ImageGallery images={galleryImages} />
-            )}
-            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
-            {error && (
-              <p role="alert" className="text-destructive mt-3 text-sm">
-                {t('run.error', { message: error })}
-              </p>
-            )}
-          </section>
+          <InteractiveTurnContext.Provider value={interactiveTurn}>
+            <section className="group relative" data-askable="">
+              {turn.blocks.map((block) => (
+                <TurnBlockView
+                  key={block.key}
+                  block={block}
+                  chatId={chatId}
+                  runId={turn.runId}
+                  citationResults={citationResults}
+                  isStreaming={isStreaming}
+                />
+              ))}
+              {galleryImages.length > 0 && (
+                <ImageGallery images={galleryImages} />
+              )}
+              {galleryVideos.length > 0 && (
+                <VideoCards videos={galleryVideos} />
+              )}
+              {error && (
+                <p role="alert" className="text-destructive mt-3 text-sm">
+                  {t('run.error', { message: error })}
+                </p>
+              )}
+            </section>
+          </InteractiveTurnContext.Provider>
 
           {/* The run's foot, over its action row as on the phone: a tool call
               waiting for the user's approval, and the run's memory (which
@@ -258,7 +279,8 @@ export const AssistantTurnSegment = memo(
       prev.citationSources !== next.citationSources ||
       prev.error !== next.error ||
       prev.fresh !== next.fresh ||
-      prev.foot !== next.foot
+      prev.foot !== next.foot ||
+      prev.answerable !== next.answerable
     ) {
       return false
     }

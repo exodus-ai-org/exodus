@@ -356,6 +356,29 @@
       "veryPleasant": "非常愉快"
     }
   },
+  "interactive": {
+    "other": "其他…",
+    "otherPlaceholder": "你嘅答案",
+    "noteDefault": "仲有冇嘢想補充？",
+    "notePlaceholder": "可選填",
+    "submit": "提交",
+    "previous": "上一題",
+    "next": "下一題",
+    "skip": "略過",
+    "progress": "第 {{current}} 題，共 {{total}} 題",
+    "chooseOrSkip": "揀一個答案，或者略過呢題。",
+    "approve": "同意",
+    "reject": "拒絕",
+    "approved": "已同意",
+    "rejected": "已拒絕",
+    "answered": "已回答",
+    "answer": {
+      "other": "其他",
+      "addition": "補充",
+      "note": "備註",
+      "title": "你嘅答案"
+    }
+  },
   "workspaceFile": {
     "created": "已建立",
     "edited": "已編輯",

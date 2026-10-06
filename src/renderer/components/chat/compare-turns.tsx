@@ -102,6 +102,8 @@ function Comparing({
       regenerate={regenerate}
       fresh={!opened.has(turn.runId)}
       error={runError?.runId === turn.runId ? runError.message : undefined}
+      // Its block is answered once this answer is kept.
+      answerable={false}
     />
   )
   const useThis = (runId: string) => (

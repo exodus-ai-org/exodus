@@ -370,6 +370,29 @@
       "veryPleasant": "Sehr angenehm"
     }
   },
+  "interactive": {
+    "other": "Andere …",
+    "otherPlaceholder": "Deine Antwort",
+    "noteDefault": "Noch etwas?",
+    "notePlaceholder": "Optional",
+    "submit": "Senden",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "progress": "Frage {{current}} von {{total}}",
+    "chooseOrSkip": "Wähle eine Antwort oder überspringe die Frage.",
+    "approve": "Zustimmen",
+    "reject": "Ablehnen",
+    "approved": "Zugestimmt",
+    "rejected": "Abgelehnt",
+    "answered": "Beantwortet",
+    "answer": {
+      "other": "Andere",
+      "addition": "Außerdem",
+      "note": "Notiz",
+      "title": "Deine Antwort"
+    }
+  },
   "workspaceFile": {
     "created": "Erstellt",
     "edited": "Bearbeitet",

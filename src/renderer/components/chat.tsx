@@ -14,6 +14,7 @@ import { useChat } from '@/hooks/use-chat'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
+import { InteractiveProvider } from './chat/interactive/interactive-context'
 import { LcmStatusCard } from './chat/lcm-status-card'
 import { SelectionAsk } from './chat/selection-ask'
 import Messages from './messages'
@@ -128,7 +129,7 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
   )
 
   return (
-    <>
+    <InteractiveProvider messages={messages} status={status} send={sendMessage}>
       <div className="relative flex min-h-0 flex-1 flex-col">
         <Messages
           chatId={id}
@@ -156,6 +157,6 @@ export function Chat({ id, initialMessages, chatTitle, showDiscover }: Props) {
           </div>
         )}
       </div>
-    </>
+    </InteractiveProvider>
   )
 }

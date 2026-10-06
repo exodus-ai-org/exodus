@@ -370,6 +370,29 @@
       "veryPleasant": "Très agréable"
     }
   },
+  "interactive": {
+    "other": "Autre…",
+    "otherPlaceholder": "Ta réponse",
+    "noteDefault": "Autre chose ?",
+    "notePlaceholder": "Facultatif",
+    "submit": "Envoyer",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "skip": "Passer",
+    "progress": "Question {{current}} sur {{total}}",
+    "chooseOrSkip": "Choisis une réponse ou passe cette question.",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "approved": "Approuvé",
+    "rejected": "Refusé",
+    "answered": "Répondu",
+    "answer": {
+      "other": "Autre",
+      "addition": "En plus",
+      "note": "Note",
+      "title": "Ta réponse"
+    }
+  },
   "workspaceFile": {
     "created": "Créé",
     "edited": "Modifié",

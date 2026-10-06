@@ -370,6 +370,29 @@
       "veryPleasant": "Muy agradable"
     }
   },
+  "interactive": {
+    "other": "Otra…",
+    "otherPlaceholder": "Tu respuesta",
+    "noteDefault": "¿Algo más?",
+    "notePlaceholder": "Opcional",
+    "submit": "Enviar",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "progress": "Pregunta {{current}} de {{total}}",
+    "chooseOrSkip": "Elige una respuesta u omite esta pregunta.",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "approved": "Aprobado",
+    "rejected": "Rechazado",
+    "answered": "Respondido",
+    "answer": {
+      "other": "Otra",
+      "addition": "Además",
+      "note": "Nota",
+      "title": "Tu respuesta"
+    }
+  },
   "workspaceFile": {
     "created": "Creado",
     "edited": "Editado",

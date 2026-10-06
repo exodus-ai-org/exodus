@@ -27,6 +27,11 @@ import {
 import { cn } from '@/lib/utils'
 
 import {
+  fenceOf,
+  InteractiveFence,
+  MarkdownSourceContext
+} from './chat/interactive/interactive-fence'
+import {
   citationComponents,
   WebSearchRankMapContext
 } from './markdown-citations'
@@ -61,20 +66,26 @@ const codeBlockStyle = {
  */
 const MarkdownBlock = memo(function MarkdownBlock({
   src,
+  before,
   components
 }: {
   src: string
+  /** The document's text above this block: where a reply's block is found. */
+  before: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
   components: Record<string, any>
 }) {
+  const source = useMemo(() => ({ before, src }), [before, src])
   return (
-    <ReactMarkdown
-      remarkPlugins={remarkPluginsStable}
-      rehypePlugins={rehypePluginsStable}
-      components={components}
-    >
-      {src}
-    </ReactMarkdown>
+    <MarkdownSourceContext.Provider value={source}>
+      <ReactMarkdown
+        remarkPlugins={remarkPluginsStable}
+        rehypePlugins={rehypePluginsStable}
+        components={components}
+      >
+        {src}
+      </ReactMarkdown>
+    </MarkdownSourceContext.Provider>
   )
 })
 
@@ -104,6 +115,44 @@ function useMarkdownBlocks(src: string): string[] {
   }, [src, streams])
 }
 
+/**
+ * The text above each block; only the last one is healed, so the ones above
+ * it are the document's own.
+ */
+function useTextsAbove(blocks: string[]): string[] {
+  return useMemo(() => {
+    let above = ''
+    return blocks.map((block) => {
+      const before = above
+      above += block
+      return before
+    })
+  }, [blocks])
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
+function Pre({ className, children, node, ...rest }: any) {
+  const pre = (
+    <pre {...rest} className={className}>
+      {children}
+    </pre>
+  )
+  // A reply's questionnaire or confirmation: the control, or this code when
+  // it is not the turn's block (see interactive-fence.tsx).
+  const fence = fenceOf(node)
+  return fence ? (
+    <InteractiveFence
+      kind={fence.kind}
+      source={fence.source}
+      offset={fence.offset}
+    >
+      {pre}
+    </InteractiveFence>
+  ) : (
+    pre
+  )
+}
+
 export function Markdown({
   src,
   webSearchResults
@@ -121,6 +170,7 @@ export function Markdown({
   const { codeTheme } = useMemo(() => themes[themeKey], [themeKey])
 
   const blocks = useMarkdownBlocks(src)
+  const befores = useTextsAbove(blocks)
 
   const rankMap = useMemo(() => {
     if (!webSearchResults || webSearchResults.length === 0) return null
@@ -143,7 +193,8 @@ export function Markdown({
       ...citationComponents,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       code({ className, children, node, ...rest }: any) {
-        const match = /language-(\w+)/.exec(className || 'javascript')
+        // `[\w-]`: a fence named `exodus-ask` is labelled that, not `exodus`.
+        const match = /language-([\w-]+)/u.exec(className || 'javascript')
         return match ? (
           <>
             <section
@@ -193,14 +244,7 @@ export function Markdown({
           </WorkspacePathCode>
         )
       },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-      pre({ className, children, node, ...rest }: any) {
-        return (
-          <pre {...rest} className={className}>
-            {children}
-          </pre>
-        )
-      },
+      pre: Pre,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       li({ className, node, children, ...rest }: any) {
         return (
@@ -327,8 +371,13 @@ export function Markdown({
               — so the index is their identity. They render as fragments: the DOM
               under .markdown is the same flat run of elements as before. */}
           {blocks.map((block, i) => (
-            // eslint-disable-next-line react/no-array-index-key -- see above
-            <MarkdownBlock key={i} src={block} components={components} />
+            <MarkdownBlock
+              // eslint-disable-next-line react/no-array-index-key -- see above
+              key={i}
+              src={block}
+              before={befores[i]}
+              components={components}
+            />
           ))}
         </section>
       </AllowedImageUrlsContext.Provider>

@@ -356,6 +356,29 @@
       "veryPleasant": "とても快適"
     }
   },
+  "interactive": {
+    "other": "その他…",
+    "otherPlaceholder": "回答を入力",
+    "noteDefault": "ほかに伝えたいことは？",
+    "notePlaceholder": "任意",
+    "submit": "送信",
+    "previous": "前へ",
+    "next": "次へ",
+    "skip": "スキップ",
+    "progress": "質問 {{current}}/{{total}}",
+    "chooseOrSkip": "回答を選ぶか、この質問をスキップしてください。",
+    "approve": "承認",
+    "reject": "却下",
+    "approved": "承認済み",
+    "rejected": "却下済み",
+    "answered": "回答済み",
+    "answer": {
+      "other": "その他",
+      "addition": "補足",
+      "note": "メモ",
+      "title": "あなたの回答"
+    }
+  },
   "workspaceFile": {
     "created": "作成",
     "edited": "編集",
