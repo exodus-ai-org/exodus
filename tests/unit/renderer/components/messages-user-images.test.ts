@@ -45,14 +45,14 @@ const { default: Messages, USER_IMAGES_SHOWN } =
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true
 
-const asked = (count: number) =>
+const asked = (count: number, text: string | null = 'which?') =>
   ({
     id: 'u1',
     runId: 'u1',
     role: 'user',
     timestamp: 1,
     content: [
-      { type: 'text', text: 'which?' },
+      ...(text === null ? [] : [{ type: 'text', text }]),
       ...Array.from({ length: count }, (_, i) => ({
         type: 'image',
         mimeType: 'image/png',
@@ -61,14 +61,14 @@ const asked = (count: number) =>
     ]
   }) as unknown as ChatMessage
 
-async function render(count: number) {
+async function render(count: number, text: string | null = 'which?') {
   const host = document.createElement('div')
   await act(() =>
     createRoot(host).render(
       createElement(Messages, {
         chatId: 'chat-1',
         status: 'ready',
-        messages: [asked(count)],
+        messages: [asked(count, text)],
         regenerate: vi.fn()
       })
     )
@@ -99,5 +99,15 @@ describe("a question's pictures", () => {
     expect(more?.textContent).toBe('+4')
     await act(() => more?.click())
     expect(pictures(host)).toHaveLength(7)
+  })
+
+  it('with no words, draw no empty bubble', async () => {
+    for (const text of [null, '', '  \n ']) {
+      const host = await render(2, text)
+      expect(pictures(host)).toHaveLength(2)
+      expect(host.querySelector('[data-askable]')).toBeNull()
+    }
+    const said = await render(2)
+    expect(said.querySelector('[data-askable]')).not.toBeNull()
   })
 })

@@ -135,6 +135,8 @@ const UserSegment = memo(function UserSegment({
   /** Sent during this visit (not loaded with the chat): it rises in. */
   fresh: boolean
 }) {
+  // Pictures alone: no empty bubble under them.
+  const text = userMessageText(message)
   return (
     <div
       data-user-msg-id={message.id}
@@ -144,7 +146,7 @@ const UserSegment = memo(function UserSegment({
       )}
     >
       <UserImages message={message} />
-      <UserBubble text={userMessageText(message)} />
+      {text.trim() !== '' && <UserBubble text={text} />}
     </div>
   )
 })
