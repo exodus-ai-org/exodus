@@ -177,7 +177,7 @@
     "shadcn": "^4.21.0",
     "sileo": "^0.1.5",
     "tailwind-merge": "^3.7.0",
-    "three": "^0.186.0",
+    "three": "^0.186.1",
     "typescript": "~7.0.2",
     "unified": "^11.0.5",
     "vaul": "^1.1.2",
