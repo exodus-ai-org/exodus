@@ -254,3 +254,265 @@ export function parseHealthSummary(value: unknown): HealthSummary | null {
   })
   return withoutSuggestion.success ? withoutSuggestion.data : null
 }
+
+// ── Period reports (exodus-ios trends, phase 2) ─────────────────────────────
+// A finished week, month, quarter or year: the phone sends that period's
+// aggregates (and the period before's), the daily notes it kept, and the
+// habits it tracks; the desktop answers with the report and keeps nothing.
+// exodus-ios mirrors both in Sources/HealthFeature/Report/PeriodReport.swift
+// and PeriodReportInput.swift.
+
+const wireDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+const dayCount = count.max(366)
+
+export const periodKindSchema = z.enum(['week', 'month', 'quarter', 'year'])
+
+// `end` is the period's last day, inclusive.
+export const reportPeriodSchema = z
+  .object({ kind: periodKindSchema, start: wireDay, end: wireDay })
+  .strict()
+
+// One number over the period; the phone leaves out what it has not got.
+const metricSummarySchema = z
+  .object({
+    average: z.number().nullish(),
+    min: z.number().nullish(),
+    max: z.number().nullish(),
+    days: dayCount
+  })
+  .strict()
+
+export const periodAggregatesSchema = z
+  .object({
+    elapsedDays: dayCount,
+    daysWithData: dayCount,
+    sleepMin: metricSummarySchema,
+    steps: metricSummarySchema,
+    exerciseMin: metricSummarySchema,
+    hrvMs: metricSummarySchema,
+    restingHr: metricSummarySchema,
+    waterCups: metricSummarySchema,
+    stepGoalRate: z.number().min(0).max(1).nullish(),
+    sleepTargetRate: z.number().min(0).max(1).nullish()
+  })
+  .strict()
+
+export const habitKindSchema = z.enum([
+  'steps',
+  'sleep',
+  'bedtime',
+  'exercise',
+  'water'
+])
+
+export const periodReportRequestSchema = z
+  .object({
+    period: reportPeriodSchema,
+    current: periodAggregatesSchema,
+    previous: periodAggregatesSchema.nullish(),
+    notes: z
+      .array(
+        z
+          .object({
+            day: wireDay,
+            headline: z.string().min(1).max(120),
+            insights: z
+              .array(
+                z
+                  .object({
+                    category: z.string().min(1).max(20),
+                    title: z.string().min(1).max(200)
+                  })
+                  .strict()
+              )
+              .max(4)
+          })
+          .strict()
+      )
+      .max(366),
+    // A bedtime target is minutes after midnight.
+    habits: z
+      .array(
+        z
+          .object({
+            kind: habitKindSchema,
+            target: z.number().nonnegative(),
+            daysHit: dayCount,
+            streak: dayCount,
+            dayOfTwentyOne: z.number().int().min(1).max(21)
+          })
+          .strict()
+      )
+      .max(3),
+    locale: z.string().min(2).max(16)
+  })
+  .strict()
+
+export const periodMetricSchema = z.enum([
+  'sleep',
+  'steps',
+  'exercise',
+  'hrv',
+  'restingHr',
+  'water'
+])
+
+export const periodInsightSchema = z
+  .object({
+    category: healthCategorySchema,
+    title: z.string().min(1).max(160),
+    // Exact substrings of `title`; the phone colours them.
+    highlights: z.array(z.string().min(1).max(40)).max(3),
+    stat: healthStatSchema.optional()
+  })
+  .strict()
+
+export const periodComparisonSchema = z
+  .object({
+    metric: periodMetricSchema,
+    current: z.string().min(1).max(24),
+    previous: z.string().min(1).max(24).nullable(),
+    direction: z.enum(['up', 'down', 'flat'])
+  })
+  .strict()
+
+export const periodReportSchema = z
+  .object({
+    period: reportPeriodSchema,
+    headline: z.string().min(1).max(80),
+    headlineHighlight: z.string().min(1).max(80).optional(),
+    headlineCategory: healthCategorySchema.optional(),
+    // Empty when none survived: the report is then its headline.
+    insights: z.array(periodInsightSchema).max(5),
+    comparisons: z.array(periodComparisonSchema).max(6),
+    nudge: z.string().min(1).max(140).optional()
+  })
+  .strict()
+
+export type PeriodReportRequest = z.infer<typeof periodReportRequestSchema>
+export type PeriodAggregates = z.infer<typeof periodAggregatesSchema>
+export type PeriodMetric = z.infer<typeof periodMetricSchema>
+export type PeriodReport = z.infer<typeof periodReportSchema>
+export type PeriodInsight = z.infer<typeof periodInsightSchema>
+export type PeriodComparison = z.infer<typeof periodComparisonSchema>
+
+const AGGREGATE_OF: Record<
+  PeriodMetric,
+  'sleepMin' | 'steps' | 'exerciseMin' | 'hrvMs' | 'restingHr' | 'waterCups'
+> = {
+  sleep: 'sleepMin',
+  steps: 'steps',
+  exercise: 'exerciseMin',
+  hrv: 'hrvMs',
+  restingHr: 'restingHr',
+  water: 'waterCups'
+}
+
+/** A metric's average over a period; null when it was not recorded. */
+export function periodAverage(
+  a: PeriodAggregates | null | undefined,
+  metric: PeriodMetric
+): number | null {
+  const v = a?.[AGGREGATE_OF[metric]]?.average
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+/** Which way a number moved, as the phone's TrendMath reads it: under 3 % either way is flat. */
+export function periodDirection(
+  current: number,
+  previous: number
+): 'up' | 'down' | 'flat' {
+  if (previous === 0)
+    return current === 0 ? 'flat' : current > 0 ? 'up' : 'down'
+  const relative = (current - previous) / Math.abs(previous)
+  if (Math.abs(relative) < 0.03) return 'flat'
+  return relative > 0 ? 'up' : 'down'
+}
+
+function normalisePeriodInsight(raw: unknown): PeriodInsight | null {
+  if (!isObject(raw) || typeof raw.title !== 'string') return null
+  const title = raw.title
+  const highlights = (Array.isArray(raw.highlights) ? raw.highlights : [])
+    .filter(
+      (h): h is string =>
+        typeof h === 'string' &&
+        h.length > 0 &&
+        h.length <= 40 &&
+        title.includes(h)
+    )
+    .slice(0, 3)
+  const stat = healthStatSchema.safeParse(raw.stat)
+  const insight = periodInsightSchema.safeParse({
+    category: raw.category,
+    title,
+    highlights,
+    ...(stat.success ? { stat: stat.data } : {})
+  })
+  return insight.success ? insight.data : null
+}
+
+/**
+ * A comparison the request backs: its metric has an average this period and the period before, and its direction
+ * is worked out from those averages — the model's own is never trusted.
+ */
+function normaliseComparison(
+  raw: unknown,
+  request: PeriodReportRequest
+): PeriodComparison | null {
+  if (!isObject(raw)) return null
+  const metric = periodMetricSchema.safeParse(raw.metric)
+  if (!metric.success) return null
+  const current = periodAverage(request.current, metric.data)
+  const before = periodAverage(request.previous, metric.data)
+  if (current === null || before === null) return null
+  const parsed = periodComparisonSchema.safeParse({
+    metric: metric.data,
+    current: raw.current,
+    previous: raw.previous ?? null,
+    direction: periodDirection(current, before)
+  })
+  return parsed.success ? parsed.data : null
+}
+
+/**
+ * Reads a model's period report against the request it answers. What can't be trusted is dropped on its own — an
+ * insight it can't draw, a highlight not in its sentence, a comparison the numbers don't back, a headline phrase or
+ * nudge out of shape — and a report whose insights all fall away is still its headline. Null only without a usable
+ * headline. The period is always the request's.
+ */
+export function parsePeriodReport(
+  value: unknown,
+  request: PeriodReportRequest
+): PeriodReport | null {
+  if (!isObject(value) || typeof value.headline !== 'string') return null
+  const headline = value.headline.trim()
+  const insights = (Array.isArray(value.insights) ? value.insights : [])
+    .map(normalisePeriodInsight)
+    .filter((i): i is PeriodInsight => i !== null)
+    .slice(0, 5)
+  const seen = new Set<PeriodMetric>()
+  const comparisons: PeriodComparison[] = []
+  for (const raw of Array.isArray(value.comparisons) ? value.comparisons : []) {
+    const c = normaliseComparison(raw, request)
+    if (!c || seen.has(c.metric)) continue
+    seen.add(c.metric)
+    comparisons.push(c)
+  }
+  const { headlineHighlight, headlineCategory, nudge } = value
+  const highlightOk =
+    typeof headlineHighlight === 'string' &&
+    headlineHighlight.length > 0 &&
+    headline.includes(headlineHighlight) &&
+    healthCategorySchema.safeParse(headlineCategory).success
+  const nudgeOk =
+    typeof nudge === 'string' && nudge.length > 0 && nudge.length <= 140
+  const parsed = periodReportSchema.safeParse({
+    period: request.period,
+    headline,
+    ...(highlightOk ? { headlineHighlight, headlineCategory } : {}),
+    insights,
+    comparisons: comparisons.slice(0, 6),
+    ...(nudgeOk ? { nudge } : {})
+  })
+  return parsed.success ? parsed.data : null
+}
