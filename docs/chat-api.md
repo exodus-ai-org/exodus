@@ -497,11 +497,20 @@ model "The user declined access to <summary>." Allow is per call, never remember
 | `GET /api/v1/chat/search?query=`         | full-text hits across chats (PGlite trigram; Elasticsearch when configured)              |
 | `PUT /api/v1/chat` `{ id, …fields }`     | updates a chat (title, project, `useProjectInstructions`)                                |
 | `DELETE /api/v1/chat/:id`                | deletes the chat, its rows, sources, summaries and media                                 |
-| `GET /api/v1/history`                    | the chat list                                                                            |
+| `GET /api/v1/history[?limit=&before=]`   | the chat list, whole or a page at a time (below)                                         |
 | `GET /api/v1/lcm/:chatId/status`         | SSE of compaction: `init`, then `start` / `complete` / `error`                           |
 | `GET /api/v1/memory/usage?chatId=`       | which memories each run used, by `runId`                                                 |
 | `POST /api/v1/memory/undo` `{ changes }` | reverses an `update_memory` run's changes, newest first, each only while unchanged since |
 | `GET /api/v1/media/:chatId/:file`        | a generated image                                                                        |
+
+**The chat list.** Without `limit`, `GET /api/v1/history` answers every chat as a bare array, newest first — the
+desktop renderer's contract, unchanged. With `limit` (1–100) it answers a page (`ChatHistoryPage`,
+`packages/shared/src/types/chat-history.ts`): `{ "chats": […], "olderCursor": "2026-10-06T12:00:00.000Z|<id>" | null,
+"favorites": […] }`. `chats` are the `limit` newest chats strictly older than `before`, ordered by `createdAt` (to the
+millisecond) then `id`, both descending, favourites included; `olderCursor` is `"<createdAt ISO>|<id>"` of the last
+one, passed back as `before`, and `null` on the last page (`utils/chat-history-cursor.ts`; exodus-ios builds the same
+string). `favorites` — every favourite, newest first — is on the first page only. A bad `limit` or cursor is `400
+VALIDATION_FAILED`.
 
 ## 11. Compatibility
 

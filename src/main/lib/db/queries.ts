@@ -1,6 +1,7 @@
 import { ErrorCode, DatabaseError } from '@exodus/shared'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
-import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
+import { chatHistoryCursor } from '@exodus/shared/utils/chat-history-cursor'
+import { and, asc, desc, eq, ilike, inArray, lt, or, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { addLogSecrets } from '../logger/secret-mask'
@@ -60,6 +61,65 @@ export async function getAllChats() {
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
     logDbError('Failed to get chats', error)
+    throw error
+  }
+}
+
+// The list's order, to the millisecond: `createdAt` is stored to the
+// microsecond (`defaultNow()`), but a cursor carries a JS Date. Ordering and
+// comparing on the same truncated value keeps a row that shares the cursor's
+// millisecond from being skipped or sent twice; `id` breaks the tie.
+const chatCreatedAtMs = sql<Date>`date_trunc('milliseconds', ${chat.createdAt})`
+
+/**
+ * A page of the chat list (`GET /api/v1/history?limit=`): the `limit` newest
+ * chats strictly older than `before`'s `(createdAt, id)`, newest first, and
+ * the last one's cursor when more exist.
+ */
+export async function getChatsPage({
+  limit,
+  before
+}: {
+  limit: number
+  before?: { createdAt: Date; id: string }
+}): Promise<{ chats: Chat[]; olderCursor: string | null }> {
+  try {
+    const at = before && sql`${before.createdAt.toISOString()}::timestamp`
+    const rows = await db
+      .select()
+      .from(chat)
+      .where(
+        before
+          ? or(
+              sql`${chatCreatedAtMs} < ${at}`,
+              and(sql`${chatCreatedAtMs} = ${at}`, lt(chat.id, before.id))
+            )
+          : undefined
+      )
+      .orderBy(desc(chatCreatedAtMs), desc(chat.id))
+      .limit(limit + 1)
+    const chats = rows.slice(0, limit)
+    const last = chats.at(-1)
+    return {
+      chats,
+      olderCursor: rows.length > limit && last ? chatHistoryCursor(last) : null
+    }
+  } catch (error) {
+    logDbError('Failed to get a page of chats', error)
+    throw error
+  }
+}
+
+/** Every favourite chat, newest first — the list's first page carries them. */
+export async function getFavoriteChats() {
+  try {
+    return await db
+      .select()
+      .from(chat)
+      .where(eq(chat.favorite, true))
+      .orderBy(desc(chat.createdAt), desc(chat.id))
+  } catch (error) {
+    logDbError('Failed to get favourite chats', error)
     throw error
   }
 }
