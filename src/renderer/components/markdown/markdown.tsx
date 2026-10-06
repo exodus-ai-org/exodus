@@ -7,10 +7,6 @@ import { useTranslation } from 'react-i18next'
 import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
-import {
-  oneLight,
-  vscDarkPlus
-} from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import {
@@ -31,6 +27,7 @@ import {
   InteractiveFence,
   MarkdownSourceContext
 } from '../chat/interactive/interactive-fence'
+import { xcodeDark, xcodeLight } from './code-themes'
 import {
   citationComponents,
   WebSearchRankMapContext
@@ -43,19 +40,20 @@ import {
 import { WorkspacePathCode } from './workspace-path-code'
 
 const themes = {
-  light: { codeTheme: oneLight },
-  dark: { codeTheme: vscDarkPlus }
+  light: { codeTheme: xcodeLight },
+  dark: { codeTheme: xcodeDark }
 }
 
-// 13px in the app's mono stack (`font-mono`: SF Mono on a Mac). The Prism
-// themes would set Monaco / Menlo, whose large x-height read a size bigger
-// than they are (owner, 2026-10-06); the code tag inherits both so the two
-// never disagree.
+// 12px (ChatGPT's) in the app's mono stack (`font-mono`: SF Mono on a Mac),
+// the code tag inheriting so the two never disagree; no background of its own
+// — the block's panel (`.markdown pre`) is the one background the header
+// strip and the code share (owner, 2026-10-06).
 const codeBlockStyle = {
   padding: '0.75rem',
-  fontSize: '0.8125rem',
-  lineHeight: '1.5',
+  fontSize: '0.75rem',
+  lineHeight: '1.6',
   margin: 0,
+  background: 'transparent',
   // The outer `.markdown pre` already scrolls/caps height; keep this inner
   // element from establishing its own competing scroll or clipping.
   maxHeight: 'none',

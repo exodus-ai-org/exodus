@@ -844,15 +844,16 @@ html:lang(ko) {
   /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg.
      Scroll long lines / tall dumps instead of clipping them or letting the
      block blow out the message column. */
+  /* One panel, one background: the header strip and the highlighted code
+     share it (the highlighter's own is transparent); no border. */
   .markdown :where(pre) {
-    background: transparent;
+    background: var(--muted);
     padding: 0;
     color: inherit;
-    border: 1px solid var(--border);
-    border-radius: 0.625rem;
     max-width: 100%;
     max-height: 32rem;
     overflow: auto;
+    @apply rounded-2xl;
   }
 
   /* Paragraphs — normal wrapping (soft newlines collapse to spaces, the way
