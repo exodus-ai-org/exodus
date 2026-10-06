@@ -36,7 +36,9 @@ function ContentHeader() {
       {!open && (
         <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
       )}
-      <div className="no-drag flex min-w-0 flex-1 self-stretch">
+      {/* The strip itself stays a drag region (the window moves by its
+          empty part, as a browser's); only the tabs opt out, in ChatTabs. */}
+      <div className="flex min-w-0 flex-1 self-stretch">
         <ChatTabs />
       </div>
     </header>

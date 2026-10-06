@@ -39,7 +39,7 @@ export function ChatTabs() {
   // below; the others sit quieter on the strip, a hairline between them.
   const activeIndex = tabs.findIndex((t) => t.id === activeId)
   return (
-    <div className="no-drag -mb-px flex w-full [scrollbar-width:none] items-end overflow-x-auto overflow-y-hidden pl-2">
+    <div className="-mb-px flex w-full [scrollbar-width:none] items-end overflow-x-auto overflow-y-hidden pl-2">
       {tabs.map((tab, i) => {
         const active = i === activeIndex
         const divided = i > 0 && !active && i - 1 !== activeIndex
@@ -50,7 +50,9 @@ export function ChatTabs() {
             aria-current={active ? 'page' : undefined}
             title={tab.title}
             className={cn(
-              'group relative flex h-9 max-w-48 min-w-0 shrink-0 items-center gap-1 rounded-t-lg border border-b-0 pr-1.5 pl-3 text-xs whitespace-nowrap transition-colors duration-150 ease-out',
+              // no-drag: the strip is the window's drag region; a tab (and its
+              // close button) must still take the click.
+              'no-drag group relative flex h-9 max-w-48 min-w-0 shrink-0 items-center gap-1 rounded-t-lg border border-b-0 pr-1.5 pl-3 text-xs whitespace-nowrap transition-colors duration-150 ease-out',
               active
                 ? 'bg-card text-foreground border-border z-10'
                 : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground border-transparent',
