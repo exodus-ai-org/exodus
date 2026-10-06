@@ -14,7 +14,7 @@ const CONFIRM_SOURCE =
 
 const q = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
-  text: 'Q',
+  text: `Q ${id}`,
   type: 'single',
   options: ['x', 'y'],
   ...extra
@@ -91,6 +91,26 @@ const ASK_CASES: Array<[string, string, boolean]> = [
     true
   ],
   ['keys it does not know', ask({ colour: 'red' }), true],
+  [
+    'a question on two lines',
+    ask({ questions: [q('a', { text: 'Where?\nAnd when?' })] }),
+    false
+  ],
+  [
+    'an option with a carriage return',
+    ask({ questions: [q('a', { options: ['x\ry', 'z'] })] }),
+    false
+  ],
+  [
+    'two questions with one text',
+    ask({ questions: [q('a'), q('b', { text: 'Q a' })] }),
+    false
+  ],
+  [
+    'two questions with different texts',
+    ask({ questions: [q('a'), q('b')] }),
+    true
+  ],
   ['not JSON', '{"title":', false],
   ['an array', '[]', false]
 ]
@@ -175,6 +195,11 @@ const FIND_CASES: Array<[string, string, 'ask' | 'confirm' | null]> = [
   [
     'trailing spaces after the name',
     `\`\`\`exodus-confirm  \n${CONFIRM_SOURCE}\n\`\`\``,
+    'confirm'
+  ],
+  [
+    'after a line of inline code that looks like a fence',
+    `Install it with\n\`\`\`npm i\`\`\`\n\n\`\`\`exodus-confirm\n${CONFIRM_SOURCE}\n\`\`\``,
     'confirm'
   ],
   [

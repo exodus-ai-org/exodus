@@ -33,11 +33,20 @@ const label = (max: number) => text(0, max).nullish()
 const distinct = (values: readonly string[]) =>
   new Set(values).size === values.length
 
+/**
+ * A question or an option: one line, since an answer writes each question on
+ * a line of its own (`composeAskAnswer`) and `readPicks` reads them back.
+ */
+const oneLine = (min: number, max: number) =>
+  text(min, max).refine((s) => !/[\r\n]/u.test(s), {
+    message: 'Expected a single line'
+  })
+
 export const askQuestionSchema = z.object({
   id: z.string().regex(/^[a-z0-9_-]{1,32}$/u),
-  text: text(1, 200),
+  text: oneLine(1, 200),
   type: z.enum(['single', 'multi']),
-  options: z.array(text(1, 80)).min(2).max(8).refine(distinct),
+  options: z.array(oneLine(1, 80)).min(2).max(8).refine(distinct),
   /** Adds "Other…", a choice the user types into. */
   other: z.boolean().nullish()
 })
@@ -48,7 +57,9 @@ export const askBlockSchema = z.object({
     .array(askQuestionSchema)
     .min(1)
     .max(8)
-    .refine((questions) => distinct(questions.map((q) => q.id))),
+    .refine((questions) => distinct(questions.map((q) => q.id)))
+    // An answer's line is found by its question's text.
+    .refine((questions) => distinct(questions.map((q) => q.text))),
   /** The closing field's label; the client's own when absent. */
   note: label(120),
   /** The button's label; the client's own when absent. */
@@ -99,7 +110,11 @@ export function parseInteractiveBlock(
   return parsed.success ? { kind, block: parsed.data, source } : null
 }
 
-/** A line that opens or closes a fence: up to three spaces, then three or more backticks or tildes. */
+/**
+ * A line that opens or closes a fence: up to three spaces, then three or more
+ * backticks or tildes. After backticks no backtick may follow (CommonMark): a
+ * line like ```` ```npm i``` ```` is inline code, not a fence.
+ */
 function fenceRun(
   line: string
 ): { char: string; length: number; rest: string } | null {
@@ -110,7 +125,9 @@ function fenceRun(
   let end = start
   while (line[end] === char) end++
   if (end - start < 3) return null
-  return { char, length: end - start, rest: line.slice(end) }
+  const rest = line.slice(end)
+  if (char === '`' && rest.includes('`')) return null
+  return { char, length: end - start, rest }
 }
 
 /**
