@@ -8,7 +8,7 @@ import {
   type HealthFormat,
   isRecord,
   number
-} from '@/components/chat/health-format'
+} from '@/components/chat/health/health-format'
 
 const MOODS = new Set([
   'veryUnpleasant',

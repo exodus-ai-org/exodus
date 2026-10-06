@@ -4,10 +4,10 @@ import { splitQuoted } from '@exodus/shared/utils/quoted-text'
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { ErrorBoundary } from '@/components/card-error-boundary'
-import { HealthContextCard } from '@/components/chat/health-context-card'
+import { ErrorBoundary } from '@/components/app/card-error-boundary'
+import { HealthContextCard } from '@/components/chat/health/health-context-card'
 import { AnswerTitle } from '@/components/chat/interactive/answer-title'
-import Markdown from '@/components/markdown'
+import Markdown from '@/components/markdown/markdown'
 import { cn } from '@/lib/utils'
 
 /** The bubble's line: `text-base` (1rem) at `leading-relaxed` (1.625). */

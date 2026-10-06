@@ -3,7 +3,7 @@ import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

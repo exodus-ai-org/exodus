@@ -6,7 +6,7 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
 import { reportRendererError } from '@/lib/report-error'
 import { cn } from '@/lib/utils'
 
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 
 export function RouteErrorBoundary() {
   const { t } = useTranslation('errors')

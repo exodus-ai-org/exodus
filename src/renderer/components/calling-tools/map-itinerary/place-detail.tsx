@@ -11,7 +11,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
 import {
   Carousel,
   type CarouselApi,

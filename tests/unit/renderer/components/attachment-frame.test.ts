@@ -11,8 +11,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const t = (key: string) => key
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
-vi.mock('@/components/source-favicon', () => ({ SourceFavicon: () => null }))
-vi.mock('@/components/lazy-load-image', () => ({
+vi.mock('@/components/markdown/source-favicon', () => ({
+  SourceFavicon: () => null
+}))
+vi.mock('@/components/markdown/lazy-load-image', () => ({
   LazyLoadImage: ({ src }: { src: string }) => createElement('img', { src })
 }))
 vi.mock('react-medium-image-zoom', () => ({
@@ -27,7 +29,7 @@ const invoke = vi.fn()
 }
 
 const { AttachmentFrame, ZoomToolbar } =
-  await import('@/components/attachment-frame')
+  await import('@/components/chat/attachment-frame')
 const { ImageGallery } = await import('@/components/web-search/image-gallery')
 const { ImageLightbox } = await import('@/components/web-search/image-lightbox')
 

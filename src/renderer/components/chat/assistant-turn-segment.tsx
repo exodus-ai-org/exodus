@@ -8,12 +8,9 @@ import { useTranslation } from 'react-i18next'
 import { ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
+import { ErrorBoundary, RenderFailed } from '../app/card-error-boundary'
 import { ImageGenerationCard } from '../calling-tools/image-generation/image-generation-card'
-import { ErrorBoundary, RenderFailed } from '../card-error-boundary'
-import Markdown from '../markdown'
-import { MessageAction } from '../massage-action'
-import { MessageCallingTools } from '../messages-calling-tools'
-import { ThinkingTimeline } from '../thinking-timeline'
+import Markdown from '../markdown/markdown'
 import { collectGalleryImages } from '../web-search/collect-gallery-images'
 import { collectGalleryVideos } from '../web-search/collect-gallery-videos'
 import { ImageGallery } from '../web-search/image-gallery'
@@ -25,7 +22,10 @@ import {
   useInteractiveTurn
 } from './interactive/interactive-context'
 import { MemoryChangeStrip } from './memory-change-strip'
+import { MessageAction } from './message-action'
+import { MessageCallingTools } from './messages-calling-tools'
 import { RunApprovals } from './run-approvals'
+import { ThinkingTimeline } from './thinking-timeline'
 import { UsedMemories } from './used-memories'
 
 export type AssistantTurnSegmentProps = {

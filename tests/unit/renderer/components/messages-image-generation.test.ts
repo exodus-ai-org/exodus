@@ -8,7 +8,7 @@ import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/components/markdown', () => ({ default: () => null }))
+vi.mock('@/components/markdown/markdown', () => ({ default: () => null }))
 vi.mock(
   '@/components/calling-tools/image-generation/image-generation-card',
   () => ({
@@ -32,17 +32,19 @@ vi.mock('@/hooks/use-discover-feed', () => ({
   useDiscoverFeed: () => ({ feed: undefined })
 }))
 vi.mock('@/components/ui/button', () => ({ Button: () => null }))
-vi.mock('@/components/chat-toc', () => ({ ChatToc: () => null }))
+vi.mock('@/components/chat/chat-toc', () => ({ ChatToc: () => null }))
 vi.mock('@/components/home/discover-feed', () => ({ DiscoverFeed: () => null }))
-vi.mock('@/components/massage-action', () => ({ MessageAction: () => null }))
-vi.mock('@/components/message-spinner', () => ({
+vi.mock('@/components/chat/message-action', () => ({
+  MessageAction: () => null
+}))
+vi.mock('@/components/chat/message-spinner', () => ({
   MessageSpinner: () => null,
   shouldShowMessageSpinner: () => false
 }))
-vi.mock('@/components/messages-calling-tools', () => ({
+vi.mock('@/components/chat/messages-calling-tools', () => ({
   MessageCallingTools: () => null
 }))
-vi.mock('@/components/thinking-timeline', () => ({
+vi.mock('@/components/chat/thinking-timeline', () => ({
   ThinkingTimeline: () => null
 }))
 vi.mock('@/components/web-search/image-gallery', () => ({
@@ -92,7 +94,7 @@ vi.mock('@/lib/stream-manager', () => ({
   isStreaming: () => false
 }))
 
-const { default: Messages } = await import('@/components/messages')
+const { default: Messages } = await import('@/components/chat/messages')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

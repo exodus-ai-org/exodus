@@ -5,6 +5,7 @@ import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
+import { WorkspaceSwitcher } from '@/components/app/workspace-switcher'
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +16,6 @@ import {
   SidebarMenuItem,
   SidebarTrigger
 } from '@/components/ui/sidebar'
-import { WorkspaceSwitcher } from '@/components/workspace-switcher'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { MOD_KEY } from '@/hooks/use-keyboard-shortcuts'
 import { cn } from '@/lib/utils'

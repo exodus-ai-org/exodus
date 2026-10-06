@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { Markdown } from '@/components/markdown'
-import { ShimmeringText } from '@/components/shimmering-text'
+import { Markdown } from '@/components/markdown/markdown'
+import { ShimmeringText } from '@/components/motion/shimmering-text'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {

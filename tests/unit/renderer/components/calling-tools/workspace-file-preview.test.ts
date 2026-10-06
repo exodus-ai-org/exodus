@@ -22,7 +22,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('sileo', () => ({
   sileo: { error: vi.fn(), info: vi.fn(), success: vi.fn() }
 }))
-vi.mock('@/components/markdown', () => ({
+vi.mock('@/components/markdown/markdown', () => ({
   Markdown: ({ src }: { src: string }) =>
     createElement('div', { 'data-markdown': '' }, src)
 }))

@@ -2,7 +2,7 @@ import { CheckIcon, TriangleAlertIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { StatusStrip } from '@/components/status-strip'
+import { StatusStrip } from '@/components/app/status-strip'
 import { Spinner } from '@/components/ui/spinner'
 import { useLcmStatus, type LcmStatusState } from '@/hooks/use-lcm-status'
 

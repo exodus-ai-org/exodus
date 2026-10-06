@@ -33,15 +33,15 @@ import { ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { foldsIntoTimeline } from '../calling-tools/folded-tools'
+import { hasToolCard, keepsTextInAnswer } from '../calling-tools/tool-cards'
+import { DiscoverFeed } from '../home/discover-feed'
+import { AssistantTurnSegment } from './assistant-turn-segment'
 import { ZoomableAttachment } from './attachment-frame'
-import { foldsIntoTimeline } from './calling-tools/folded-tools'
-import { hasToolCard, keepsTextInAnswer } from './calling-tools/tool-cards'
 import { ChatToc } from './chat-toc'
-import { AssistantTurnSegment } from './chat/assistant-turn-segment'
-import { COMPARE_FRAME, CompareTurns } from './chat/compare-turns'
-import { UserBubble } from './chat/user-bubble'
-import { DiscoverFeed } from './home/discover-feed'
+import { COMPARE_FRAME, CompareTurns } from './compare-turns'
 import { MessageSpinner, shouldShowMessageSpinner } from './message-spinner'
+import { UserBubble } from './user-bubble'
 
 type MessagesProps = {
   chatId: string

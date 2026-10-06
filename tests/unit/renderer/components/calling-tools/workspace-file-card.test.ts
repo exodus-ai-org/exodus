@@ -31,7 +31,8 @@ vi.mock(
 
 const { WorkspaceFileCard, workspaceFileChange } =
   await import('@/components/calling-tools/workspace-file/workspace-file-card')
-const { WorkspacePathCode } = await import('@/components/workspace-path-code')
+const { WorkspacePathCode } =
+  await import('@/components/markdown/workspace-path-code')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

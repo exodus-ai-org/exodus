@@ -14,7 +14,7 @@ import {
 import { ChangeEvent, useMemo, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
-import Markdown from '@/components/markdown'
+import Markdown from '@/components/markdown/markdown'
 import {
   Dialog,
   DialogContent,

@@ -7,18 +7,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const t = (key: string) => key
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t } }))
-vi.mock('@/components/markdown', () => ({
+vi.mock('@/components/markdown/markdown', () => ({
   Markdown: ({ src }: { src: string }) =>
     createElement('div', { 'data-markdown': '' }, src),
   default: ({ src }: { src: string }) =>
     createElement('div', { 'data-markdown': '' }, src)
 }))
-vi.mock('@/components/messages-calling-tools', () => ({
+vi.mock('@/components/chat/messages-calling-tools', () => ({
   MessageCallingTools: ({ className }: { className?: string }) =>
     createElement('div', { 'data-card': '', className })
 }))
 
-const { ThinkingTimeline } = await import('@/components/thinking-timeline')
+const { ThinkingTimeline } = await import('@/components/chat/thinking-timeline')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

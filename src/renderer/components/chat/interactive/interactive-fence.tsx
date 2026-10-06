@@ -16,7 +16,7 @@ import {
 } from '@exodus/shared/types/interactive'
 import { createContext, type ReactNode, useContext, useMemo } from 'react'
 
-import { ErrorBoundary } from '@/components/card-error-boundary'
+import { ErrorBoundary } from '@/components/app/card-error-boundary'
 
 import { ConfirmationBlock } from './confirmation-block'
 import {

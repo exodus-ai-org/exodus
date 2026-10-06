@@ -4,7 +4,7 @@ import { CheckIcon, Loader2Icon, WrenchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { ArtifactCard } from '@/components/calling-tools/artifact/artifact-card'
-import { Markdown } from '@/components/markdown'
+import { Markdown } from '@/components/markdown/markdown'
 import { cn } from '@/lib/utils'
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 

@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const markdownRenders = new Map<string, number>()
 const sourcesSeen = new Map<string, unknown>()
 
-vi.mock('@/components/markdown', () => ({
+vi.mock('@/components/markdown/markdown', () => ({
   default: ({
     src,
     webSearchResults
@@ -36,17 +36,19 @@ vi.mock('@/hooks/use-discover-feed', () => ({
   useDiscoverFeed: () => ({ feed: undefined })
 }))
 vi.mock('@/components/ui/button', () => ({ Button: () => null }))
-vi.mock('@/components/chat-toc', () => ({ ChatToc: () => null }))
+vi.mock('@/components/chat/chat-toc', () => ({ ChatToc: () => null }))
 vi.mock('@/components/home/discover-feed', () => ({ DiscoverFeed: () => null }))
-vi.mock('@/components/massage-action', () => ({ MessageAction: () => null }))
-vi.mock('@/components/message-spinner', () => ({
+vi.mock('@/components/chat/message-action', () => ({
+  MessageAction: () => null
+}))
+vi.mock('@/components/chat/message-spinner', () => ({
   MessageSpinner: () => null,
   shouldShowMessageSpinner: () => false
 }))
-vi.mock('@/components/messages-calling-tools', () => ({
+vi.mock('@/components/chat/messages-calling-tools', () => ({
   MessageCallingTools: () => null
 }))
-vi.mock('@/components/thinking-timeline', () => ({
+vi.mock('@/components/chat/thinking-timeline', () => ({
   ThinkingTimeline: () => null
 }))
 vi.mock('@/components/web-search/image-gallery', () => ({
@@ -100,7 +102,7 @@ const {
   default: Messages,
   buildCitationSources,
   groupIntoSegments
-} = await import('@/components/messages')
+} = await import('@/components/chat/messages')
 const { useChat } = await import('@/hooks/use-chat')
 
 ;(

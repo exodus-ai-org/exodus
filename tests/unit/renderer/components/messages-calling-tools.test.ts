@@ -41,7 +41,7 @@ vi.mock(
 )
 
 const { MessageCallingTools } =
-  await import('@/components/messages-calling-tools')
+  await import('@/components/chat/messages-calling-tools')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

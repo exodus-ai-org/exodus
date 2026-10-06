@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLocation } from 'react-router'
 import { v4 as uuidV4 } from 'uuid'
 
-import { Chat } from '@/components/chat'
+import { Chat } from '@/components/chat/chat'
 
 export function Home() {
   // One chat per visit. Every navigation to `/` is a new location key — New

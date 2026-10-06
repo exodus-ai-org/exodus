@@ -17,15 +17,15 @@ import {
   number,
   parse,
   snapshotOf
-} from '@/components/chat/health-format'
-import { weekDetails } from '@/components/chat/health-week'
+} from '@/components/chat/health/health-format'
+import { weekDetails } from '@/components/chat/health/health-week'
 
 export {
   formatMinutes,
   type HealthChip,
   type HealthChipIcon,
   type HealthFormat
-} from '@/components/chat/health-format'
+} from '@/components/chat/health/health-format'
 
 /** The chips over the question — exodus-ios `HealthContextCard.chips`. */
 export function healthChips(json: string, f: HealthFormat): HealthChip[] {

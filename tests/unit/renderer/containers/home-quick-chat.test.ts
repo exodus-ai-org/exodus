@@ -38,8 +38,8 @@ vi.mock('@/hooks/use-older-pages', () => ({
     historyIds: new Set()
   })
 }))
-vi.mock('@/components/messages', () => ({ default: () => null }))
-vi.mock('@/components/multimodel-input', () => ({ default: () => null }))
+vi.mock('@/components/chat/messages', () => ({ default: () => null }))
+vi.mock('@/components/chat/composer/composer', () => ({ default: () => null }))
 vi.mock('@/components/chat/lcm-status-card', () => ({
   LcmStatusCard: () => null
 }))

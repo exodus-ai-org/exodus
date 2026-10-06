@@ -10,8 +10,8 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
-import { SourceFavicon } from '@/components/source-favicon'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
+import { SourceFavicon } from '@/components/markdown/source-favicon'
 import { Button } from '@/components/ui/button'
 import {
   useDiscoverFeed,

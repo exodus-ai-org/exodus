@@ -15,7 +15,7 @@ import {
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import Markdown from '@/components/markdown'
+import Markdown from '@/components/markdown/markdown'
 import { SettingsEmpty, SwapLabel } from '@/components/settings/settings-kit'
 import { SettingsSection } from '@/components/settings/settings-row'
 import { Button } from '@/components/ui/button'

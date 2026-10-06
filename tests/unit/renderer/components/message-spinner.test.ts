@@ -1,8 +1,8 @@
 import type { ChatMessage } from '@exodus/shared/types/chat'
 import { describe, expect, it } from 'vitest'
 
-import { shouldShowMessageSpinner } from '@/components/message-spinner'
-import { groupIntoSegments } from '@/components/messages'
+import { shouldShowMessageSpinner } from '@/components/chat/message-spinner'
+import { groupIntoSegments } from '@/components/chat/messages'
 
 const user = (id: string): ChatMessage => ({
   id,

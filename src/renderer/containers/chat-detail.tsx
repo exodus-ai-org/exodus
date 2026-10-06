@@ -2,7 +2,7 @@ import { useSetAtom } from 'jotai'
 import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
 
-import { Chat } from '@/components/chat'
+import { Chat } from '@/components/chat/chat'
 import { TranscriptSkeleton } from '@/components/chat/transcript-skeleton'
 import { useChatHistory, useChatPage } from '@/hooks/use-chat-history'
 import { convertToUIMessages } from '@/lib/utils'

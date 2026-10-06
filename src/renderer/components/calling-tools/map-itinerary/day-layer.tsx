@@ -8,7 +8,7 @@ import {
   useRef
 } from 'react'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
 import { cn } from '@/lib/utils'
 
 import { buildPlacePhotoUrl, type ItineraryPlace } from './types'

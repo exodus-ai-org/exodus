@@ -3,8 +3,8 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { postRequestBodySchema } from '@main/lib/server/schemas/chat'
 import { describe, expect, it } from 'vitest'
 
-import { parseCitations } from '@/components/markdown-citations'
-import { groupIntoSegments } from '@/components/messages'
+import { groupIntoSegments } from '@/components/chat/messages'
+import { parseCitations } from '@/components/markdown/markdown-citations'
 
 // Regression: a follow-up turn used to wipe the citations off every earlier
 // turn. `POST /api/v1/chat` validated history messages with a strict `z.object`,

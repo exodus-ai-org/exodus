@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const t = (key: string) => key
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
-vi.mock('@/components/source-favicon', () => ({ SourceFavicon: () => null }))
+vi.mock('@/components/markdown/source-favicon', () => ({
+  SourceFavicon: () => null
+}))
 
 const { ImageLightbox } = await import('@/components/web-search/image-lightbox')
 

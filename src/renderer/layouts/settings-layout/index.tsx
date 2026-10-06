@@ -1,4 +1,4 @@
-import { AppToaster } from '@/components/app-toaster'
+import { AppToaster } from '@/components/app/app-toaster'
 import { SettingsForm } from '@/components/settings/settings-form'
 import { SettingsSidebar } from '@/components/settings/settings-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'

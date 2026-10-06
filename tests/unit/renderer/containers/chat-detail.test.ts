@@ -29,7 +29,7 @@ vi.mock('@/services/chat', () => ({
 
 // What <Chat> was mounted with, per mount.
 const mounts: string[][] = []
-vi.mock('@/components/chat', async () => {
+vi.mock('@/components/chat/chat', async () => {
   const { useState } = await import('react')
   return {
     Chat: ({ initialMessages }: { initialMessages: Array<{ id: string }> }) => {

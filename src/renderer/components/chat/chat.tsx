@@ -16,11 +16,11 @@ import { useOlderPages } from '@/hooks/use-older-pages'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
-import { InteractiveProvider } from './chat/interactive/interactive-context'
-import { LcmStatusCard } from './chat/lcm-status-card'
-import { SelectionAsk } from './chat/selection-ask'
+import MultimodalInput from './composer/composer'
+import { InteractiveProvider } from './interactive/interactive-context'
+import { LcmStatusCard } from './lcm-status-card'
 import Messages from './messages'
-import MultimodalInput from './multimodel-input'
+import { SelectionAsk } from './selection-ask'
 
 interface Props {
   id: string

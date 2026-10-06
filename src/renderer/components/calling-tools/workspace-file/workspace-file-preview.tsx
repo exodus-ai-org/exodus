@@ -3,7 +3,7 @@ import type { WorkspaceFileReadResult } from '@exodus/shared/types/workspace-fil
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Markdown } from '@/components/markdown'
+import { Markdown } from '@/components/markdown/markdown'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

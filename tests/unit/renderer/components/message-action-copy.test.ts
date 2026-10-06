@@ -15,9 +15,9 @@ const t = (key: string) => key
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
 vi.mock('sileo', () => ({ sileo: { success: vi.fn(), error: vi.fn() } }))
 // Read-aloud is its own business, and asks the API.
-vi.mock('@/components/audio-player', () => ({ default: () => null }))
+vi.mock('@/components/chat/audio-player', () => ({ default: () => null }))
 
-const { MessageAction } = await import('@/components/massage-action')
+const { MessageAction } = await import('@/components/chat/message-action')
 
 const sources = [
   {

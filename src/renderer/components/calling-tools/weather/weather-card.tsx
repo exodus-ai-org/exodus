@@ -7,7 +7,7 @@ import { ChevronDown, Sunrise, Sunset } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Morph, Reveal } from '@/components/morph'
+import { Morph, Reveal } from '@/components/motion/morph'
 import { useFormat } from '@/lib/format'
 import { ROW_ENTER, staggerDelay } from '@/lib/motion'
 import { cn } from '@/lib/utils'

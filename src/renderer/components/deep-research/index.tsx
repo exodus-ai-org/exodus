@@ -8,7 +8,7 @@ import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SheetPanel } from '@/components/sheet-panel'
+import { SheetPanel } from '@/components/app/sheet-panel'
 import { Button } from '@/components/ui/button'
 import { useDeepResearchResult } from '@/hooks/use-deep-research'
 import { reportRendererError } from '@/lib/report-error'

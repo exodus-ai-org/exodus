@@ -16,7 +16,7 @@ import {
   type HealthFormat,
   healthChips,
   healthDetails
-} from '@/components/chat/health-context'
+} from '@/components/chat/health/health-context'
 import {
   Collapsible,
   CollapsibleContent,

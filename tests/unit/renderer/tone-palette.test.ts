@@ -111,10 +111,14 @@ describe('colour tones', () => {
   }
 
   it.each([
-    ['voice', 'src/renderer/components/audio-recoder.tsx', 'aria-label={'],
+    [
+      'voice',
+      'src/renderer/components/chat/composer/audio-recorder.tsx',
+      'aria-label={'
+    ],
     [
       'send',
-      'src/renderer/components/multimodel-input.tsx',
+      'src/renderer/components/chat/composer/composer.tsx',
       "t('composer.send')"
     ]
   ])(
@@ -134,7 +138,7 @@ describe('colour tones', () => {
 
   it('draws the stop button neutral, its square white in light', () => {
     const classes = classesBefore(
-      'src/renderer/components/multimodel-input.tsx',
+      'src/renderer/components/chat/composer/composer.tsx',
       "t('composer.stop')"
     )
     expect(classes).toContain('bg-foreground')

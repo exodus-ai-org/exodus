@@ -10,7 +10,7 @@ import {
 
 // Lazy: the preview draws Markdown with the renderer this component is part of.
 const WorkspaceFilePreview = lazy(
-  () => import('./calling-tools/workspace-file/workspace-file-preview')
+  () => import('../calling-tools/workspace-file/workspace-file-preview')
 )
 
 /**

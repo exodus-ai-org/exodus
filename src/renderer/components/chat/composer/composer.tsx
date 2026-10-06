@@ -38,11 +38,11 @@ import {
   chatStopFnAtom
 } from '@/stores/input'
 
-import { AudioRecorder } from './audio-recoder'
+import { Button } from '../../ui/button'
+import { Textarea } from '../../ui/textarea'
+import { AudioRecorder } from './audio-recorder'
 import { ActiveToolPills, ComposerToolsButton } from './composer-tools'
 import { FilePreview } from './file-preview'
-import { Button } from './ui/button'
-import { Textarea } from './ui/textarea'
 
 // Props are deliberately few and stable: this is `memo`'d, and `<Chat>`
 // re-renders on every streamed frame. It used to also take `messages`,

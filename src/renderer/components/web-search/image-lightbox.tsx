@@ -9,9 +9,9 @@ import { useTranslation } from 'react-i18next'
 import {
   AttachmentDownloadButton,
   useAttachmentContextMenu
-} from '@/components/attachment-frame'
-import { LazyLoadImage } from '@/components/lazy-load-image'
-import { SourceFavicon } from '@/components/source-favicon'
+} from '@/components/chat/attachment-frame'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
+import { SourceFavicon } from '@/components/markdown/source-favicon'
 import { cn } from '@/lib/utils'
 
 import type { GalleryImage } from './collect-gallery-images'

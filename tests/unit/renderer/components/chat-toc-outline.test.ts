@@ -11,7 +11,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key })
 }))
 
-const { outlineText } = await import('@/components/chat-toc')
+const { outlineText } = await import('@/components/chat/chat-toc')
 
 const LABELS: AnswerLabels = {
   other: 'Other',

@@ -12,7 +12,7 @@ vi.mock('@/lib/report-error', () => ({
 }))
 
 const { ErrorBoundary, RenderFailed } =
-  await import('@/components/card-error-boundary')
+  await import('@/components/app/card-error-boundary')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

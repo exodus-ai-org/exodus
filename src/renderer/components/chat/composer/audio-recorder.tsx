@@ -5,7 +5,7 @@ import { sileo } from 'sileo'
 
 import { useAudio } from '@/hooks/use-audio'
 
-import { Button } from './ui/button'
+import { Button } from '../../ui/button'
 
 // Chromium (Electron) records WebM/Opus; the others are fallbacks. A real
 // filename + extension matters — the transcription API sniffs the container.

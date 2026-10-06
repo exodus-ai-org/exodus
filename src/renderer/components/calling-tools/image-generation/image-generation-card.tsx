@@ -9,12 +9,12 @@ import type {
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { ZoomableAttachment } from '@/components/attachment-frame'
 import {
   ImageGeneration,
   type ImageGenerationStatus
-} from '@/components/image-generation-loading'
-import { isRasterDataUrl } from '@/components/remote-image'
+} from '@/components/calling-tools/image-generation/image-generation-loading'
+import { ZoomableAttachment } from '@/components/chat/attachment-frame'
+import { isRasterDataUrl } from '@/components/markdown/remote-image'
 import { useSettings } from '@/hooks/use-settings'
 
 // Placeholders shown while a call runs, one per image the settings ask for.

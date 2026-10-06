@@ -10,7 +10,7 @@ import {
   type HealthFormat,
   healthChips,
   healthDetails
-} from '@/components/chat/health-context'
+} from '@/components/chat/health/health-context'
 
 const en: unknown = JSON.parse(
   readFileSync(

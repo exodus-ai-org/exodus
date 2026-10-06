@@ -335,7 +335,7 @@ a `text` column defaulting to `neutral`). The value becomes `data-tone` on
 mirrors it to localStorage (`exodus-color-tone`) so every entry (`main.tsx`
 
 - the three sub-apps) can call `bootTone()` before React mounts (no flash);
-  `components/tone-bridge.tsx` follows `useSettings()` in the main window and
+  `components/app/tone-bridge.tsx` follows `useSettings()` in the main window and
   sub-apps follow via the `storage` event. The light/dark/system mode stays in
   next-themes' `vite-ui-theme` key.
 
@@ -800,7 +800,7 @@ call's card; write_file's `details.created` says Created / Edited) with Open
 preview: Markdown through `Markdown`, anything else monospaced; past
 `WORKSPACE_FILE_MAX_BYTES` (1 MB) or binary it says so and offers Open). An
 inline code span in an answer that is an absolute or `~/` path to an existing
-file under `~/.exodus/workspace` becomes a link (`components/workspace-path-code.tsx`:
+file under `~/.exodus/workspace` becomes a link (`components/markdown/workspace-path-code.tsx`:
 click opens, right-click is the native Open / Reveal / Quick Look menu); the
 lexical rule is `workspacePathCandidate`, then main's cached stat
 (`hooks/use-workspace-files.ts`). Every action goes over IPC
@@ -1366,8 +1366,8 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   page's week), then the question. `splitHealth()`
   (`packages/shared/src/utils/health-context.ts`, exodus-ios's
   `HealthContext.split`) takes it off before `splitQuoted()`; the bubble
-  draws it as chips (`chat/health-context-card.tsx`, rules in
-  `chat/health-context.ts`) that open into a labelled list. Display only —
+  draws it as chips (`chat/health/health-context-card.tsx`, rules in
+  `chat/health/health-context.ts`) that open into a labelled list. Display only —
   the message sent to the model is unchanged.
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
@@ -1399,7 +1399,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   mounted components register (Escape) needs `conflictBehavior: 'allow'`, or
   every duplicate `console.warn`s — disabled registrations included. A key that
   commits an IME composition arrives with `event.isComposing`: guard it.
-- **Images load through `LazyLoadImage`** (`components/lazy-load-image.tsx`,
+- **Images load through `LazyLoadImage`** (`components/markdown/lazy-load-image.tsx`,
   the owner's rule of 2026-09-30): a skeleton while it loads, a fade in, an
   icon — or the caller's `fallback` — when it fails; never a bare `<img>` for
   anything fetched from the network. Props: `imgClassName` for the image's
@@ -1836,7 +1836,7 @@ Main process:
   is read off disk through `resolveMediaFile`; any other loopback URL is
   refused; 64 MB cap; a window's top frame only. Renderer side:
   `src/renderer/lib/attachment-actions.ts` and
-  `src/renderer/components/attachment-frame.tsx` (the hover/focus download
+  `src/renderer/components/chat/attachment-frame.tsx` (the hover/focus download
   button, the zoomed view's toolbar button)
 - `src/main/lib/lan/` — access from the LAN (exodus-ios on a device). The app is
   served twice (`server/app.ts`): plaintext on loopback, and over HTTPS on
@@ -1960,7 +1960,7 @@ Renderer:
   and that field is empty. (The snake_case rename once left this map on the
   old camelCase keys and the three panels vanished silently;
   `tool-config.test.ts` pins the keys to the registry now.)
-- `src/renderer/components/status-strip.tsx` — `StatusStrip` (an icon + text
+- `src/renderer/components/app/status-strip.tsx` — `StatusStrip` (an icon + text
   row on the frosted surface, with an optional `Reveal`-able `details`
   section): shared by `lcm-status-card.tsx` (compaction) and
   `chat/memory-change-strip.tsx` (`update_memory`)
@@ -1971,11 +1971,11 @@ Renderer:
   keychain / re-entry notices on Settings → General; `src/renderer/lib/secrets.ts`
   (the mask shape and the destination rule, mirrored) and `src/renderer/stores/secrets.ts`
   (`clearedSecretsAtom`). See "The desktop Settings form and masks"
-- `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
+- `src/renderer/components/motion/morph.tsx` — `Morph` (two states in one cell, the
   height following the active one under a blurred crossfade) and `Reveal` (a
   section growing from 0fr): the in-place opening a card or a row is allowed
   (see Motion); used by the weather card and the Built-in Tools panels
-- `src/renderer/components/flag.tsx` — `<Flag code>`: a country flag as a
+- `src/renderer/components/app/flag.tsx` — `<Flag code>`: a country flag as a
   separate SVG file by ISO code (never emoji — Windows has none; never inlined —
   the web-search list is 239 of them)
 - `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
@@ -1999,7 +1999,7 @@ Renderer:
   the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main
   window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to
   answer it)
-- `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
+- `src/renderer/components/app/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
 Shared:

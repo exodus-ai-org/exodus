@@ -14,7 +14,7 @@ const {
   RemoteImage,
   allowedImageUrls,
   loadsAutomatically
-} = await import('@/components/remote-image')
+} = await import('@/components/markdown/remote-image')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

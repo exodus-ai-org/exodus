@@ -5,8 +5,8 @@
  */
 import { ReactNode } from 'react'
 
-import { Button } from './ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import { Button } from '../ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 export function IconWrapper({
   onClick,

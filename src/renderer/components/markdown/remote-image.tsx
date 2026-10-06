@@ -5,7 +5,7 @@ import { ImageIcon } from 'lucide-react'
 import { createContext, useContext, useReducer } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
 import { cn } from '@/lib/utils'
 
 /**

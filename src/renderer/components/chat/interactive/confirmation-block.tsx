@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown, { type Components } from 'react-markdown'
 
-import { RemoteImage } from '@/components/remote-image'
+import { RemoteImage } from '@/components/markdown/remote-image'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { remarkPluginsStable } from '@/lib/markdown-plugins'

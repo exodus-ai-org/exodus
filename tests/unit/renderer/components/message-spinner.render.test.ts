@@ -14,7 +14,7 @@ vi.mock('thinking-orbs', () => ({
     createElement('canvas', { 'data-orb': `${state}:${size}` })
 }))
 
-const { MessageSpinner } = await import('@/components/message-spinner')
+const { MessageSpinner } = await import('@/components/chat/message-spinner')
 
 describe('<MessageSpinner>', () => {
   it('is the working orb at the timeline’s size, announced as a status', async () => {

@@ -29,11 +29,11 @@ vi.mock('@/hooks/use-mcp', () => ({
   useDeleteMcpServer: () => ({ mutateAsync: vi.fn() }),
   useToggleMcpServer: () => ({ mutate: vi.fn() })
 }))
-vi.mock('@/components/code-editor.js', () => ({
+vi.mock('@/components/markdown/code-editor.js', () => ({
   StandaloneCodeEditor: ({ value }: { value: string }) =>
     createElement('pre', null, value)
 }))
-vi.mock('@/components/markdown', () => ({ default: () => null }))
+vi.mock('@/components/markdown/markdown', () => ({ default: () => null }))
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, params?: Record<string, string>) =>

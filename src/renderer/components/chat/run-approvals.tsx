@@ -10,7 +10,7 @@ import {
 import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { StatusStrip } from '@/components/status-strip'
+import { StatusStrip } from '@/components/app/status-strip'
 import { Button } from '@/components/ui/button'
 import {
   type RunApproval,

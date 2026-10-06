@@ -6,10 +6,10 @@ import removeMd from 'remove-markdown'
 
 import { sourcesPanelAtom } from '@/stores/chat'
 
-import { parseCitations } from './markdown-citations'
-import { SheetPanel } from './sheet-panel'
-import { SourceFavicon } from './source-favicon'
-import { Separator } from './ui/separator'
+import { SheetPanel } from '../app/sheet-panel'
+import { parseCitations } from '../markdown/markdown-citations'
+import { SourceFavicon } from '../markdown/source-favicon'
+import { Separator } from '../ui/separator'
 
 function SourceLink({ item }: { item: WebSearchResult }) {
   let hostname = item.hostname ?? ''

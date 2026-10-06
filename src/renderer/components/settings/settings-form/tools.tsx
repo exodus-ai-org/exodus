@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Reveal } from '@/components/morph'
+import { Reveal } from '@/components/motion/morph'
 import { Button } from '@/components/ui/button'
 import { FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Switch } from '@/components/ui/switch'

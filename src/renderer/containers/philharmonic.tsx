@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
+import { SheetPanel } from '@/components/app/sheet-panel'
 import {
   ConfigPage,
   ConversationList
@@ -18,7 +19,6 @@ import {
 import { GroupChat } from '@/components/philharmonic/chat/group-chat'
 import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-panel'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
-import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
 import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'

@@ -46,7 +46,7 @@ import ReactMarkdown from 'react-markdown'
 import {
   citationComponents,
   WebSearchRankMapContext
-} from '@/components/markdown-citations'
+} from '@/components/markdown/markdown-citations'
 import {
   rehypePluginsStable,
   remarkPluginsStable

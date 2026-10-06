@@ -3,10 +3,10 @@ import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { Loader2Icon } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
 
-import type { EditorMountHandler } from '@/components/code-editor'
+import type { EditorMountHandler } from '@/components/markdown/code-editor'
 
 const CodeEditor = lazy(() =>
-  import('@/components/code-editor.js').then((m) => ({
+  import('@/components/markdown/code-editor.js').then((m) => ({
     default: m.StandaloneCodeEditor
   }))
 )

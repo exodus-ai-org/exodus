@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Flag } from '@/components/flag'
+import { Flag } from '@/components/app/flag'
 import {
   Combobox,
   ComboboxChip,

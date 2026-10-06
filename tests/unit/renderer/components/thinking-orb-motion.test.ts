@@ -12,7 +12,7 @@ const t = (key: string) => key
 const i18n = { language: 'en' }
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t, i18n }) }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t } }))
-vi.mock('@/components/markdown', () => ({
+vi.mock('@/components/markdown/markdown', () => ({
   default: () => null,
   Markdown: () => null
 }))
@@ -33,14 +33,16 @@ vi.mock('@/hooks/use-discover-feed', () => ({
   useDiscoverFeed: () => ({ feed: undefined })
 }))
 vi.mock('@/components/ui/button', () => ({ Button: () => null }))
-vi.mock('@/components/chat-toc', () => ({ ChatToc: () => null }))
+vi.mock('@/components/chat/chat-toc', () => ({ ChatToc: () => null }))
 vi.mock('@/components/home/discover-feed', () => ({ DiscoverFeed: () => null }))
-vi.mock('@/components/massage-action', () => ({ MessageAction: () => null }))
-vi.mock('@/components/message-spinner', () => ({
+vi.mock('@/components/chat/message-action', () => ({
+  MessageAction: () => null
+}))
+vi.mock('@/components/chat/message-spinner', () => ({
   MessageSpinner: () => null,
   shouldShowMessageSpinner: () => false
 }))
-vi.mock('@/components/messages-calling-tools', () => ({
+vi.mock('@/components/chat/messages-calling-tools', () => ({
   MessageCallingTools: () => null
 }))
 vi.mock('@/components/web-search/image-gallery', () => ({
@@ -64,9 +66,9 @@ vi.mock('@/hooks/use-approvals', () => ({
 }))
 
 const { ThinkingTimeline, headerIcon } =
-  await import('@/components/thinking-timeline')
+  await import('@/components/chat/thinking-timeline')
 const { default: Messages, groupIntoSegments } =
-  await import('@/components/messages')
+  await import('@/components/chat/messages')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

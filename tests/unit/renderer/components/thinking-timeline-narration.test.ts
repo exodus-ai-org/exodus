@@ -8,12 +8,12 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t } }))
 // Markdown carries its own paragraph size and colour: a row drawn with it
 // stood apart from the rows around it (owner's screenshot, 2026-09-30).
-vi.mock('@/components/markdown', () => ({
+vi.mock('@/components/markdown/markdown', () => ({
   default: ({ src }: { src: string }) =>
     createElement('div', { 'data-markdown': '' }, src)
 }))
 
-const { ThinkingTimeline } = await import('@/components/thinking-timeline')
+const { ThinkingTimeline } = await import('@/components/chat/thinking-timeline')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

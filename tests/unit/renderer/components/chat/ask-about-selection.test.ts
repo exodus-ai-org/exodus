@@ -27,16 +27,21 @@ vi.mock('react-router', () => ({ useParams: () => ({ id: 'chat-1' }) }))
 vi.mock('@/hooks/use-upload', () => ({
   useUpload: () => ({ uploadFile: vi.fn() })
 }))
-vi.mock('@/components/composer-tools', () => ({
+vi.mock('@/components/chat/composer/composer-tools', () => ({
   ActiveToolPills: () => null,
   ComposerToolsButton: () => null
 }))
-vi.mock('@/components/file-preview', () => ({ FilePreview: () => null }))
-vi.mock('@/components/audio-recoder', () => ({ AudioRecorder: () => null }))
+vi.mock('@/components/chat/composer/file-preview', () => ({
+  FilePreview: () => null
+}))
+vi.mock('@/components/chat/composer/audio-recorder', () => ({
+  AudioRecorder: () => null
+}))
 
 const { chatInputAtom, chatInputFocusAtom, chatQuoteAtom } =
   await import('@/stores/input')
-const { default: InputBox } = await import('@/components/multimodel-input')
+const { default: InputBox } =
+  await import('@/components/chat/composer/composer')
 const { UserBubble } = await import('@/components/chat/user-bubble')
 const { SelectionAsk } = await import('@/components/chat/selection-ask')
 

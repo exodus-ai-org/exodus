@@ -28,11 +28,11 @@ import { i18n } from '@/lib/i18n'
 import { ROW_ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
-import { foldedFileName, terminalExitCode } from './calling-tools/folded-tools'
-import { Markdown } from './markdown'
+import { foldedFileName, terminalExitCode } from '../calling-tools/folded-tools'
+import { Markdown } from '../markdown/markdown'
+import { ShimmeringText } from '../motion/shimmering-text'
+import { Badge } from '../ui/badge'
 import { MessageCallingTools } from './messages-calling-tools'
-import { ShimmeringText } from './shimmering-text'
-import { Badge } from './ui/badge'
 
 export type { TimelineStep }
 

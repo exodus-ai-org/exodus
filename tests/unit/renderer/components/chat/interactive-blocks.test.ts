@@ -31,7 +31,7 @@ const t = (key: string, params?: Record<string, unknown>) =>
 const i18n = { resolvedLanguage: 'en', language: 'en' }
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t, i18n }) }))
 
-const { default: Markdown } = await import('@/components/markdown')
+const { default: Markdown } = await import('@/components/markdown/markdown')
 const {
   InteractiveProvider,
   InteractiveTurnContext,

@@ -16,6 +16,7 @@ import {
 import { useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
+import { WorkspaceSwitcher } from '@/components/app/workspace-switcher'
 import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
   AlertDialog,
@@ -47,7 +48,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { WorkspaceSwitcher } from '@/components/workspace-switcher'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'

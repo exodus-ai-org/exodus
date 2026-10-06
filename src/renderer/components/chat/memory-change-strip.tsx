@@ -6,8 +6,8 @@ import { CheckIcon, ChevronDownIcon, TriangleAlertIcon } from 'lucide-react'
 import { memo, useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Reveal } from '@/components/morph'
-import { StatusStrip } from '@/components/status-strip'
+import { StatusStrip } from '@/components/app/status-strip'
+import { Reveal } from '@/components/motion/morph'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import {

@@ -6,19 +6,19 @@ import { memo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { ArtifactCard } from './calling-tools/artifact/artifact-card'
-import { ComputerUseCard } from './calling-tools/computer-use/computer-use-card'
-import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
-import { DrawioCard, isDrawioOutput } from './calling-tools/drawio/drawio-card'
-import { GenericToolCard } from './calling-tools/generic-tool-card'
-import { MapItineraryCard } from './calling-tools/map-itinerary/itinerary-card'
-import { TerminalCard } from './calling-tools/terminal/terminal-card'
+import { ArtifactCard } from '../calling-tools/artifact/artifact-card'
+import { ComputerUseCard } from '../calling-tools/computer-use/computer-use-card'
+import { DeepResearchCard } from '../calling-tools/deep-research/deep-research-card'
+import { DrawioCard, isDrawioOutput } from '../calling-tools/drawio/drawio-card'
+import { GenericToolCard } from '../calling-tools/generic-tool-card'
+import { MapItineraryCard } from '../calling-tools/map-itinerary/itinerary-card'
+import { TerminalCard } from '../calling-tools/terminal/terminal-card'
 import {
   BUILTIN_TOOL_NAMES,
   SILENT_TOOL_NAMES
-} from './calling-tools/tool-cards'
-import { WeatherCard } from './calling-tools/weather/weather-card'
-import { WorkspaceFileCard } from './calling-tools/workspace-file/workspace-file-card'
+} from '../calling-tools/tool-cards'
+import { WeatherCard } from '../calling-tools/weather/weather-card'
+import { WorkspaceFileCard } from '../calling-tools/workspace-file/workspace-file-card'
 
 function CallingTools({
   chatId,

@@ -11,10 +11,10 @@ import { withReferences } from '@/lib/citation-references'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { sourcesPanelAtom } from '@/stores/chat'
 
+import { Button } from '../ui/button'
+import { TooltipProvider } from '../ui/tooltip'
 import AudioPlayer from './audio-player'
 import { IconWrapper, MessageActionItem } from './message-action-primitives'
-import { Button } from './ui/button'
-import { TooltipProvider } from './ui/tooltip'
 
 // Re-export so existing callers of massage-action keep working.
 export { IconWrapper, MessageActionItem }

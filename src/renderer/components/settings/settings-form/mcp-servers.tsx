@@ -19,10 +19,10 @@ import { lazy, Suspense, useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import Markdown from '@/components/markdown'
+import Markdown from '@/components/markdown/markdown'
 
 const CodeEditor = lazy(() =>
-  import('@/components/code-editor.js').then((m) => ({
+  import('@/components/markdown/code-editor.js').then((m) => ({
     default: m.StandaloneCodeEditor
   }))
 )

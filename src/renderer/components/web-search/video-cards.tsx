@@ -2,8 +2,8 @@ import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { PlayIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
-import { SourceFavicon } from '@/components/source-favicon'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
+import { SourceFavicon } from '@/components/markdown/source-favicon'
 
 import type { GalleryVideo } from './collect-gallery-videos'
 

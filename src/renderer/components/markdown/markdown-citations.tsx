@@ -8,10 +8,10 @@ import { chipLabel, sourcesOf } from '@/lib/citation-chips'
 import { CITATION_ELEMENT } from '@/lib/remark-citations'
 import { cn } from '@/lib/utils'
 
+import { Button } from '../ui/button'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card'
 import { LazyLoadImage } from './lazy-load-image'
 import { SourceFavicon } from './source-favicon'
-import { Button } from './ui/button'
-import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 /**
  * The 【N-source】 citation markers the model writes after a web search, as

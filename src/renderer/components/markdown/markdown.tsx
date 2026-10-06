@@ -30,7 +30,7 @@ import {
   fenceOf,
   InteractiveFence,
   MarkdownSourceContext
-} from './chat/interactive/interactive-fence'
+} from '../chat/interactive/interactive-fence'
 import {
   citationComponents,
   WebSearchRankMapContext

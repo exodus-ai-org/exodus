@@ -555,7 +555,7 @@ Re-measure against these numbers with Chat Audit and a page's size after any cha
 
 1. The route, its schema, and the shared wire type, together.
 2. **Both clients**: the desktop (`lib/stream-manager.ts`, `hooks/use-chat.ts`, `hooks/use-older-pages.ts`,
-   `components/messages.tsx`) and exodus-ios (`ChatStreamManager`, `ChatSseEvent`, `ChatDetailViewModel`,
+   `components/chat/messages.tsx`) and exodus-ios (`ChatStreamManager`, `ChatSseEvent`, `ChatDetailViewModel`,
    `RunGrouper`), with the same test vectors where both implement a rule (`mergeRun` / `RunMerge`).
 3. A new built-in tool: `TOOL_NAMES`, a `TOOL_POLICIES` row, the system prompt line, Built-in Tools, and iOS's
    `ToolNames` / `BuiltinTools` / `desktop-tools.json`.

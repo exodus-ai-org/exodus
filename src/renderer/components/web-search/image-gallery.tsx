@@ -3,8 +3,8 @@ import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import { AttachmentFrame } from '@/components/attachment-frame'
-import { LazyLoadImage } from '@/components/lazy-load-image'
+import { AttachmentFrame } from '@/components/chat/attachment-frame'
+import { LazyLoadImage } from '@/components/markdown/lazy-load-image'
 
 import type { GalleryImage } from './collect-gallery-images'
 import { galleryAttachment, ImageLightbox } from './image-lightbox'
