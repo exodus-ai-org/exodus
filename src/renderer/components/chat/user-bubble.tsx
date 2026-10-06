@@ -85,8 +85,9 @@ export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
             {quote}
           </blockquote>
         )}
+        {/* Inline code's chip is `muted`, which neutral's bubble already is. */}
         {body !== '' && (
-          <div className="[&_.markdown]:leading-relaxed [&_.markdown_p]:whitespace-pre-wrap">
+          <div className="[&_.markdown_:not(pre)>code]:bg-foreground/7 [&_.markdown]:leading-relaxed [&_.markdown_p]:whitespace-pre-wrap">
             <ErrorBoundary
               scope="markdown"
               fallback={<p className="whitespace-pre-wrap">{body}</p>}
