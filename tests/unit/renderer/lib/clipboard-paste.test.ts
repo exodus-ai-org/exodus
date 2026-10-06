@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   htmlVisibleText,
   pastedFiles,
-  pasteKeepsText
+  pasteKeepsText,
+  pasteUploadsImages
 } from '@/lib/clipboard-paste'
 
 // A paste that attaches images: does its text go into the composer too?
@@ -101,5 +102,30 @@ describe('pastedFiles', () => {
       images: [],
       fileNames: []
     })
+  })
+})
+
+describe('whether a paste attaches its images', () => {
+  const excel = {
+    fileNames: ['image.png'],
+    plain: 'Name\tQty\nApples\t3',
+    html: '<table><tr><td>Name</td><td>Qty</td></tr></table>'
+  }
+
+  it('does not for cells from Excel: the text is pasted, no picture', () => {
+    expect(pasteKeepsText(excel)).toBe(true)
+    expect(pasteUploadsImages(excel)).toBe(false)
+  })
+
+  it('does for a screenshot: an image and no text', () => {
+    const shot = { fileNames: ['image.png'], plain: '', html: '' }
+    expect(pasteUploadsImages(shot)).toBe(true)
+    expect(pasteKeepsText(shot)).toBe(false)
+  })
+
+  it('does for a Finder copy, whose text is dropped', () => {
+    const finder = { fileNames: ['photo.png'], plain: 'photo.png', html: '' }
+    expect(pasteUploadsImages(finder)).toBe(true)
+    expect(pasteKeepsText(finder)).toBe(false)
   })
 })

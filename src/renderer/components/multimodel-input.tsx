@@ -23,7 +23,11 @@ import { sileo } from 'sileo'
 
 import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
-import { pastedFiles, pasteKeepsText } from '@/lib/clipboard-paste'
+import {
+  pastedFiles,
+  pasteKeepsText,
+  pasteUploadsImages
+} from '@/lib/clipboard-paste'
 import { cn } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 import {
@@ -90,17 +94,16 @@ function InputBox({
     const { images, fileNames } = pastedFiles(clipboardData.items)
     if (images.length === 0) return
 
-    // Not the clipboard's text when it only names the files (Finder's copy).
-    if (
-      !pasteKeepsText({
-        fileNames,
-        plain: clipboardData.getData('text/plain'),
-        html: clipboardData.getData('text/html')
-      })
-    ) {
-      event.preventDefault()
+    const clipboard = {
+      fileNames,
+      plain: clipboardData.getData('text/plain'),
+      html: clipboardData.getData('text/html')
     }
-    uploadFile(images)
+    // Not the clipboard's text when it only names the files (Finder's copy).
+    if (!pasteKeepsText(clipboard)) event.preventDefault()
+    // Cells from Excel carry a picture of themselves beside their text: the
+    // text alone is what was copied.
+    if (pasteUploadsImages(clipboard)) uploadFile(images)
   }
 
   const submitForm = useCallback(() => {

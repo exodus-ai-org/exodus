@@ -80,3 +80,13 @@ export function pastedFiles(
   }
   return { images, fileNames }
 }
+
+/**
+ * Whether a paste attaches its images. Only when the clipboard has no content
+ * text: a screenshot, or a Finder copy whose text just names the files. Cells
+ * copied from Excel or Numbers carry a rendered picture of themselves beside
+ * their text; the text is what was copied, so the picture is not uploaded.
+ */
+export function pasteUploadsImages(clipboard: PasteClipboard): boolean {
+  return !pasteKeepsText(clipboard)
+}
