@@ -62,7 +62,10 @@ export interface RunInput {
   approvalTimeoutMs?: number
 }
 
-const LLM_ROLES = new Set(['user', 'assistant', 'toolResult'])
+// `system` too: since pi 1.0 the transcript's system messages carry the
+// prompt and the tool declarations, so dropping them would send the model
+// a bare conversation.
+const LLM_ROLES = new Set(['system', 'user', 'assistant', 'toolResult'])
 
 /**
  * One run: the prompt through the final answer, with every model step and
@@ -265,7 +268,7 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
         // streams these today. Not persisted — the row is written at the end.
         const partial = event.partialResult as {
           content?: ChatToolResultMessage['content']
-          details?: unknown
+          details?: ChatToolResultMessage['details']
         } | null
         push({
           type: 'tool_update',

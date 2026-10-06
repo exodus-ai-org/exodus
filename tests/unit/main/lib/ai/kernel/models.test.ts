@@ -17,7 +17,7 @@ describe('kernel models collection', () => {
       'openai',
       'google',
       'xai',
-      'azure-openai-responses',
+      'azure',
       OLLAMA_PROVIDER_ID
     ]) {
       expect(ids).toContain(id)

@@ -412,7 +412,7 @@ function buildAssistantTurn(
       ) {
         // A fetched page is a citeable source too — register it so the
         // model's 【N-source】 markers resolve, and still show the card.
-        webSearchResults.push(toolResult.details as WebSearchResult)
+        webSearchResults.push(toolResult.details as unknown as WebSearchResult)
         toolCards.push(toolResult)
       } else if (!toolResult.isError) {
         // Non-webSearch successful tool results → render as cards

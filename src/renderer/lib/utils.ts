@@ -7,7 +7,10 @@ import type {
   Usage,
   UserMessage
 } from '@earendil-works/pi-ai'
-import type { ChatMessage } from '@exodus/shared/types/chat'
+import type {
+  ChatMessage,
+  ChatToolResultMessage
+} from '@exodus/shared/types/chat'
 import type { ChatPageRow } from '@exodus/shared/types/chat-page'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -67,7 +70,8 @@ export function convertToUIMessages(
       toolCallId: dbMsg.toolCallId ?? '',
       toolName: dbMsg.toolName ?? '',
       content: dbMsg.content as ToolResultMessage['content'],
-      details: dbMsg.details,
+      // A stored row's details are whatever the tool wrote: JSON by construction.
+      details: dbMsg.details as ChatToolResultMessage['details'],
       isError: dbMsg.isError ?? false,
       timestamp
     }

@@ -126,13 +126,29 @@ export async function runEmployeeLoop(
 
   const stream = agentLoop(
     [userMessage as AgentMessage],
-    { systemPrompt, messages: [], tools },
+    // pi 1.0: the system prompt and the tool declarations lead the transcript
+    // as a system message; `tools` stays the executable set.
+    {
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
+          toolsAdded: tools,
+          timestamp: Date.now()
+        }
+      ],
+      tools
+    },
     {
       model,
       apiKey,
       convertToLlm: (msgs: AgentMessage[]): Message[] =>
+        // `system` too: since pi 1.0 the leading system message carries the
+        // prompt and the tool declarations — dropping it would send the
+        // model a bare conversation with no tools.
         msgs.filter(
           (m): m is Message =>
+            (m as Message).role === 'system' ||
             (m as Message).role === 'user' ||
             (m as Message).role === 'assistant' ||
             (m as Message).role === 'toolResult'

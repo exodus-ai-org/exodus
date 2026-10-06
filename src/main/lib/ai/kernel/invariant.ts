@@ -44,6 +44,14 @@ export function dropBrokenRuns(messages: Message[]): {
   }
 
   for (const m of messages) {
+    // A system message (the prompt, a tool-set change — pi 1.0 carries both
+    // in the transcript) belongs to no run: it is kept where it stands and
+    // neither starts nor breaks one.
+    if (m.role === 'system') {
+      flush()
+      kept.push(m)
+      continue
+    }
     if (m.role === 'user') {
       flush()
       run.push(m)

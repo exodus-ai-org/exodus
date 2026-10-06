@@ -11,7 +11,7 @@ interface FallbackDefaults {
 const PROVIDER_DEFAULTS: Partial<Record<string, FallbackDefaults>> = {
   openai: { contextWindow: 1_050_000, maxTokens: 128_000 },
   anthropic: { contextWindow: 1_000_000, maxTokens: 128_000 },
-  'azure-openai-responses': { contextWindow: 1_050_000, maxTokens: 128_000 },
+  azure: { contextWindow: 1_050_000, maxTokens: 128_000 },
   google: { contextWindow: 1_000_000, maxTokens: 65_536 },
   xai: { contextWindow: 500_000, maxTokens: 128_000 },
   ollama: { contextWindow: 128_000, maxTokens: 8192 }

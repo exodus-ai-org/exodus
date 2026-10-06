@@ -307,7 +307,12 @@ describe('runAgent', () => {
     const faux = registerFauxProvider()
     faux.setResponses([
       (ctx) =>
-        fauxAssistantMessage([fauxText(`saw ${ctx.messages.length} messages`)])
+        fauxAssistantMessage([
+          // The conversation rows only — pi 1.0 adds the system message.
+          fauxText(
+            `saw ${ctx.messages.filter((m) => m.role !== 'system').length} messages`
+          )
+        ])
     ])
     const events = await collect(
       runAgent(

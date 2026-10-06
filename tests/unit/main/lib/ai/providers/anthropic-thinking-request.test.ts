@@ -76,7 +76,19 @@ describe('Anthropic thinking request', () => {
   it('sends adaptive thinking for an unregistered adaptive-only id', async () => {
     const payload = await payloadFor('claude-opus-5-5', 'max')
     expect(payload.thinking).toMatchObject({ type: 'adaptive' })
-    expect(payload.output_config).toEqual({ effort: 'max' })
+    // pi-ai 1.0 drives a managed-effort model's effort mid-conversation: the
+    // request's own `output_config` stays "high" and the asked-for level rides
+    // on a trailing effort-only system message (beta
+    // mid-conversation-output-config-2026-07-01).
+    const efforts = (
+      payload.messages as Array<{
+        role: string
+        output_config?: { effort: string }
+      }>
+    )
+      .filter((m) => m.role === 'system' && m.output_config)
+      .map((m) => m.output_config?.effort)
+    expect(efforts.at(-1)).toBe('max')
   })
 
   it('keeps budget thinking for Haiku 4.5', async () => {

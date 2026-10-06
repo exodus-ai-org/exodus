@@ -364,18 +364,36 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     const stream = agentLoop(
       [userMessage as AgentMessage],
       {
-        systemPrompt:
-          PM_SYSTEM_PROMPT +
-          `\n\nEmployees:\n${rosterText(employees, teamNameById)}`,
-        messages: history as AgentMessage[],
+        // pi 1.0: the system prompt and the tool declarations lead the
+        // transcript as a system message, ahead of the history.
+        messages: [
+          {
+            role: 'system',
+            content:
+              PM_SYSTEM_PROMPT +
+              `\n\nEmployees:\n${rosterText(employees, teamNameById)}`,
+            toolsAdded: tools,
+            timestamp: Date.now()
+          },
+          // The conversation's stored `system` rows are UI notes ("[Scheduled]
+          // …", "⚠️ PM error …"), not prompts — kept out of what the
+          // model reads, as they always were.
+          ...(history as AgentMessage[]).filter(
+            (m) => (m as Message).role !== 'system'
+          )
+        ],
         tools
       },
       {
         model,
         apiKey,
         convertToLlm: (msgs: AgentMessage[]): Message[] =>
+          // `system` too: since pi 1.0 the leading system message carries the
+          // prompt and the tool declarations — dropping it would send the
+          // model a bare conversation with no tools.
           msgs.filter(
             (m): m is Message =>
+              (m as Message).role === 'system' ||
               (m as Message).role === 'user' ||
               (m as Message).role === 'assistant' ||
               (m as Message).role === 'toolResult'

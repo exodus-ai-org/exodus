@@ -197,9 +197,14 @@ export function bootFauxProviderIfRequested(): FauxProviderHandle | null {
   })
   // One factory answers every request and re-arms itself; which branch
   // applies is read from the request's own content, never from a step count.
+  // pi 1.0 carries the tools in the transcript's system messages, so a chat
+  // call is one whose transcript declares some.
   const factory: FauxResponseFactory = (ctx) => {
     handle.appendResponses([factory])
-    return ctx.tools?.length ? respondToChatCall(ctx) : respondToEngineCall(ctx)
+    const hasTools = ctx.messages.some(
+      (m) => m.role === 'system' && (m.toolsAdded?.length ?? 0) > 0
+    )
+    return hasTools ? respondToChatCall(ctx) : respondToEngineCall(ctx)
   }
   handle.setResponses([factory])
   setFauxHandle(handle)
