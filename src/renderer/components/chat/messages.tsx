@@ -242,11 +242,6 @@ function withInline(label: string, value: string): { text: string } {
 
 type CardBlock = Exclude<TurnBlock, { kind: 'text' }>
 
-const FILE_CARD_TOOLS = new Set<string>([
-  TOOL_NAMES.writeFile,
-  TOOL_NAMES.editFile
-])
-
 /**
  * A turn's blocks as they are built: text goes to the text before it when
  * nothing with a card stands between them, and a card's place is where its
@@ -256,10 +251,6 @@ const FILE_CARD_TOOLS = new Set<string>([
 function createBlocks() {
   const blocks: TurnBlock[] = []
   const cards = new Map<string, CardBlock>()
-  // One file card per file a turn wrote or edited — the first call's place —
-  // however many times it went back to it (key: the path; value: the card).
-  const fileCards = new Map<string, string>()
-  const repeatedFileCalls = new Set<string>()
   let texts = 0
 
   const card = (block: CardBlock) => {
@@ -279,28 +270,17 @@ function createBlocks() {
         const prompt = typeof args?.prompt === 'string' ? args.prompt : ''
         card({ kind: 'image', key: id, prompt })
       } else if (hasToolCard(name) && !foldsIntoTimeline(name)) {
-        // A folded tool's card hangs under its timeline row, not here.
-        const path = FILE_CARD_TOOLS.has(name) ? args?.path : undefined
-        if (typeof path === 'string') {
-          if (fileCards.has(path)) {
-            repeatedFileCalls.add(id)
-            return
-          }
-          fileCards.set(path, id)
-        }
+        // A folded tool's card (a command run, a file written) hangs under
+        // its timeline row, not here.
         card({ kind: 'tool', key: id, toolName: name })
       }
     },
     result(result: ChatToolResultMessage) {
       const { toolCallId: id, toolName } = result
-      if (repeatedFileCalls.has(id)) return
       const held = cards.get(id)
       if (held?.kind === 'tool' && result.isError) {
         // A failed tool is a line of the timeline, not a card.
         blocks.splice(blocks.indexOf(held), 1)
-        for (const [path, key] of fileCards) {
-          if (key === id) fileCards.delete(path)
-        }
       } else if (held) {
         held.result = result
       } else if (toolName === TOOL_NAMES.imageGeneration) {

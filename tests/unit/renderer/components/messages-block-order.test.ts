@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const markdownRenders = new Map<string, number>()
-vi.mock('@/components/markdown', async () => {
+vi.mock('@/components/markdown/markdown', async () => {
   const { memo } = await import('react')
   return {
     // Memoized on its props, as the real one is.
@@ -19,7 +19,7 @@ vi.mock('@/components/markdown', async () => {
     })
   }
 })
-vi.mock('@/components/messages-calling-tools', () => ({
+vi.mock('@/components/chat/messages-calling-tools', () => ({
   MessageCallingTools: ({
     toolResult
   }: {
@@ -33,7 +33,7 @@ vi.mock(
       createElement('div', { 'data-piece': `image:${prompt}` })
   })
 )
-vi.mock('@/components/massage-action', () => ({
+vi.mock('@/components/chat/message-action', () => ({
   MessageAction: () => createElement('div', { 'data-piece': 'actions' })
 }))
 
@@ -48,13 +48,13 @@ vi.mock('@/hooks/use-discover-feed', () => ({
   useDiscoverFeed: () => ({ feed: undefined })
 }))
 vi.mock('@/components/ui/button', () => ({ Button: () => null }))
-vi.mock('@/components/chat-toc', () => ({ ChatToc: () => null }))
+vi.mock('@/components/chat/chat-toc', () => ({ ChatToc: () => null }))
 vi.mock('@/components/home/discover-feed', () => ({ DiscoverFeed: () => null }))
-vi.mock('@/components/message-spinner', () => ({
+vi.mock('@/components/chat/message-spinner', () => ({
   MessageSpinner: () => null,
   shouldShowMessageSpinner: () => false
 }))
-vi.mock('@/components/thinking-timeline', () => ({
+vi.mock('@/components/chat/thinking-timeline', () => ({
   ThinkingTimeline: () => null
 }))
 vi.mock('@/components/web-search/image-gallery', () => ({
@@ -77,7 +77,7 @@ vi.mock('@/hooks/use-approvals', () => ({
   useDecideApproval: () => ({ mutate: vi.fn(), isPending: false })
 }))
 
-const { default: Messages } = await import('@/components/messages')
+const { default: Messages } = await import('@/components/chat/messages')
 
 ;(
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -199,7 +199,7 @@ describe('<Messages>: a turn in the order the run produced it', () => {
   })
 })
 
-describe('<Messages>: one file card per file a turn wrote', () => {
+describe('<Messages>: files a turn wrote fold into the timeline', () => {
   const failed = (toolCallId: string, toolName: string) =>
     ({
       ...(result(toolCallId, toolName) as object),
@@ -208,7 +208,7 @@ describe('<Messages>: one file card per file a turn wrote', () => {
     }) as unknown as ChatMessage
   const file = { path: '/w/chat-1/rules.md' }
 
-  it('keeps the first card of a file and draws none for the edits after it', async () => {
+  it('draws no card in the answer for a file written or edited — each hangs under its timeline row — so the text around them is one', async () => {
     await show('ready', [
       user,
       step('a1', [text('Writing the rules.'), call('w1', 'write_file', file)]),
@@ -220,16 +220,10 @@ describe('<Messages>: one file card per file a turn wrote', () => {
       step('a4', [text('Saved.')])
     ])
 
-    expect(pieces()).toEqual([
-      'text:Writing the rules.',
-      'card:w1',
-      'card:e2',
-      'text:Saved.',
-      'actions'
-    ])
+    expect(pieces()).toEqual(['text:Writing the rules.\n\nSaved.', 'actions'])
   })
 
-  it('gives the file a card at its next call when the first one failed', async () => {
+  it('a failed write and the one after it are rows of the timeline, never a card', async () => {
     await show('ready', [
       user,
       step('a1', [call('w1', 'write_file', file)]),
@@ -239,6 +233,6 @@ describe('<Messages>: one file card per file a turn wrote', () => {
       step('a3', [text('Done.')])
     ])
 
-    expect(pieces()).toEqual(['card:w2', 'text:Done.', 'actions'])
+    expect(pieces()).toEqual(['text:Done.', 'actions'])
   })
 })
