@@ -38,7 +38,7 @@ export function WorkspaceSwitcher() {
         data-testid={TEST_IDS.chatLayout.workspaceSwitcher}
         className={cn(
           'no-drag -ml-1 flex w-fit items-center gap-1 rounded-lg px-2 py-1',
-          'text-lg transition-colors',
+          'text-base transition-colors',
           'hover:bg-sidebar-accent focus-visible:outline-hidden data-popup-open:bg-sidebar-accent'
         )}
       >

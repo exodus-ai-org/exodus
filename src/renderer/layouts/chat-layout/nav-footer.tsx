@@ -53,7 +53,7 @@ export function NavFooter({
                   {initial}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 text-left text-[13px] leading-tight">
                 <span className="truncate font-medium">{nickname}</span>
                 <span className="truncate text-xs">
                   {t('state.runOnLocal')}
@@ -70,7 +70,7 @@ export function NavFooter({
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-[13px]">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={settings?.userAvatar ?? undefined}
@@ -80,7 +80,7 @@ export function NavFooter({
                       {initial}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
+                  <div className="grid flex-1 text-left text-[13px] leading-tight">
                     <span className="truncate font-medium">{nickname}</span>
                     <span className="truncate text-xs">
                       {t('state.runOnLocal')}

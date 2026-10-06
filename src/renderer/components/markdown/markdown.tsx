@@ -47,6 +47,10 @@ const themes = {
   dark: { codeTheme: vscDarkPlus }
 }
 
+// 13px in the app's mono stack (`font-mono`: SF Mono on a Mac). The Prism
+// themes would set Monaco / Menlo, whose large x-height read a size bigger
+// than they are (owner, 2026-10-06); the code tag inherits both so the two
+// never disagree.
 const codeBlockStyle = {
   padding: '0.75rem',
   fontSize: '0.8125rem',
@@ -56,6 +60,9 @@ const codeBlockStyle = {
   // element from establishing its own competing scroll or clipping.
   maxHeight: 'none',
   overflow: 'visible'
+}
+const codeTagProps = {
+  style: { fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit' }
 }
 
 /**
@@ -229,10 +236,12 @@ export function Markdown({
             <SyntaxHighlighter
               {...rest}
               PreTag="div"
+              className="font-mono"
               language={match[1]}
               style={codeTheme}
               customStyle={codeBlockStyle}
-              showLineNumbers
+              codeTagProps={codeTagProps}
+              showLineNumbers={false}
             >
               {String(children).replace(/\n$/, '')}
             </SyntaxHighlighter>
