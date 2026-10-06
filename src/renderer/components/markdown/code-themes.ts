@@ -1,10 +1,14 @@
 import type { CSSProperties } from 'react'
 
 /**
- * Code colours after Xcode's Default themes — pink keywords, as the owner
- * asked for (2026-10-06) — as highlight.js style objects for the Markdown
- * code block. Neither sets a background or a base colour: the block's panel
- * (`.markdown pre`) owns the one background, and plain text is the chat's.
+ * Xcode's Default (Light) and Default (Dark) themes, copied from Xcode.app's
+ * own `FontAndColorThemes/*.xccolortheme` (2026-10-06), as highlight.js style
+ * objects for the Markdown code block. highlight.js cannot tell a project
+ * symbol from a system one, so: a declared class or function takes Xcode's
+ * declaration colours, a built-in type the system colour, a plain title or
+ * variable the project colour. Neither theme sets a background or a base
+ * colour — the block's panel (`.markdown pre`) owns the one background, and
+ * plain text is the chat's.
  */
 type CodeTheme = Record<string, CSSProperties>
 
@@ -17,77 +21,105 @@ const base: CodeTheme = {
   },
   'hljs-emphasis': { fontStyle: 'italic' },
   'hljs-strong': { fontWeight: 600 },
-  'hljs-section': { fontWeight: 600 }
+  'hljs-section': { fontWeight: 600 },
+  'hljs-formula': { fontStyle: 'italic' },
+  'hljs-subst': { color: 'inherit' }
+}
+
+function theme(c: {
+  keyword: string
+  string: string
+  number: string
+  comment: string
+  docKeyword: string
+  declarationType: string
+  declarationOther: string
+  typeSystem: string
+  classProject: string
+  functionProject: string
+  variableProject: string
+  preprocessor: string
+  attribute: string
+  url: string
+  markupCode: string
+  addition: string
+  deletion: string
+}): CodeTheme {
+  return {
+    ...base,
+    'hljs-keyword': { color: c.keyword },
+    'hljs-literal': { color: c.keyword },
+    'hljs-tag': { color: c.keyword },
+    'hljs-name': { color: c.keyword },
+    'hljs-selector-tag': { color: c.keyword },
+    'hljs-bullet': { color: c.keyword },
+    'hljs-string': { color: c.string },
+    'hljs-regexp': { color: c.string },
+    'hljs-char': { color: c.string },
+    'hljs-code': { color: c.markupCode },
+    'hljs-number': { color: c.number },
+    'hljs-symbol': { color: c.number },
+    'hljs-comment': { color: c.comment },
+    'hljs-quote': { color: c.comment },
+    'hljs-doctag': { color: c.docKeyword, fontWeight: 600 },
+    class_: { color: c.declarationType },
+    function_: { color: c.declarationOther },
+    'hljs-type': { color: c.typeSystem },
+    'hljs-built_in': { color: c.typeSystem },
+    'hljs-title': { color: c.functionProject },
+    'hljs-selector-class': { color: c.classProject },
+    'hljs-selector-id': { color: c.classProject },
+    'hljs-variable': { color: c.variableProject },
+    'hljs-template-variable': { color: c.variableProject },
+    'hljs-property': { color: c.variableProject },
+    'hljs-params': { color: c.variableProject },
+    'hljs-meta': { color: c.preprocessor },
+    'hljs-attr': { color: c.attribute },
+    'hljs-attribute': { color: c.attribute },
+    'hljs-link': { color: c.url, textDecoration: 'underline' },
+    'hljs-addition': { background: c.addition },
+    'hljs-deletion': { background: c.deletion }
+  }
 }
 
 /** Xcode › Default (Light). */
-export const xcodeLight: CodeTheme = {
-  ...base,
-  'hljs-comment': { color: '#5D6C79' },
-  'hljs-quote': { color: '#5D6C79' },
-  'hljs-doctag': { color: '#5D6C79', fontWeight: 600 },
-  'hljs-keyword': { color: '#9B2393' },
-  'hljs-literal': { color: '#9B2393' },
-  'hljs-tag': { color: '#9B2393' },
-  'hljs-name': { color: '#9B2393' },
-  'hljs-selector-tag': { color: '#9B2393' },
-  'hljs-string': { color: '#C41A16' },
-  'hljs-regexp': { color: '#C41A16' },
-  'hljs-char': { color: '#C41A16' },
-  'hljs-number': { color: '#1C00CF' },
-  'hljs-symbol': { color: '#1C00CF' },
-  'hljs-type': { color: '#0B4F79' },
-  class_: { color: '#0B4F79' },
-  'hljs-built_in': { color: '#3900A0' },
-  'hljs-title': { color: '#326D74' },
-  function_: { color: '#326D74' },
-  'hljs-selector-class': { color: '#326D74' },
-  'hljs-selector-id': { color: '#326D74' },
-  'hljs-meta': { color: '#643820' },
-  'hljs-attr': { color: '#815F03' },
-  'hljs-attribute': { color: '#815F03' },
-  'hljs-variable': { color: '#0F68A0' },
-  'hljs-template-variable': { color: '#0F68A0' },
-  'hljs-property': { color: '#0F68A0' },
-  'hljs-params': { color: '#0F68A0' },
-  'hljs-link': { color: '#0E0EFF', textDecoration: 'underline' },
-  'hljs-bullet': { color: '#9B2393' },
-  'hljs-addition': { color: '#326D74', background: 'rgb(50 109 116 / 0.12)' },
-  'hljs-deletion': { color: '#C41A16', background: 'rgb(196 26 22 / 0.12)' }
-}
+export const xcodeLight = theme({
+  keyword: '#9B2393',
+  string: '#C41A16',
+  number: '#1C00CF',
+  comment: '#5D6C79',
+  docKeyword: '#4A5560',
+  declarationType: '#0B4F79',
+  declarationOther: '#0F68A0',
+  typeSystem: '#3900A0',
+  classProject: '#1C464A',
+  functionProject: '#326D74',
+  variableProject: '#326D74',
+  preprocessor: '#643820',
+  attribute: '#815F03',
+  url: '#0E0EFF',
+  markupCode: '#AA0D91',
+  addition: 'rgb(50 109 116 / 0.14)',
+  deletion: 'rgb(196 26 22 / 0.12)'
+})
 
 /** Xcode › Default (Dark). */
-export const xcodeDark: CodeTheme = {
-  ...base,
-  'hljs-comment': { color: '#6C7986' },
-  'hljs-quote': { color: '#6C7986' },
-  'hljs-doctag': { color: '#6C7986', fontWeight: 600 },
-  'hljs-keyword': { color: '#FC5FA3' },
-  'hljs-literal': { color: '#FC5FA3' },
-  'hljs-tag': { color: '#FC5FA3' },
-  'hljs-name': { color: '#FC5FA3' },
-  'hljs-selector-tag': { color: '#FC5FA3' },
-  'hljs-string': { color: '#FC6A5D' },
-  'hljs-regexp': { color: '#FC6A5D' },
-  'hljs-char': { color: '#FC6A5D' },
-  'hljs-number': { color: '#D0BF69' },
-  'hljs-symbol': { color: '#D0BF69' },
-  'hljs-type': { color: '#5DD8FF' },
-  class_: { color: '#5DD8FF' },
-  'hljs-built_in': { color: '#A167E6' },
-  'hljs-title': { color: '#67B7A4' },
-  function_: { color: '#67B7A4' },
-  'hljs-selector-class': { color: '#67B7A4' },
-  'hljs-selector-id': { color: '#67B7A4' },
-  'hljs-meta': { color: '#FD8F3F' },
-  'hljs-attr': { color: '#BF8555' },
-  'hljs-attribute': { color: '#BF8555' },
-  'hljs-variable': { color: '#41A1C0' },
-  'hljs-template-variable': { color: '#41A1C0' },
-  'hljs-property': { color: '#41A1C0' },
-  'hljs-params': { color: '#41A1C0' },
-  'hljs-link': { color: '#5482FF', textDecoration: 'underline' },
-  'hljs-bullet': { color: '#FC5FA3' },
-  'hljs-addition': { color: '#67B7A4', background: 'rgb(103 183 164 / 0.15)' },
-  'hljs-deletion': { color: '#FC6A5D', background: 'rgb(252 106 93 / 0.15)' }
-}
+export const xcodeDark = theme({
+  keyword: '#FC5FA3',
+  string: '#FC6A5D',
+  number: '#D0BF69',
+  comment: '#6C7986',
+  docKeyword: '#92A1B1',
+  declarationType: '#5DD8FF',
+  declarationOther: '#41A1C0',
+  typeSystem: '#D0A8FF',
+  classProject: '#9EF1DD',
+  functionProject: '#67B7A4',
+  variableProject: '#67B7A4',
+  preprocessor: '#FD8F3F',
+  attribute: '#BF8555',
+  url: '#5482FF',
+  markupCode: '#AA0D91',
+  addition: 'rgb(103 183 164 / 0.18)',
+  deletion: 'rgb(252 106 93 / 0.18)'
+})

@@ -1,5 +1,5 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import { CheckIcon, CopyIcon } from 'lucide-react'
+import { CheckIcon, CodeXmlIcon, CopyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +28,7 @@ import {
   MarkdownSourceContext
 } from '../chat/interactive/interactive-fence'
 import { xcodeDark, xcodeLight } from './code-themes'
+import { languageName } from './language-names'
 import {
   citationComponents,
   WebSearchRankMapContext
@@ -49,7 +50,7 @@ const themes = {
 // — the block's panel (`.markdown pre`) is the one background the header
 // strip and the code share (owner, 2026-10-06).
 const codeBlockStyle = {
-  padding: '0.75rem',
+  padding: '0.25rem 1rem 1rem',
   fontSize: '0.75rem',
   lineHeight: '1.6',
   margin: 0,
@@ -202,29 +203,31 @@ export function Markdown({
         const match = /language-([\w-]+)/u.exec(className || 'javascript')
         return match ? (
           <>
-            <section
-              className={cn(
-                'text-ring flex items-center justify-between p-2 text-xs'
-              )}
-            >
-              <span>{match[1]}</span>
+            {/* The strip stays put while the code under it scrolls — the
+                panel (`.markdown pre`) is the scroll container — on the
+                panel's own fill, as ChatGPT's. */}
+            <section className="bg-muted text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-sm">
+              <span className="flex items-center gap-2 font-medium">
+                <CodeXmlIcon size={14} />
+                {languageName(match[1])}
+              </span>
               <div className="flex cursor-default items-center gap-6">
                 {copied === children ? (
-                  <span className="hover:text-primary-ink flex items-center gap-1.5">
-                    <CheckIcon size={10} strokeWidth={2.5} />
+                  <span className="hover:text-foreground flex items-center gap-1.5">
+                    <CheckIcon size={14} strokeWidth={2.5} />
                     {t('state.copied')}
                   </span>
                 ) : (
                   <button
                     type="button"
-                    className="hover:text-primary-ink flex items-center gap-1.5"
+                    className="hover:text-foreground flex items-center gap-1.5 transition-colors"
                     onClick={() => {
                       if (typeof children === 'string') {
                         handleCopy(children)
                       }
                     }}
                   >
-                    <CopyIcon size={10} />
+                    <CopyIcon size={14} />
                     {t('action.copy')}
                   </button>
                 )}
