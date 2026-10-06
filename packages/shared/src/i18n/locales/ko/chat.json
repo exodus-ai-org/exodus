@@ -37,7 +37,8 @@
     "greetingSubtitle": "무엇을 도와드릴까요?",
     "attachmentAlt": "첨부 파일",
     "scrollToBottom": "맨 아래로 스크롤",
-    "moreImages": "{{count}}개 더 보기"
+    "moreImages": "{{count}}개 더 보기",
+    "showMore": "더 보기"
   },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}}일",

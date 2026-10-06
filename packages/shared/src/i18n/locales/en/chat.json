@@ -37,7 +37,8 @@
     "greetingSubtitle": "How can I assist you today?",
     "attachmentAlt": "attachment",
     "scrollToBottom": "Scroll to bottom",
-    "moreImages": "Show {{count}} more"
+    "moreImages": "Show {{count}} more",
+    "showMore": "Show more"
   },
   "toolPreview": {
     "mapItineraryDayCount_one": "{{count}} day",

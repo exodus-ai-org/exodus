@@ -37,7 +37,8 @@
     "greetingSubtitle": "有什麼我可以幫忙的嗎？",
     "attachmentAlt": "附件",
     "scrollToBottom": "捲動至底部",
-    "moreImages": "顯示其餘 {{count}} 張"
+    "moreImages": "顯示其餘 {{count}} 張",
+    "showMore": "顯示更多"
   },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}} 天",

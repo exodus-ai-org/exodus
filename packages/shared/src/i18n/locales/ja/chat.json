@@ -37,7 +37,8 @@
     "greetingSubtitle": "今日はどのようなご用件ですか?",
     "attachmentAlt": "添付ファイル",
     "scrollToBottom": "最下部へスクロール",
-    "moreImages": "さらに{{count}}件を表示"
+    "moreImages": "さらに{{count}}件を表示",
+    "showMore": "もっと見る"
   },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}}日間",

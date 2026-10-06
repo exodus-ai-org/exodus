@@ -37,7 +37,8 @@
     "greetingSubtitle": "Como posso ajudar você hoje?",
     "attachmentAlt": "anexo",
     "scrollToBottom": "Rolar até o final",
-    "moreImages": "Mostrar mais {{count}}"
+    "moreImages": "Mostrar mais {{count}}",
+    "showMore": "Mostrar mais"
   },
   "toolPreview": {
     "mapItineraryDayCount_one": "{{count}} dia",

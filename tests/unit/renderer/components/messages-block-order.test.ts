@@ -149,10 +149,11 @@ async function show(status: string, messages: ChatMessage[]) {
 }
 const regenerate = vi.fn()
 
+// The turn's pieces: the question's bubble (Markdown too) is not one.
 const pieces = () =>
-  [...host.querySelectorAll('[data-piece]')].map((el) =>
-    el.getAttribute('data-piece')
-  )
+  [...host.querySelectorAll('[data-piece]')]
+    .filter((el) => !el.closest('.bg-bubble'))
+    .map((el) => el.getAttribute('data-piece'))
 
 beforeEach(() => {
   markdownRenders.clear()

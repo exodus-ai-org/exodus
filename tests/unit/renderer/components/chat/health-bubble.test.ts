@@ -116,10 +116,11 @@ describe('the bubble of a question asked from Health', () => {
     ).toBe('not json')
   })
 
-  it('is as it always was without one', async () => {
+  it('is the Markdown it was sent as without one', async () => {
     await show('```exodus-health is a fence\n\nok')
 
+    // No card: the line opens an ordinary (unclosed) code fence.
     expect(find(TEST_IDS.chat.health.trigger)).toBeNull()
-    expect(host.textContent).toBe('```exodus-health is a fence\n\nok')
+    expect(host.querySelector('pre')?.textContent).toContain('ok')
   })
 })
