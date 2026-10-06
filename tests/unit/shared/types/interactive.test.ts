@@ -78,6 +78,7 @@ const ASK_CASES: Array<[string, string, boolean]> = [
     false
   ],
   ['an empty title', ask({ title: '' }), false],
+  ['a title on two lines', ask({ title: 'A few\ndetails' }), false],
   [
     'a 201-character question',
     ask({ questions: [q('a', { text: 'q'.repeat(201) })] }),
@@ -118,6 +119,7 @@ const ASK_CASES: Array<[string, string, boolean]> = [
 const CONFIRM_CASES: Array<[string, string, boolean]> = [
   ["the spec's example", CONFIRM_SOURCE, true],
   ['a title alone', confirm(), true],
+  ['a title with a carriage return', confirm({ title: 'Send\rit?' }), false],
   ['no title', JSON.stringify({ details: 'd' }), false],
   ['a 201-character title', confirm({ title: 't'.repeat(201) }), false],
   ['1000 characters of details', confirm({ details: 'd'.repeat(1000) }), true],
@@ -200,6 +202,21 @@ const FIND_CASES: Array<[string, string, 'ask' | 'confirm' | null]> = [
   [
     'after a line of inline code that looks like a fence',
     `Install it with\n\`\`\`npm i\`\`\`\n\n\`\`\`exodus-confirm\n${CONFIRM_SOURCE}\n\`\`\``,
+    'confirm'
+  ],
+  [
+    'a closing line with a no-break space after it: not a closer',
+    `\`\`\`exodus-confirm\n${CONFIRM_SOURCE}\n\`\`\` \u00A0`,
+    null
+  ],
+  [
+    'an ideographic space after the name: another name',
+    `\`\`\`exodus-ask\u3000\n${ASK_SOURCE}\n\`\`\``,
+    null
+  ],
+  [
+    'a tab after the name and after the closing fence',
+    `\`\`\`exodus-confirm\t\n${CONFIRM_SOURCE}\n\`\`\`\t`,
     'confirm'
   ],
   [

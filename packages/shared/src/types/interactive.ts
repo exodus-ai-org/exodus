@@ -34,8 +34,9 @@ const distinct = (values: readonly string[]) =>
   new Set(values).size === values.length
 
 /**
- * A question or an option: one line, since an answer writes each question on
- * a line of its own (`composeAskAnswer`) and `readPicks` reads them back.
+ * A title, a question or an option: one line, since an answer writes the
+ * title and each question on a line of its own (`composeAskAnswer`,
+ * `composeConfirmAnswer`) and `readPicks` reads them back.
  */
 const oneLine = (min: number, max: number) =>
   text(min, max).refine((s) => !/[\r\n]/u.test(s), {
@@ -52,7 +53,7 @@ export const askQuestionSchema = z.object({
 })
 
 export const askBlockSchema = z.object({
-  title: text(1, 200),
+  title: oneLine(1, 200),
   questions: z
     .array(askQuestionSchema)
     .min(1)
@@ -67,7 +68,7 @@ export const askBlockSchema = z.object({
 })
 
 export const confirmBlockSchema = z.object({
-  title: text(1, 200),
+  title: oneLine(1, 200),
   /** Markdown. */
   details: label(1000),
   approve: label(40),
@@ -131,6 +132,13 @@ function fenceRun(
 }
 
 /**
+ * Only spaces and tabs are blank around a fence (CommonMark): a no-break or
+ * an ideographic space is text.
+ */
+const blank = (s: string) => /^[ \t]*$/u.test(s)
+export const trimTrailingBlanks = (s: string) => s.replace(/[ \t]+$/u, '')
+
+/**
  * A reply's block: its first `exodus-ask` / `exodus-confirm` fence that opens a
  * line at the left margin — not inside another fence, a list or a quote — and
  * is closed. Only that first one counts: when it does not validate the reply
@@ -150,19 +158,19 @@ export function findInteractiveBlock(
         run &&
         run.char === open.char &&
         run.length >= open.length &&
-        run.rest.trim() === ''
+        blank(run.rest)
       ) {
         open = null
       }
       continue
     }
     const kind = line.startsWith('```')
-      ? interactiveKind(line.slice(3).trimEnd())
+      ? interactiveKind(trimTrailingBlanks(line.slice(3)))
       : null
     if (kind) {
       for (let j = i + 1; j < lines.length; j++) {
         const close = fenceRun(lines[j])
-        if (close && close.char === '`' && close.rest.trim() === '') {
+        if (close && close.char === '`' && blank(close.rest)) {
           return parseInteractiveBlock(kind, lines.slice(i + 1, j).join('\n'))
         }
       }

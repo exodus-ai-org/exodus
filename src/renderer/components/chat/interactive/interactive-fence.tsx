@@ -11,6 +11,7 @@
 import {
   findInteractiveBlock,
   interactiveKind,
+  trimTrailingBlanks,
   type InteractiveKind
 } from '@exodus/shared/types/interactive'
 import { createContext, type ReactNode, useContext, useMemo } from 'react'
@@ -87,9 +88,12 @@ function opensBlock(
     return false
   }
   const end = src.indexOf('\n', offset)
-  const line = src.slice(offset, end === -1 ? undefined : end)
+  // A CRLF reply's line ends in `\r`; the line itself is what the scanner reads.
+  const line = src
+    .slice(offset, end === -1 ? undefined : end)
+    .replace(/\r$/u, '')
   if (!line.startsWith('```')) return false
-  if (interactiveKind(line.slice(3).trimEnd()) !== kind) return false
+  if (interactiveKind(trimTrailingBlanks(line.slice(3))) !== kind) return false
   return (
     findInteractiveBlock(
       unixLines(turnAbove + before + src.slice(0, offset))
