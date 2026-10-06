@@ -5,24 +5,19 @@
 import type {
   ChatMessage,
   ChatStatus,
-  SendMessageOptions
+  SendMessageOptions,
+  TurnBlock
 } from '@exodus/shared/types/chat'
 import {
   findInteractiveBlock,
   type InteractiveFence
 } from '@exodus/shared/types/interactive'
 import {
+  ANSWER_INFO_STRING,
   splitAnswer,
   type AnswerHead
 } from '@exodus/shared/utils/interactive-answer'
-import {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef
-} from 'react'
+import { createContext, type ReactNode, useContext, useMemo } from 'react'
 
 /** A block's answer as the chat holds it: the fence's head and the lines after it. */
 export interface Answered {
@@ -53,6 +48,24 @@ export const InteractiveTurnContext = createContext<InteractiveTurn | null>(
   null
 )
 
+/**
+ * The turn's text above one of its text blocks (`turnTextsAbove`): a run's
+ * answer can be several Markdown documents — text, a tool's card, more text —
+ * and its block is the first of all of them, so a fence in a later one is
+ * code even when its text is the block's own.
+ */
+export const TurnTextAboveContext = createContext('')
+
+/** The turn's text above each of its blocks: its text blocks before it, joined as the turn's body is. */
+export function turnTextsAbove(blocks: readonly TurnBlock[]): string[] {
+  let above = ''
+  return blocks.map((block) => {
+    const before = above
+    if (block.kind === 'text') above += `${block.text}\n\n`
+    return before
+  })
+}
+
 /** A user message's words (its pictures aside). */
 function messageText(message: ChatMessage): string {
   if (message.role !== 'user') return ''
@@ -62,17 +75,28 @@ function messageText(message: ChatMessage): string {
     .join('\n')
 }
 
+/** The words of a chat's user messages that are answers, in order. */
+function answerTexts(messages: readonly ChatMessage[]): string[] {
+  return messages
+    .filter((message) => message.role === 'user')
+    .map((message) => messageText(message))
+    .filter((text) => text.startsWith(`\`\`\`${ANSWER_INFO_STRING}`))
+}
+
+function answersOf(texts: readonly string[]): Map<string, Answered> {
+  const answers = new Map<string, Answered>()
+  for (const text of texts) {
+    const { answer, body } = splitAnswer(text)
+    if (answer) answers.set(answer.ref, { head: answer, body })
+  }
+  return answers
+}
+
 /** The answers in a chat's messages, by the run each names. */
 export function answersIn(
   messages: readonly ChatMessage[]
 ): Map<string, Answered> {
-  const answers = new Map<string, Answered>()
-  for (const message of messages) {
-    if (message.role !== 'user') continue
-    const { answer, body } = splitAnswer(messageText(message))
-    if (answer) answers.set(answer.ref, { head: answer, body })
-  }
-  return answers
+  return answersOf(answerTexts(messages))
 }
 
 /** Around a chat's transcript: its answers, and an answer sent as a typed message is (the composer's draft untouched). */
@@ -87,23 +111,28 @@ export function InteractiveProvider({
   send: (opts: SendMessageOptions) => Promise<void>
   children?: ReactNode
 }) {
-  const answers = useMemo(() => answersIn(messages), [messages])
+  // `messages` is a new array on every frame of a streaming reply; the
+  // answers are read again only when the answers' words change, so the
+  // blocks sit out the stream.
+  const answersKey = useMemo(
+    () => JSON.stringify(answerTexts(messages)),
+    [messages]
+  )
+  const answers = useMemo(
+    () => answersOf(JSON.parse(answersKey) as string[]),
+    [answersKey]
+  )
   const canSubmit = status !== 'submitted' && status !== 'streaming'
-  // `useChat`'s send is a new function on every render; held here so the
-  // blocks are not drawn again on every frame of a streaming reply.
-  const sendRef = useRef(send)
-  useEffect(() => {
-    sendRef.current = send
-  }, [send])
+  // `useChat`'s send is stable per chat (a `useCallback` on stable deps).
   const value = useMemo<InteractiveChat>(
     () => ({
       answers,
       canSubmit,
       submit: (text) => {
-        void sendRef.current({ text })
+        void send({ text })
       }
     }),
-    [answers, canSubmit]
+    [answers, canSubmit, send]
   )
   return (
     <InteractiveChatContext.Provider value={value}>

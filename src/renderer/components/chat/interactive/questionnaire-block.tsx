@@ -3,15 +3,13 @@
 // the closing note above it. A blank is a Skip. Submit sends the answers as
 // the user's next message (`composeAskAnswer`); once the chat holds that
 // message the block is frozen, a summary of the picks it carried
-// (`readPicks`) — the primitive hides an item it would disable.
+// (`AnsweredQuestionnaire`) — the primitive hides an item it would disable.
 import type { AskBlock, AskQuestion } from '@exodus/shared/types/interactive'
 import {
   composeAskAnswer,
-  readPicks,
   type QuestionResponse
 } from '@exodus/shared/utils/interactive-answer'
-import { CheckIcon } from 'lucide-react'
-import { type FormEvent, type ReactNode, useState } from 'react'
+import { type FormEvent, type KeyboardEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -29,9 +27,9 @@ import {
   QuestionnaireTitle
 } from '@/components/ui/questionnaire'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
 
 import { answerLabels } from './answer-labels'
+import { AnsweredQuestionnaire } from './answered-questionnaire'
 import type { Answered } from './interactive-context'
 
 export interface BlockProps<B> {
@@ -52,10 +50,24 @@ const picksOther = (response: QuestionResponse | undefined) =>
   response !== undefined && response.other !== null
 
 export function QuestionnaireBlock(props: BlockProps<AskBlock>) {
+  // Sent from here: once the chat holds the answer the form is gone, and
+  // focus goes to the summary that replaces it rather than to the page.
+  const [sent, setSent] = useState(false)
+  const { submit } = props
   return props.answered ? (
-    <AnsweredQuestionnaire block={props.block} body={props.answered.body} />
+    <AnsweredQuestionnaire
+      block={props.block}
+      body={props.answered.body}
+      takeFocus={sent}
+    />
   ) : (
-    <OpenQuestionnaire {...props} />
+    <OpenQuestionnaire
+      {...props}
+      submit={(text) => {
+        setSent(true)
+        submit(text)
+      }}
+    />
   )
 }
 
@@ -121,6 +133,17 @@ function OpenQuestionnaire({
     submit(composeAskAnswer(block, runId, responses, note, answerLabels(t)))
   }
 
+  // On the last question Enter submits (Cmd/Ctrl+Enter anywhere, Enter on a
+  // choice): while nothing can be sent it does nothing, rather than a submit
+  // that silently goes nowhere. Enter in the note is a new line still.
+  const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (canSubmit || !onLast || event.key !== 'Enter') return
+    const modified = event.metaKey || event.ctrlKey
+    if (modified || !(event.target instanceof HTMLTextAreaElement)) {
+      event.preventDefault()
+    }
+  }
+
   return (
     <div data-interactive="ask" data-state="open" className={CARD}>
       <p className="text-sm font-semibold text-pretty">{block.title}</p>
@@ -139,6 +162,7 @@ function OpenQuestionnaire({
         item={current}
         onItemChange={setCurrent}
         onSubmit={onSubmit}
+        onKeyDown={onKeyDown}
         className="mt-3"
       >
         {block.questions.map((question) => {
@@ -212,7 +236,10 @@ function OpenQuestionnaire({
           <QuestionnairePrevious>
             {t('interactive.previous')}
           </QuestionnairePrevious>
-          <QuestionnaireSkip>{t('interactive.skip')}</QuestionnaireSkip>
+          {/* Skip on the last question submits: not while nothing can be sent. */}
+          <QuestionnaireSkip disabled={onLast && !canSubmit}>
+            {t('interactive.skip')}
+          </QuestionnaireSkip>
           <QuestionnaireNext>{t('interactive.next')}</QuestionnaireNext>
           <QuestionnaireSubmit disabled={!canSubmit}>
             {block.submit || t('interactive.submit')}
@@ -220,60 +247,5 @@ function OpenQuestionnaire({
         </QuestionnaireActions>
       </Questionnaire>
     </div>
-  )
-}
-
-function AnsweredQuestionnaire({
-  block,
-  body
-}: {
-  block: AskBlock
-  body: string
-}) {
-  const { t } = useTranslation('chat')
-  const picks = readPicks(block, body)
-  return (
-    <div data-interactive="ask" data-state="answered" className={CARD}>
-      <p className="text-sm font-semibold text-pretty">{block.title}</p>
-      <ol className="mt-3 flex flex-col gap-3">
-        {block.questions.map((question, i) => (
-          <li key={question.id}>
-            <p className="text-sm font-medium">{`${i + 1}. ${question.text}`}</p>
-            <ul className="mt-1.5 flex flex-wrap gap-1.5">
-              {question.options.map((option) => (
-                <Pick
-                  key={option}
-                  picked={picks[question.id]?.options.includes(option) ?? false}
-                >
-                  {option}
-                </Pick>
-              ))}
-              {question.other && picks[question.id]?.other && (
-                <Pick picked>{t('interactive.other')}</Pick>
-              )}
-            </ul>
-          </li>
-        ))}
-      </ol>
-      <p className="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
-        <CheckIcon aria-hidden className="size-3.5" />
-        {t('interactive.answered')}
-      </p>
-    </div>
-  )
-}
-
-function Pick({ picked, children }: { picked: boolean; children: ReactNode }) {
-  return (
-    <li
-      data-picked={picked ? '' : undefined}
-      className={cn(
-        'flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs',
-        picked ? 'border-primary/40 bg-primary/10' : 'text-muted-foreground'
-      )}
-    >
-      {picked && <CheckIcon aria-hidden className="size-3" />}
-      {children}
-    </li>
   )
 }

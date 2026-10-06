@@ -5,8 +5,9 @@
 // it with `findInteractiveBlock`) inside a chat: the same text, opened at the
 // left margin by exactly ```` ```exodus-ask ```` (a `~~~` fence, a longer info
 // string or an indented one carry the same label but are not blocks), with no
-// block before it in the same text. Outside a turn, invalid, second or still
-// being written, it stays code.
+// block before it in the turn — in its own text or in a text block above it
+// (`TurnTextAboveContext`). Outside a turn, invalid, second or still being
+// written, it stays code.
 import {
   findInteractiveBlock,
   interactiveKind,
@@ -19,6 +20,7 @@ import { ErrorBoundary } from '@/components/card-error-boundary'
 import { ConfirmationBlock } from './confirmation-block'
 import {
   InteractiveTurnContext,
+  TurnTextAboveContext,
   unixLines,
   useInteractiveChat
 } from './interactive-context'
@@ -76,6 +78,7 @@ export function fenceOf(
  */
 function opensBlock(
   text: MarkdownSource,
+  turnAbove: string,
   offset: number,
   kind: InteractiveKind
 ): boolean {
@@ -87,7 +90,11 @@ function opensBlock(
   const line = src.slice(offset, end === -1 ? undefined : end)
   if (!line.startsWith('```')) return false
   if (interactiveKind(line.slice(3).trimEnd()) !== kind) return false
-  return findInteractiveBlock(unixLines(before + src.slice(0, offset))) === null
+  return (
+    findInteractiveBlock(
+      unixLines(turnAbove + before + src.slice(0, offset))
+    ) === null
+  )
 }
 
 export function InteractiveFence({
@@ -106,6 +113,7 @@ export function InteractiveFence({
   const turn = useContext(InteractiveTurnContext)
   const chat = useInteractiveChat()
   const text = useContext(MarkdownSourceContext)
+  const turnAbove = useContext(TurnTextAboveContext)
   const fence = turn?.fence
   const isBlock = useMemo(
     () =>
@@ -115,8 +123,8 @@ export function InteractiveFence({
       plainCode(fence.source) === plainCode(source) &&
       text !== null &&
       offset !== null &&
-      opensBlock(text, offset, kind),
-    [fence, kind, source, text, offset]
+      opensBlock(text, turnAbove, offset, kind),
+    [fence, kind, source, text, turnAbove, offset]
   )
   if (!turn || !chat || !fence || !isBlock) return children
   const answerable = turn.answerable

@@ -20,6 +20,8 @@ import { ImageGallery } from '../web-search/image-gallery'
 import { VideoCards } from '../web-search/video-cards'
 import {
   InteractiveTurnContext,
+  TurnTextAboveContext,
+  turnTextsAbove,
   useInteractiveTurn
 } from './interactive/interactive-context'
 import { MemoryChangeStrip } from './memory-change-strip'
@@ -190,6 +192,8 @@ export const AssistantTurnSegment = memo(
       turn.body,
       answerable
     )
+    // A later text block's copy of the block is code (by position, not text).
+    const textsAbove = turnTextsAbove(turn.blocks)
 
     return (
       <div
@@ -213,15 +217,19 @@ export const AssistantTurnSegment = memo(
               one action bar. */}
           <InteractiveTurnContext.Provider value={interactiveTurn}>
             <section className="group relative" data-askable="">
-              {turn.blocks.map((block) => (
-                <TurnBlockView
+              {turn.blocks.map((block, i) => (
+                <TurnTextAboveContext.Provider
                   key={block.key}
-                  block={block}
-                  chatId={chatId}
-                  runId={turn.runId}
-                  citationResults={citationResults}
-                  isStreaming={isStreaming}
-                />
+                  value={textsAbove[i]}
+                >
+                  <TurnBlockView
+                    block={block}
+                    chatId={chatId}
+                    runId={turn.runId}
+                    citationResults={citationResults}
+                    isStreaming={isStreaming}
+                  />
+                </TurnTextAboveContext.Provider>
               ))}
               {galleryImages.length > 0 && (
                 <ImageGallery images={galleryImages} />

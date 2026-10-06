@@ -6,7 +6,8 @@
 import type {
   ChatMessage,
   ChatStatus,
-  SendMessageOptions
+  SendMessageOptions,
+  TurnBlock
 } from '@exodus/shared/types/chat'
 import {
   askBlockSchema,
@@ -34,7 +35,10 @@ const { default: Markdown } = await import('@/components/markdown')
 const {
   InteractiveProvider,
   InteractiveTurnContext,
+  TurnTextAboveContext,
   answersIn,
+  turnTextsAbove,
+  useInteractiveChat,
   useInteractiveTurn
 } = await import('@/components/chat/interactive/interactive-context')
 
@@ -67,13 +71,35 @@ const fence = (language: string, value: unknown) =>
 const userMessage = (id: string, text: string) =>
   ({ id, runId: id, role: 'user', content: text, timestamp: 1 }) as ChatMessage
 
-/** A turn's reply as `AssistantTurnSegment` draws it: its Markdown under the turn's block. */
-function Turn({ body, answerable }: { body: string; answerable?: boolean }) {
+/**
+ * A turn's reply as `AssistantTurnSegment` draws it: each text block's
+ * Markdown, under the turn's block and the text above it. `body` alone is a
+ * reply of one text block.
+ */
+function Turn({
+  body,
+  texts = [body],
+  answerable
+}: {
+  body: string
+  texts?: string[]
+  answerable?: boolean
+}) {
   const turn = useInteractiveTurn('run-1', body, answerable)
+  const above = turnTextsAbove(
+    texts.map((text, i) => ({ kind: 'text', key: `t${i}`, text }) as TurnBlock)
+  )
   return createElement(
     InteractiveTurnContext.Provider,
     { value: turn },
-    createElement(Markdown, { src: body })
+    ...texts.map((text, i) =>
+      createElement(
+        TurnTextAboveContext.Provider,
+        // eslint-disable-next-line react/no-array-index-key -- a fixed list
+        { key: i, value: above[i] },
+        createElement(Markdown, { src: text })
+      )
+    )
   )
 }
 
@@ -98,11 +124,14 @@ const show = (
   {
     messages = [],
     status = 'idle',
-    answerable
+    answerable,
+    texts
   }: {
     messages?: ChatMessage[]
     status?: ChatStatus
     answerable?: boolean
+    /** The turn's text blocks, when it has more than one (`body` is them joined). */
+    texts?: string[]
   } = {},
   inTurn = true
 ) =>
@@ -112,7 +141,7 @@ const show = (
         InteractiveProvider,
         { messages, status, send },
         inTurn
-          ? createElement(Turn, { body, answerable })
+          ? createElement(Turn, { body, answerable, texts })
           : createElement(Markdown, { src: body })
       )
     )
@@ -171,6 +200,109 @@ describe('a questionnaire in a reply', () => {
     ).toEqual(['Legs'])
     expect(host.textContent).toContain('interactive.answered')
   })
+
+  it('names its picks for a screen reader once answered', async () => {
+    const answer = composeAskAnswer(
+      ASK_BLOCK,
+      'run-1',
+      { where: { options: ['Legs'], other: null } },
+      '',
+      LABELS
+    )
+    await show(fence('exodus-ask', ASK), {
+      messages: [userMessage('u2', answer)]
+    })
+    const group = block()
+    expect(group?.getAttribute('role')).toBe('group')
+    expect(group?.getAttribute('aria-label')).toBe(
+      'Where does it itch? — interactive.answered. Where? Legs'
+    )
+  })
+
+  it('moves focus to the answered summary after Submit (the form is gone)', async () => {
+    const body = fence('exodus-ask', ASK)
+    await show(body)
+    const arms = host.querySelector<HTMLInputElement>('input[value="Arms"]')
+    await act(async () => arms?.click())
+    await act(async () => {
+      host
+        .querySelector('form')
+        ?.dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true })
+        )
+    })
+    const sent = send.mock.calls[0]?.[0].text ?? ''
+    // The chat now holds the answer: the block freezes in place.
+    await show(body, { messages: [userMessage('u2', sent)] })
+    expect(block()?.getAttribute('data-state')).toBe('answered')
+    expect(document.activeElement).toBe(block())
+  })
+
+  it('does not take focus when it is drawn answered (a chat opened from history)', async () => {
+    const answer = composeAskAnswer(
+      ASK_BLOCK,
+      'run-1',
+      { where: { options: ['Legs'], other: null } },
+      '',
+      LABELS
+    )
+    await show(fence('exodus-ask', ASK), {
+      messages: [userMessage('u2', answer)]
+    })
+    expect(document.activeElement).not.toBe(block())
+  })
+
+  describe('while a reply streams (no answer can be sent)', () => {
+    it('Skip on the last question is disabled and skips nothing', async () => {
+      await show(fence('exodus-ask', ASK), { status: 'streaming' })
+      const skip = button('interactive.skip')
+      expect(skip?.disabled).toBe(true)
+      await act(async () => skip?.click())
+      expect(
+        host.querySelector('fieldset')?.getAttribute('data-status')
+      ).not.toBe('skipped')
+      expect(send).not.toHaveBeenCalled()
+    })
+
+    it('Cmd+Enter does not submit the form', async () => {
+      await show(fence('exodus-ask', ASK), { status: 'streaming' })
+      const arms = host.querySelector<HTMLInputElement>('input[value="Arms"]')
+      await act(async () => arms?.click())
+      const submits = vi.fn()
+      host.querySelector('form')?.addEventListener('submit', submits)
+      await act(async () => {
+        arms?.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key: 'Enter',
+            metaKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        )
+        await Promise.resolve()
+      })
+      expect(submits).not.toHaveBeenCalled()
+      expect(send).not.toHaveBeenCalled()
+    })
+
+    it('Cmd+Enter submits once the reply is done', async () => {
+      await show(fence('exodus-ask', ASK))
+      const arms = host.querySelector<HTMLInputElement>('input[value="Arms"]')
+      await act(async () => arms?.click())
+      await act(async () => {
+        arms?.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key: 'Enter',
+            metaKey: true,
+            bubbles: true,
+            cancelable: true
+          })
+        )
+        await Promise.resolve()
+      })
+      expect(send).toHaveBeenCalledTimes(1)
+    })
+  })
 })
 
 describe('a confirmation in a reply', () => {
@@ -193,6 +325,25 @@ describe('a confirmation in a reply', () => {
     expect(send).toHaveBeenCalledWith({
       text: composeConfirmAnswer(CONFIRM_BLOCK, 'run-1', true, 'cc Bob', LABELS)
     })
+  })
+
+  it('does not load a remote picture in its details before a tap', async () => {
+    const src = 'https://tracker.example/p.png?d=secret'
+    await show(
+      fence('exodus-confirm', { ...CONFIRM, details: `See ![x](${src})` })
+    )
+    expect(block()?.getAttribute('data-interactive')).toBe('confirm')
+    expect(host.querySelector(`img[src="${src}"]`)).toBeNull()
+  })
+
+  it('moves focus to the decision after Approve (the buttons are gone)', async () => {
+    const body = fence('exodus-confirm', CONFIRM)
+    await show(body)
+    await act(async () => button('interactive.approve')?.click())
+    const sent = send.mock.calls[0]?.[0].text ?? ''
+    await show(body, { messages: [userMessage('u2', sent)] })
+    expect(block()?.getAttribute('data-state')).toBe('approve')
+    expect(document.activeElement?.textContent).toBe('interactive.approved')
   })
 
   it('sends nothing while a reply streams', async () => {
@@ -280,9 +431,28 @@ describe('what stays code', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
-  it('a fence still being written', async () => {
-    await show('```exodus-ask\n{"title":"Where')
-    expect(block()).toBeNull()
+  it('a second block with the same text, in a later text block of the run', async () => {
+    const first = `Before I answer:\n\n${fence('exodus-ask', ASK)}`
+    const second = `After a tool call:\n\n${fence('exodus-ask', ASK)}`
+    await show(`${first}\n\n${second}`, { texts: [first, second] })
+    expect(host.querySelectorAll('[data-interactive]')).toHaveLength(1)
+    expect(host.querySelectorAll('pre')).toHaveLength(1)
+    expect(
+      host
+        .querySelector('[data-interactive]')
+        ?.compareDocumentPosition(host.querySelector('pre')!)
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('a fence still being written: code, not a form, frame after frame', async () => {
+    const json = JSON.stringify(ASK)
+    for (const end of [12, 40, json.length]) {
+      const partial = `Before I answer:\n\n\`\`\`exodus-ask\n${json.slice(0, end)}`
+      await show(partial)
+      expect(block()).toBeNull()
+      expect(host.querySelector('form')).toBeNull()
+      expect(host.querySelector('pre')).not.toBeNull()
+    }
   })
 
   it('a block outside a turn (a user message, a tool description)', async () => {
@@ -301,6 +471,38 @@ describe('a reply written with CRLF line ends', () => {
     await show(crlf)
     expect(block()?.getAttribute('data-interactive')).toBe('confirm')
     expect(host.querySelector('pre')).toBeNull()
+  })
+})
+
+describe('the chat around the blocks', () => {
+  it('stays the same while a reply streams and no answer arrives', async () => {
+    const seen: unknown[] = []
+    function Probe() {
+      seen.push(useInteractiveChat())
+      return null
+    }
+    const hello = userMessage('u1', 'hello')
+    const frame = (text: string) =>
+      ({
+        id: 'a1',
+        runId: 'u1',
+        role: 'assistant',
+        content: [{ type: 'text', text }],
+        timestamp: 1
+      }) as unknown as ChatMessage
+    for (const text of ['Hel', 'Hello there']) {
+      await act(async () =>
+        root.render(
+          createElement(
+            InteractiveProvider,
+            { messages: [hello, frame(text)], status: 'idle', send },
+            createElement(Probe)
+          )
+        )
+      )
+    }
+    expect(seen).toHaveLength(2)
+    expect(seen[1]).toBe(seen[0])
   })
 })
 
