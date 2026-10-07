@@ -215,8 +215,6 @@
     "exportMarkdown": "Export as Markdown…",
     "exportPdf": "Export as PDF…",
     "exportFailed": "Couldn't export the chat",
-    "phonePaired": "Phone connected",
-    "phoneNotPaired": "No phone connected",
     "panel": "Files, tools and sources"
   },
   "export": {

@@ -217,23 +217,6 @@ describe('useDevices', () => {
       expect(getDevicesService).toHaveBeenCalledTimes(1)
     })
 
-    it("re-reads once a minute when asked to watch presence (the header's phone dot), with no pairing window open", async () => {
-      vi.useFakeTimers()
-      getDevicesService.mockImplementation(() => Promise.resolve(closed()))
-      await mountHook(() => useDevices({ watchPresence: true }))
-      await advance(0)
-      expect(getDevicesService).toHaveBeenCalledTimes(1)
-
-      await advance(59_999)
-      expect(getDevicesService).toHaveBeenCalledTimes(1)
-      await advance(1)
-      expect(getDevicesService).toHaveBeenCalledTimes(2)
-
-      // A phone's visit lands in the next read, whether or not the window was focused meanwhile.
-      await advance(60_000)
-      expect(getDevicesService).toHaveBeenCalledTimes(3)
-    })
-
     it('re-reads every 1500 ms while a pairing window is open, and stops after a response with none', async () => {
       vi.useFakeTimers()
       getDevicesService

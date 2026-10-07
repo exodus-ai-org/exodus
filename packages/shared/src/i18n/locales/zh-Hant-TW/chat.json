@@ -208,8 +208,6 @@
     "exportMarkdown": "匯出為 Markdown…",
     "exportPdf": "匯出為 PDF…",
     "exportFailed": "無法匯出聊天",
-    "phonePaired": "手機已連線",
-    "phoneNotPaired": "未連線手機",
     "panel": "檔案、工具與來源"
   },
   "export": {

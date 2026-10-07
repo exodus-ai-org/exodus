@@ -208,8 +208,6 @@
     "exportMarkdown": "Markdownとして書き出す…",
     "exportPdf": "PDFとして書き出す…",
     "exportFailed": "チャットを書き出せませんでした",
-    "phonePaired": "スマートフォン接続中",
-    "phoneNotPaired": "スマートフォン未接続",
     "panel": "ファイル・ツール・ソース"
   },
   "export": {

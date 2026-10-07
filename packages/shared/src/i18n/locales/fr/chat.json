@@ -215,8 +215,6 @@
     "exportMarkdown": "Exporter en Markdown…",
     "exportPdf": "Exporter en PDF…",
     "exportFailed": "Impossible d'exporter la discussion",
-    "phonePaired": "Téléphone connecté",
-    "phoneNotPaired": "Aucun téléphone connecté",
     "panel": "Fichiers, outils et sources"
   },
   "export": {

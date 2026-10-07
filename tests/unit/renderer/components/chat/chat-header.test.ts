@@ -1,7 +1,6 @@
 // @vitest-environment happy-dom
 // The header's two sides: on a chat page the title with its streaming dot,
-// the model chip and the menu on the left; the phone dot and the panel
-// toggle on the right. (The history arrows sit beside the sidebar toggle:
+// the model chip and the menu on the left; the panel toggle on the right. (The history arrows sit beside the sidebar toggle:
 // history-arrows.test.ts.)
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
@@ -30,24 +29,6 @@ const chats: Chat[] = [
 ]
 vi.mock('@/hooks/use-chat-history', () => ({
   useChatHistory: () => ({ data: chats, isLoading: false })
-}))
-
-let lastSeenAt: string | null = null
-vi.mock('@/hooks/use-devices', () => ({
-  useDevices: () => ({
-    data: {
-      devices: [
-        {
-          id: 'd1',
-          name: 'Phone',
-          createdAt: '2026-10-01T00:00:00.000Z',
-          lastSeenAt
-        }
-      ],
-      pairing: null,
-      lanRunning: true
-    }
-  })
 }))
 
 // The chip and the menu have tests of their own.
@@ -91,7 +72,6 @@ const visit = (...paths: string[]) => paths.reduce(pushed, EMPTY_HISTORY)
 const mounted: Array<() => void> = []
 afterEach(() => {
   mounted.splice(0).forEach((unmount) => unmount())
-  lastSeenAt = null
 })
 
 function mount(
@@ -136,16 +116,14 @@ describe('<ChatHeader>', () => {
     expect(byId(TEST_IDS.chat.header.title)?.textContent).toBe('Trip planning')
     expect(host.querySelector('[data-stub="chip"]')).not.toBeNull()
     expect(host.querySelector('[data-stub="menu"]')).not.toBeNull()
-    expect(byId(TEST_IDS.chat.header.phone)).not.toBeNull()
     expect(byId(TEST_IDS.chat.header.panelToggle)).not.toBeNull()
   })
 
-  it('off a chat page keeps the phone dot only', () => {
+  it('off a chat page shows none of it', () => {
     const { host, byId } = mount('/')
     expect(byId(TEST_IDS.chat.header.title)).toBeNull()
     expect(host.querySelector('[data-stub="chip"]')).toBeNull()
     expect(byId(TEST_IDS.chat.header.panelToggle)).toBeNull()
-    expect(byId(TEST_IDS.chat.header.phone)).not.toBeNull()
   })
 
   it('a chat the list does not know yet is called New chat', () => {
@@ -185,37 +163,5 @@ describe('<ChatHeader>', () => {
       ])
     )
     expect(withTool.host.querySelector('[data-has-items]')).not.toBeNull()
-  })
-
-  it('the phone dot is green for a phone seen in the last five minutes, and opens Settings › Devices', () => {
-    lastSeenAt = new Date().toISOString()
-    const online = mount('/')
-    expect(online.byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('true')
-
-    lastSeenAt = null
-    const { byId, router } = mount('/')
-    expect(byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('false')
-    act(() => byId(TEST_IDS.chat.header.phone)!.click())
-    expect(
-      `${router.state.location.pathname}${router.state.location.search}`
-    ).toBe('/settings?tab=devices')
-  })
-
-  it('the phone dot greys out on its own once the last visit ages past the window, with the list unchanged', () => {
-    vi.useFakeTimers()
-    try {
-      lastSeenAt = new Date().toISOString()
-      const { byId } = mount('/')
-      expect(byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('true')
-
-      // Nothing re-renders the dot but its own clock: the minute poll hands
-      // back the same list, which is the same object.
-      act(() => {
-        vi.advanceTimersByTime(6 * 60_000)
-      })
-      expect(byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('false')
-    } finally {
-      vi.useRealTimers()
-    }
   })
 })

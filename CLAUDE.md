@@ -1271,8 +1271,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   `providerConfig`, a pick from the cached `modelCatalog` saved with its
   snapshot) and `chat-menu.tsx` (rename, favourite, export as Markdown / PDF
   through `lib/chat-export.ts` and the `md-to-pdf` route's print sheet
-  `main/lib/pdf/print-document.ts`, delete); `phone-dot.tsx` (a paired phone
-  seen in the last five minutes, `lib/phone-presence.ts`); and the toggle of
+  `main/lib/pdf/print-document.ts`, delete); and the toggle of
   `components/chat/panel/chat-panel.tsx` — files, tools and sources derived
   from the open chat's messages (`chatMessagesAtom`, set by `<Chat>` when a
   message is added or the stream settles) by `lib/chat-panel-items.ts`, each

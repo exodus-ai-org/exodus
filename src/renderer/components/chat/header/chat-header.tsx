@@ -14,14 +14,13 @@ import { chatStatusAtom } from '@/stores/input'
 import { ChatMenu } from './chat-menu'
 import { HeaderButton } from './header-button'
 import { ModelChip } from './model-chip'
-import { PhoneDot } from './phone-dot'
 
 /**
  * The chat header (spec 2026-10-08 §2), after the sidebar toggle and the
  * history arrows: on the left, on a chat page, the title with a dot while a
  * reply is on its way, the model chip and the `▾` menu; on the right the
- * phone dot and the panel toggle. A left-and-right bar, as Claude's (owner,
- * 2026-10-08), not a centred title. The header is the window's drag region,
+ * panel toggle. A left-and-right bar, as Claude's (owner, 2026-10-08), not a
+ * centred title. The header is the window's drag region,
  * so every control here is `no-drag`.
  */
 export function ChatHeader() {
@@ -32,7 +31,6 @@ export function ChatHeader() {
       <div className="flex min-w-0 flex-1 items-center gap-2 self-stretch">
         {id && <TitleGroup id={id} />}
         <div className="min-w-0 flex-1" />
-        <PhoneDot />
         {id && <PanelToggle />}
       </div>
     </TooltipProvider>

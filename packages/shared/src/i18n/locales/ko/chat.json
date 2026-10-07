@@ -208,8 +208,6 @@
     "exportMarkdown": "Markdown으로 내보내기…",
     "exportPdf": "PDF로 내보내기…",
     "exportFailed": "채팅을 내보낼 수 없습니다",
-    "phonePaired": "휴대폰 연결됨",
-    "phoneNotPaired": "연결된 휴대폰 없음",
     "panel": "파일, 도구 및 출처"
   },
   "export": {
