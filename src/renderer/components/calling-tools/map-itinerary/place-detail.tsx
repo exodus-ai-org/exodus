@@ -258,7 +258,7 @@ export function PlaceDetail({
       )}
 
       {/* Body */}
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+      <div className="flex-1 space-y-3 overflow-x-hidden overflow-y-auto px-4 py-3">
         {tab === 'overview' && (
           <>
             {place.note && (
@@ -451,7 +451,11 @@ function ContactRow({
   if (!text) return null
   const content = (
     <span
-      className={cn('flex-1', monospace && 'font-mono', truncate && 'truncate')}
+      className={cn(
+        'min-w-0 flex-1',
+        monospace && 'font-mono',
+        truncate && 'truncate'
+      )}
     >
       {text}
     </span>
@@ -464,7 +468,10 @@ function ContactRow({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-foreground min-w-0 flex-1 transition-colors"
+          // A flex row itself: only then is the text a flex item with a
+          // width to truncate against — as an inline link's child a long
+          // website address ran on and scrolled the panel sideways.
+          className="hover:text-foreground flex min-w-0 flex-1 transition-colors"
         >
           {content}
         </a>
