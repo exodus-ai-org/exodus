@@ -29,10 +29,12 @@ function ContentHeader() {
     <header
       className={cn(
         // 44 px, the sidebar's own top row's height, so the toggle sits at the
-        // same spot in both (Claude's bar is this low). No rule under it: a
-        // shadow that fades into the page instead (owner, 2026-10-08).
+        // same spot in both (Claude's bar is this low). No rule under it: the
+        // page dissolves into the header's colour as it scrolls under — a
+        // strip of that colour fading to nothing, as Claude's, not a dark
+        // shadow (owner, 2026-10-08).
         'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
-        'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-linear-to-b after:from-black/[0.06] after:to-transparent dark:after:from-black/35',
+        'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-linear-to-b after:from-card after:to-transparent',
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >
