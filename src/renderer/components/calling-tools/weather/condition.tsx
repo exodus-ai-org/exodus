@@ -31,10 +31,8 @@ const CONDITIONS: Record<WeatherConditionName, Condition> = {
   Sunny: { Icon: Sun03Icon, tint: 'text-amber-500' },
   PartlyCloudy: { Icon: CloudSun, tint: 'text-amber-500/80' },
   Cloudy: { Icon: CloudIcon, tint: 'text-muted-foreground' },
-  VeryCloudy: { Icon: CloudIcon, tint: 'text-muted-foreground' },
   Fog: { Icon: CloudFogIcon, tint: 'text-muted-foreground' },
   LightShowers: { Icon: CloudDrizzleIcon, tint: 'text-sky-500' },
-  LightSleetShowers: { Icon: CloudDrizzleIcon, tint: 'text-sky-500' },
   LightSleet: { Icon: CloudSnowIcon, tint: 'text-sky-400' },
   LightSnow: { Icon: CloudSnowIcon, tint: 'text-sky-400' },
   LightSnowShowers: { Icon: CloudSnowIcon, tint: 'text-sky-400' },
@@ -44,8 +42,7 @@ const CONDITIONS: Record<WeatherConditionName, Condition> = {
   HeavyShowers: { Icon: CloudRainIcon, tint: 'text-sky-600' },
   HeavyRain: { Icon: CloudRainIcon, tint: 'text-sky-600' },
   ThunderyShowers: { Icon: CloudLightningIcon, tint: 'text-violet-500' },
-  ThunderyHeavyRain: { Icon: CloudLightningIcon, tint: 'text-violet-500' },
-  ThunderySnowShowers: { Icon: CloudLightningIcon, tint: 'text-violet-500' }
+  ThunderyHeavyRain: { Icon: CloudLightningIcon, tint: 'text-violet-500' }
 }
 
 /** A clear or partly cloudy night is a moon, not a sun. */

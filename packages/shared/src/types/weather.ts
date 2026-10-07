@@ -51,10 +51,8 @@ export type WeatherConditionName =
   | 'Sunny'
   | 'PartlyCloudy'
   | 'Cloudy'
-  | 'VeryCloudy'
   | 'Fog'
   | 'LightShowers'
-  | 'LightSleetShowers'
   | 'LightSleet'
   | 'LightSnow'
   | 'LightSnowShowers'
@@ -65,7 +63,6 @@ export type WeatherConditionName =
   | 'HeavyRain'
   | 'ThunderyShowers'
   | 'ThunderyHeavyRain'
-  | 'ThunderySnowShowers'
 
 /**
  * WMO weather interpretation codes (what Open-Meteo returns) → the condition
