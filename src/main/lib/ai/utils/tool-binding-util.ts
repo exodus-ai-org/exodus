@@ -1,6 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import type { Model } from '@earendil-works/pi-ai'
-import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
@@ -70,10 +70,7 @@ export function bindCallingTools({
     return [deepResearch]
   }
 
-  // Keys saved before the snake_case rename still disable the same tool.
-  const disabledTools = new Set(
-    (setting.tools?.disabledTools ?? []).map(toToolName)
-  )
+  const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   const enabled = (key: string) => !disabledTools.has(key)
 
   const tools: ErasedTool[] = []

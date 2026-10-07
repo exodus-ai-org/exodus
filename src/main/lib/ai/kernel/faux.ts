@@ -54,7 +54,7 @@ export const fauxWeatherTool: AgentTool<typeof weatherSchema> = {
       location,
       current: {
         condition: 'Sunny',
-        weatherCode: '113',
+        weatherCode: '0',
         tempC: '21',
         feelsLikeC: '21',
         humidity: '40',
@@ -65,7 +65,8 @@ export const fauxWeatherTool: AgentTool<typeof weatherSchema> = {
         uvIndex: '5',
         visibility: '10',
         pressure: '1015',
-        observedAt: '2026-09-22 12:00 PM'
+        observedAt: '2026-09-22T12:00',
+        isDay: true
       },
       forecast: []
     }

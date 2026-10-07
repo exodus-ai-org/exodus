@@ -421,10 +421,8 @@ function buildAssistantTurn(
     }
   }
 
-  // Prefer the server-stamped turn duration on the last assistant message —
-  // it's wall-clock accurate and works for single-message turns. Fall back to
-  // the message-timestamp diff for legacy chats persisted before durationMs
-  // was added.
+  // The server-stamped turn duration on the last assistant message; a run
+  // still streaming has none yet, and the header shows none for it.
   let durationMs = 0
   for (let i = turnMessages.length - 1; i >= 0; i--) {
     const m = turnMessages[i]
@@ -436,12 +434,6 @@ function buildAssistantTurn(
       }
     }
   }
-  if (durationMs === 0) {
-    const firstTs = turnMessages[0]?.timestamp ?? 0
-    const lastTs = turnMessages.at(-1)?.timestamp ?? 0
-    durationMs = firstTs && lastTs ? lastTs - firstTs : 0
-  }
-
   const body = texts.join('\n\n')
   return {
     runId,

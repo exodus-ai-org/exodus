@@ -1070,7 +1070,6 @@
       "elasticsearchPassword": "Contraseña de Elasticsearch",
       "s3AccessKeyId": "ID de clave de acceso de Amazon S3",
       "s3SecretAccessKey": "Clave de acceso secreta de Amazon S3",
-      "legacyMcpServers": "Configuración MCP heredada",
       "mcp": "Servidor MCP «{{server}}»: {{field}}"
     }
   }

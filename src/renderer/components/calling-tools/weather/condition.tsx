@@ -17,10 +17,10 @@ import {
 import type { IconSvgElement } from '@hugeicons/react'
 
 /**
- * A weather code (WMO from Open-Meteo, or wttr.in's WWO on old rows) → the
- * icon that stands for it. The icon's tint is the one place the condition
- * gets a colour: the card itself is tokens only, and the curve follows the
- * colour tone's accent (`primary`).
+ * A WMO weather code (what Open-Meteo returns) → the icon that stands for
+ * it. The icon's tint is the one place the condition gets a colour: the card
+ * itself is tokens only, and the curve follows the colour tone's accent
+ * (`primary`).
  */
 export interface Condition {
   Icon: IconSvgElement

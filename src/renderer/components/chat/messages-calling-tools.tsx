@@ -121,17 +121,7 @@ function CallingTools({
       const textBlock = blocks?.find((c) => c.type === 'text')
       if (!textBlock || typeof textBlock.text !== 'string') return null
       try {
-        const parsed = JSON.parse(textBlock.text)
-        // Unwrap legacy AgentToolResult `{details, content}` wrapper if present
-        if (
-          parsed &&
-          typeof parsed === 'object' &&
-          'details' in parsed &&
-          'content' in parsed
-        ) {
-          return parsed.details
-        }
-        return parsed
+        return JSON.parse(textBlock.text)
       } catch {
         return textBlock.text
       }

@@ -172,7 +172,6 @@ export const settings = pgTable('settings', {
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   modelCatalog:
     jsonb('modelCatalog').$type<z.infer<typeof ModelCatalogSchema>>(),
-  mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),
   // The user's avatar (Sidebar footer + Settings → Profile). The physical

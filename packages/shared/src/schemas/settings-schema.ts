@@ -279,7 +279,6 @@ export const SettingsSchema = z.object({
   providerConfig: ProviderConfigSchema.nullish(),
   providers: ProvidersSchema.nullish(),
   modelCatalog: ModelCatalogSchema.nullish(),
-  mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
   voice: VoiceSchema.nullish(),
   userAvatar: z.string().nullish(),

@@ -99,6 +99,13 @@
       "when": 1791265535762,
       "tag": "0013_drop_projects",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791388260973,
+      "tag": "0014_drop_mcp_servers",
+      "breakpoints": true
     }
   ]
 }

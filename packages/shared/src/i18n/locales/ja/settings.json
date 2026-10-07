@@ -1064,7 +1064,6 @@
       "elasticsearchPassword": "Elasticsearch のパスワード",
       "s3AccessKeyId": "Amazon S3 のアクセスキー ID",
       "s3SecretAccessKey": "Amazon S3 のシークレットアクセスキー",
-      "legacyMcpServers": "旧形式の MCP 設定",
       "mcp": "MCP サーバー「{{server}}」: {{field}}"
     }
   }

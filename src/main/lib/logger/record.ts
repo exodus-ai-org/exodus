@@ -33,8 +33,6 @@ export function severityOf(level: LogLevel) {
   return SEVERITY[level]
 }
 
-const LEGACY_LEVELS = new Set<string>(['debug', 'info', 'warn', 'error'])
-
 /**
  * A log call's detail as the record's attributes. Whatever is caught goes
  * under `error`, as it was caught — the Error itself, never `String(err)` or
@@ -108,14 +106,13 @@ function isRecordObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * Accepts a parsed JSONL line in either the current `LogRecord` shape or the
- * pre-standardization `{ ts, level, surface, message, detail }` shape. Returns
- * `null` for anything else so the reader can skip malformed lines.
+ * Accepts a parsed JSONL line in the `LogRecord` shape. Returns `null` for
+ * anything else so the reader can skip malformed lines.
  */
 export function normalizeToLogRecord(raw: unknown): LogRecord | null {
   if (!isRecordObject(raw)) return null
 
-  // New shape — trust the required fields.
+  // Trust the required fields.
   if (
     typeof raw.timestamp === 'string' &&
     typeof raw.severityNumber === 'number' &&
@@ -123,26 +120,6 @@ export function normalizeToLogRecord(raw: unknown): LogRecord | null {
     isRecordObject(raw.scope)
   ) {
     return raw as unknown as LogRecord
-  }
-
-  // Legacy shape.
-  if (
-    typeof raw.ts === 'string' &&
-    typeof raw.level === 'string' &&
-    LEGACY_LEVELS.has(raw.level) &&
-    typeof raw.surface === 'string' &&
-    typeof raw.message === 'string'
-  ) {
-    const sev = SEVERITY[raw.level as LogLevel]
-    return {
-      timestamp: raw.ts,
-      severityNumber: sev.severityNumber,
-      severityText: sev.severityText,
-      body: raw.message,
-      scope: { name: raw.surface },
-      attributes: isRecordObject(raw.detail) ? raw.detail : {},
-      resource: {} as Resource
-    }
   }
 
   return null

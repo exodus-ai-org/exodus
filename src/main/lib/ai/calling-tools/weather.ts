@@ -11,9 +11,7 @@ import {
  * Weather from Open-Meteo (open-meteo.com): no key, no account, a seven-day
  * forecast with 24 hourly points a day and WMO weather codes. Two calls —
  * the place is geocoded first — both in the place's local time
- * (`timezone=auto`). The result keeps the shape the card has always read;
- * rows from the wttr.in years differ only in their time strings and codes
- * (see `types/weather.ts`).
+ * (`timezone=auto`).
  */
 
 const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search'
@@ -211,7 +209,7 @@ export function summarizeForModel(result: WeatherResult) {
       uvIndex: Number(current.uvIndex),
       visibilityKm: Number(current.visibility),
       pressureHPa: Number(current.pressure),
-      isDay: current.isDay ?? true
+      isDay: current.isDay
     },
     days: forecast.map((day, i) => ({
       date: day.date,

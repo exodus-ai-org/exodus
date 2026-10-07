@@ -40,7 +40,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
   const { t } = useTranslation('chat')
   const { dateTime } = useFormat()
   const { current, forecast, location } = toolResult
-  const now = conditionOf(current.weatherCode, current.isDay ?? true)
+  const now = conditionOf(current.weatherCode, current.isDay)
   const [expanded, setExpanded] = useState(false)
   const [dayIndex, setDayIndex] = useState(0)
   const [hover, setHover] = useState<number | null>(null)
@@ -52,8 +52,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
     if (i === 1) return t('weatherCard.tomorrow')
     return dateTime(new Date(date), { weekday: 'short' })
   }
-  // Times are the place's own, shown as clocks in the user's locale — the
-  // parser reads Open-Meteo's ISO and the wttr.in strings on old rows.
+  // Times are the place's own, shown as clocks in the user's locale.
   const clock = (time: string, o: Intl.DateTimeFormatOptions) => {
     const h = weatherClockHours(time)
     if (h === null) return time
