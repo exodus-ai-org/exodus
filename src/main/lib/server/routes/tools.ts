@@ -2,8 +2,8 @@ import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { AppError, ServiceError } from '@exodus/shared/errors/app-error'
 import { BrowserWindow } from 'electron'
 import { Hono } from 'hono'
-import MarkdownIt from 'markdown-it'
 
+import { printDocument } from '../../pdf/print-document'
 import { markdownToPdfSchema } from '../schemas/tools'
 import { Variables } from '../types'
 import { getRequiredQuery, successResponse, validateSchema } from '../utils'
@@ -12,8 +12,7 @@ import { bufferToArrayBuffer } from '../utils/helpers'
 const tools = new Hono<{ Variables: Variables }>()
 
 async function markdownStringToPdfBuffer(markdownString: string) {
-  const md = new MarkdownIt()
-  const html = md.render(markdownString)
+  const html = printDocument(markdownString)
 
   const win = new BrowserWindow({
     show: false,
