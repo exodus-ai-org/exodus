@@ -40,7 +40,8 @@ export function chatToMarkdown(
   messages: ChatMessage[],
   labels: ExportLabels
 ): string {
-  const parts: string[] = [`# ${title}`]
+  // A heading is one line: a title with a line break would end it early.
+  const parts: string[] = [`# ${title.replaceAll(/\s+/gu, ' ').trim()}`]
   const sources: WebSearchResult[] = []
   const skipped = new Set<string>()
   let run: Run | null = null

@@ -2,6 +2,7 @@ import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type {
   ChatMessage,
   ChatToolResultMessage,
+  ChatUserMessage,
   ImageContent,
   ImageGenerationDetails
 } from '@exodus/shared/types/chat'
@@ -51,11 +52,26 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const baseName = (path: string) => path.split(/[\\/]/u).pop() || path
 
-/** Each run's question as one line, cut to 120 characters. */
-export function questionsByRun(messages: ChatMessage[]): Map<string, string> {
-  const questions = new Map<string, string>()
+/**
+ * The runs of folded and hidden regenerate attempts: not in the conversation
+ * (the export leaves them out too), so nothing they made or found is listed.
+ */
+function skippedRuns(messages: ChatMessage[]): Set<string> {
+  const skipped = new Set<string>()
   for (const message of messages) {
     if (message.role !== 'user') continue
+    const { attempt } = message as ChatUserMessage
+    if (attempt === 'folded' || attempt === 'hidden') skipped.add(message.runId)
+  }
+  return skipped
+}
+
+/** Each run's question as one line, cut to 120 characters. */
+export function questionsByRun(messages: ChatMessage[]): Map<string, string> {
+  const skipped = skippedRuns(messages)
+  const questions = new Map<string, string>()
+  for (const message of messages) {
+    if (message.role !== 'user' || skipped.has(message.runId)) continue
     questions.set(
       message.runId,
       userMessageText(message)
@@ -72,8 +88,10 @@ export function questionsByRun(messages: ChatMessage[]): Map<string, string> {
  * (one row per path, the latest write), generated pictures — newest first.
  */
 export function chatFiles(messages: ChatMessage[]): ChatFile[] {
+  const skipped = skippedRuns(messages)
   const files: ChatFile[] = []
   for (const message of messages) {
+    if (skipped.has(message.runId)) continue
     if (message.role === 'user') {
       if (!Array.isArray(message.content)) continue
       let index = 0
@@ -147,9 +165,10 @@ export function chatFiles(messages: ChatMessage[]): ChatFile[] {
 
 /** Every tool called, with its count and the run of its latest call; most used first, then by name. */
 export function chatTools(messages: ChatMessage[]): ChatToolUse[] {
+  const skipped = skippedRuns(messages)
   const uses = new Map<string, ChatToolUse>()
   for (const message of messages) {
-    if (message.role !== 'toolResult') continue
+    if (message.role !== 'toolResult' || skipped.has(message.runId)) continue
     const result = message as ChatToolResultMessage
     const use = uses.get(result.toolName)
     if (use) {
@@ -170,14 +189,21 @@ export function chatTools(messages: ChatMessage[]): ChatToolUse[] {
 
 /** The searches' results, grouped by run under the run's question, newest run first. */
 export function chatSources(messages: ChatMessage[]): ChatSourceGroup[] {
+  const skipped = skippedRuns(messages)
   const questions = questionsByRun(messages)
   const groups = new Map<string, ChatSourceGroup>()
   for (const message of messages) {
-    if (message.role !== 'toolResult') continue
+    if (message.role !== 'toolResult' || skipped.has(message.runId)) continue
     const result = message as ChatToolResultMessage
     if (result.toolName !== TOOL_NAMES.webSearch || result.isError) continue
-    if (!Array.isArray(result.details) || result.details.length === 0) continue
-    const results = result.details as WebSearchResult[]
+    if (!Array.isArray(result.details)) continue
+    // Stored details are the tool's word, not checked: an entry without a link
+    // has no row to draw.
+    const results = (result.details as unknown[]).filter(
+      (entry): entry is WebSearchResult =>
+        isRecord(entry) && typeof entry.link === 'string'
+    )
+    if (results.length === 0) continue
     const group = groups.get(result.runId)
     if (group) {
       group.results.push(...results)

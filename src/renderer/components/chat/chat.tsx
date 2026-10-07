@@ -126,13 +126,15 @@ export function Chat({
   }, [stop, setChatStop])
 
   // What the header and its panel show — pictures, tool results, sources —
-  // arrives whole, as a message: published when one is added or the stream
-  // settles, not on every frame of a reply. They go with the chat, and a
-  // reveal no card answered goes with them.
+  // arrives whole, as a message. While a reply streams only a message added
+  // is published, not every frame; once settled, every change is (an attempt
+  // chosen, a cut row fetched whole), since neither changes the length. They
+  // go with the chat, and a reveal no card answered goes with them.
+  const replying = status === 'submitted' || status === 'streaming'
   useEffect(() => {
     setChatMessages(messages)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- a message added, or the stream settled
-  }, [messages.length, status, setChatMessages])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- while replying, a message added; settled, any change
+  }, [replying ? messages.length : messages, status, setChatMessages])
   useEffect(
     () => () => {
       setChatMessages([])

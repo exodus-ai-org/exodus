@@ -1,4 +1,7 @@
-import MarkdownIt from 'markdown-it'
+import MarkdownIt, {
+  type MarkdownIt as Markdown,
+  type RendererRule
+} from 'markdown-it'
 
 /**
  * What a PDF export prints (the chat export and the Deep Research export):
@@ -19,7 +22,29 @@ const STYLE = [
   'img{max-width:100%}a{color:#1a56db}hr{border:0;border-top:1px solid #ddd;margin:1.4em 0}'
 ].join('')
 
+const RASTER_DATA = /^data:image\/(?:png|jpe?g|gif|webp);base64,/iu
+
+/**
+ * The print window would fetch a picture's URL unasked — the zero-click beacon
+ * the chat keeps behind a tap (`remote-image.tsx`) — so only a picture carried
+ * inline is drawn, and any other is a link to its URL.
+ */
+function inlineImagesOnly(md: Markdown): void {
+  const drawn = md.renderer.rules.image!
+  const image: RendererRule = (tokens, index, options, env, self) => {
+    const token = tokens[index]!
+    const src = String(token.attrGet('src') ?? '')
+    if (RASTER_DATA.test(src)) return drawn(tokens, index, options, env, self)
+    const alt = self.renderInlineAsText(token.children ?? [], options, env)
+    const { escapeHtml } = md.utils
+    return `<a href="${escapeHtml(src)}">${escapeHtml(alt || src)}</a>`
+  }
+  md.renderer.rules.image = image
+}
+
 export function printDocument(markdown: string): string {
-  const body = new MarkdownIt().render(markdown)
+  const md = new MarkdownIt()
+  inlineImagesOnly(md)
+  const body = md.render(markdown)
   return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}</style></head><body>${body}</body></html>`
 }

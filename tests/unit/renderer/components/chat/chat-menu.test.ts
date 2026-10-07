@@ -37,6 +37,11 @@ vi.mock('@/services/tools', () => ({
   markdownToPdf: (markdown: string) => markdownToPdf(markdown)
 }))
 
+const fetchChatMessages = vi.fn()
+vi.mock('@/services/chat', () => ({
+  fetchChatMessages: (chatId: string) => fetchChatMessages(chatId)
+}))
+
 // The menu is always open here; what is tested is what its items do.
 const pass =
   (tag: string) =>
@@ -91,6 +96,27 @@ const messages = [
   }
 ] as unknown as ChatMessage[]
 
+// The whole chat as `GET /api/v1/chat/:id` answers it: what an export is
+// written from, not the loaded page above (whose answer reads differently).
+const rows = [
+  {
+    id: 'r1',
+    chatId: chat.id,
+    runId: 'r1',
+    role: 'user',
+    content: [{ type: 'text', text: 'Hi' }],
+    createdAt: '2026-09-29T08:00:00.000Z'
+  },
+  {
+    id: 'r1-a',
+    chatId: chat.id,
+    runId: 'r1',
+    role: 'assistant',
+    content: [{ type: 'text', text: 'Hello from the whole chat.' }],
+    createdAt: '2026-09-29T08:00:01.000Z'
+  }
+]
+
 let host: HTMLDivElement
 let root: ReturnType<typeof createRoot>
 let store: ReturnType<typeof createStore>
@@ -100,6 +126,8 @@ beforeEach(() => {
   downloadFile.mockClear()
   markdownToPdf.mockReset()
   toast.error.mockClear()
+  fetchChatMessages.mockReset()
+  fetchChatMessages.mockResolvedValue(rows)
   store = createStore()
   store.set(chatMessagesAtom, messages)
   host = document.createElement('div')
@@ -163,15 +191,44 @@ describe('<ChatMenu>', () => {
     expect(item('chat:sidebar.history.unfavorite')).toBeDefined()
   })
 
-  it('export as Markdown saves the chat as <title>.md', async () => {
+  it('export as Markdown saves the whole chat, fetched, as <title>.md', async () => {
     render()
-    act(() => item('chat:header.exportMarkdown')!.click())
+    await act(async () => item('chat:header.exportMarkdown')!.click())
+    expect(fetchChatMessages).toHaveBeenCalledWith(chat.id)
     expect(downloadFile).toHaveBeenCalledTimes(1)
     const [blob, name] = downloadFile.mock.calls[0] as [Blob, string]
     expect(name).toBe('Trip planning.md')
     expect(await blob.text()).toBe(
-      '# Trip planning\n\n**chat:export.you:**\n\nHi\n\n**chat:export.assistant:**\n\nHello.\n'
+      '# Trip planning\n\n**chat:export.you:**\n\nHi\n\n**chat:export.assistant:**\n\nHello from the whole chat.\n'
     )
+  })
+
+  it('a chat that cannot be fetched is toasted and nothing is saved', async () => {
+    fetchChatMessages.mockRejectedValue(new Error('server away'))
+    render()
+    await act(async () => item('chat:header.exportMarkdown')!.click())
+    expect(toast.error).toHaveBeenCalledWith({
+      title: 'chat:header.exportFailed',
+      description: 'server away'
+    })
+    expect(downloadFile).not.toHaveBeenCalled()
+  })
+
+  it('the exports are off while one runs', async () => {
+    let settle!: (value: unknown) => void
+    fetchChatMessages.mockReturnValue(
+      new Promise((resolve) => {
+        settle = resolve
+      })
+    )
+    render()
+    await act(async () => item('chat:header.exportMarkdown')!.click())
+    expect(item('chat:header.exportMarkdown')?.disabled).toBe(true)
+    expect(item('chat:header.exportPdf')?.disabled).toBe(true)
+    await act(async () => settle(rows))
+    expect(downloadFile).toHaveBeenCalledTimes(1)
+    expect(item('chat:header.exportMarkdown')?.disabled).toBe(false)
+    expect(item('chat:header.exportPdf')?.disabled).toBe(false)
   })
 
   it('export as PDF posts that Markdown and saves <title>.pdf; a failure is toasted', async () => {
@@ -179,8 +236,9 @@ describe('<ChatMenu>', () => {
     markdownToPdf.mockResolvedValue(pdf)
     render()
     await act(async () => item('chat:header.exportPdf')!.click())
+    expect(fetchChatMessages).toHaveBeenCalledWith(chat.id)
     expect(markdownToPdf).toHaveBeenCalledWith(
-      expect.stringContaining('# Trip planning')
+      expect.stringContaining('Hello from the whole chat.')
     )
     expect(downloadFile).toHaveBeenCalledWith(pdf, 'Trip planning.pdf')
 

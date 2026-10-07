@@ -1254,7 +1254,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   exodus-ios: `RunGrouper.narratingTools`, `ThinkingStep.isNarration`). Blocks are only ever added at the end and the last
   text grows in place, which is what lets the text above a card sit out the
   frames of the text streaming below it. `body` — every text block joined —
-  is what Copy, read-aloud and the Sources panel take as the answer. A
+  is what Copy, read-aloud and the panel's Sources section take as the answer. A
   provider error is pinned to the run it ended (`useChat().runError`) and
   shown at that message's foot.
 - **The chat header** (`components/chat/header/`, spec

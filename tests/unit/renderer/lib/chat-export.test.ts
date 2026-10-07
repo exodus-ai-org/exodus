@@ -140,6 +140,10 @@ describe('chatToMarkdown', () => {
   it('an empty chat is its title alone', () => {
     expect(chatToMarkdown('T', [], labels)).toBe('# T\n')
   })
+
+  it('a title of several lines is one heading', () => {
+    expect(chatToMarkdown('A\nB', [], labels)).toBe('# A B\n')
+  })
 })
 
 describe('exportFileName', () => {

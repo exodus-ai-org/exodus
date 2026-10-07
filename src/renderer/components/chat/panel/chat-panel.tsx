@@ -58,13 +58,18 @@ export function ChatPanel() {
       setPanel((state) => (state.open ? { ...state, open: false } : state))
   }, [id, setPanel])
 
-  // Opened on a run's Sources: that run's group comes into view.
+  // Opened on a run's Sources: that run's group comes into view, once — the
+  // ask is then spent, so a later message does not scroll the reader back. A
+  // group not listed yet keeps the ask for the message that brings it.
   useEffect(() => {
     if (!panel.open || panel.section !== 'sources' || !panel.runId) return
-    bodyRef.current
-      ?.querySelector<HTMLElement>(`[data-run-id="${CSS.escape(panel.runId)}"]`)
-      ?.scrollIntoView({ block: 'start' })
-  }, [panel.open, panel.section, panel.runId, items])
+    const group = bodyRef.current?.querySelector<HTMLElement>(
+      `[data-run-id="${CSS.escape(panel.runId)}"]`
+    )
+    if (!group) return
+    group.scrollIntoView({ block: 'start' })
+    setPanel((state) => ({ ...state, runId: undefined }))
+  }, [panel.open, panel.section, panel.runId, items, setPanel])
 
   const counts = {
     files: items.files.length,
@@ -308,7 +313,7 @@ function SourceLink({ item }: { item: WebSearchResult }) {
         <div className="line-clamp-2 text-sm leading-snug font-semibold">
           {item.title}
         </div>
-        {item.snippet && (
+        {typeof item.snippet === 'string' && item.snippet && (
           <div className="text-muted-foreground line-clamp-2 text-xs leading-snug">
             {removeMd(item.snippet)}
           </div>

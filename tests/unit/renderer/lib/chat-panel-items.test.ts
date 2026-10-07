@@ -194,6 +194,50 @@ describe('chatSources', () => {
       ])
     ).toEqual([])
   })
+
+  it('keeps only the entries with a link', () => {
+    const groups = chatSources([
+      user('r1', 'q'),
+      result('r1', 'web_search', [
+        null,
+        { rank: 1 },
+        { rank: 2, link: 'https://a.example/' }
+      ])
+    ])
+    expect(groups.map((group) => group.results)).toEqual([
+      [{ rank: 2, link: 'https://a.example/' }]
+    ])
+  })
+})
+
+/** A regenerate attempt of r2 in the given state. */
+const attempt = (id: string, state: 'folded' | 'hidden') =>
+  ({
+    ...(user(id, `Try ${id}`) as object),
+    alternateOf: 'r2',
+    attempt: state
+  }) as unknown as ChatMessage
+
+describe('attempts not in the conversation', () => {
+  it('leaves out what a folded or hidden attempt wrote, called and found', () => {
+    const list = [
+      ...messages,
+      attempt('r8', 'folded'),
+      result('r8', 'write_file', { path: '/ws/c/folded.md' }),
+      result('r8', 'web_search', [source(9, 'https://folded.example/')]),
+      attempt('r9', 'hidden'),
+      result('r9', 'read_url', { url: 'https://hidden.example/' })
+    ]
+    const items = chatPanelItems(list)
+    expect(items.files.some((file) => file.runId === 'r8')).toBe(false)
+    expect(items.sources.some((group) => group.runId === 'r8')).toBe(false)
+    expect(items.tools.some((tool) => tool.name === 'read_url')).toBe(false)
+    expect(items.tools.find((tool) => tool.name === 'web_search')?.count).toBe(
+      3
+    )
+    expect(items.questions.has('r8')).toBe(false)
+    expect(items.questions.has('r9')).toBe(false)
+  })
 })
 
 describe('questionsByRun and the whole', () => {

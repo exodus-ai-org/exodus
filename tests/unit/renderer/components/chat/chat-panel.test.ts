@@ -224,7 +224,11 @@ describe('<ChatPanel>', () => {
   it('groups the sources by run under the question, and brings the asked-for run into view', () => {
     const scrollIntoView = vi.fn()
     HTMLElement.prototype.scrollIntoView = scrollIntoView
-    const { host } = mount({ open: true, section: 'sources', runId: 'r2' })
+    const { host, store } = mount({
+      open: true,
+      section: 'sources',
+      runId: 'r2'
+    })
     const group = host.querySelector<HTMLElement>('[data-run-id="r2"]')
     expect(group?.textContent).toContain('Search it')
     const links = [...group!.querySelectorAll('a')].map((a) =>
@@ -233,6 +237,16 @@ describe('<ChatPanel>', () => {
     expect(links).toEqual(['https://a.example/x', 'https://b.example/y'])
     expect(group?.textContent).toContain('about a')
     expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    // Brought into view once: a later message does not scroll it back.
+    expect(store.get(chatPanelAtom).runId).toBeUndefined()
+    act(() => store.set(chatMessagesAtom, [...messages, user('r3', 'more')]))
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps an asked-for run that is not listed yet, for a later message to bring', () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn()
+    const { store } = mount({ open: true, section: 'sources', runId: 'r9' })
+    expect(store.get(chatPanelAtom).runId).toBe('r9')
   })
 
   it('says what will show up when there is nothing yet', () => {

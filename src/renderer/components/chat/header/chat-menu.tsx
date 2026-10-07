@@ -9,6 +9,7 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useAtomValue, useSetAtom } from 'jotai'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
@@ -22,7 +23,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useUpdateChat } from '@/hooks/use-chat-history'
 import { chatToMarkdown, exportFileName } from '@/lib/chat-export'
-import { cn, downloadFile } from '@/lib/utils'
+import { cn, convertToUIMessages, downloadFile } from '@/lib/utils'
+import { fetchChatMessages } from '@/services/chat'
 import { markdownToPdf } from '@/services/tools'
 import {
   chatMessagesAtom,
@@ -43,36 +45,52 @@ export function ChatMenu({ chat }: { chat: Chat | undefined }) {
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
   const { mutate: updateChat } = useUpdateChat()
+  const [exporting, setExporting] = useState(false)
 
   if (!chat) return null
 
-  const markdown = () =>
-    chatToMarkdown(chat.title, messages, {
-      you: t('chat:export.you'),
-      assistant: t('chat:export.assistant'),
-      references: t('chat:deepResearchCard.referencesHeading'),
-      pictures: (count) => t('chat:export.pictures', { count }),
-      tool: (name) => t('chat:export.tool', { name })
-    })
-  const exportMarkdown = () =>
-    downloadFile(
-      new Blob([markdown()], { type: 'text/markdown;charset=utf-8' }),
-      `${exportFileName(chat.title)}.md`
+  // The atom holds only the page <Chat> has loaded (its newest runs, long
+  // rows cut), so an export fetches the whole chat and is written from that.
+  const exportDocument = async () =>
+    chatToMarkdown(
+      chat.title,
+      convertToUIMessages(await fetchChatMessages(chat.id)),
+      {
+        you: t('chat:export.you'),
+        assistant: t('chat:export.assistant'),
+        references: t('chat:deepResearchCard.referencesHeading'),
+        pictures: (count) => t('chat:export.pictures', { count }),
+        tool: (name) => t('chat:export.tool', { name })
+      }
     )
-  const exportPdf = async () => {
+  const run = async (save: (markdown: string) => Promise<void> | void) => {
+    setExporting(true)
     try {
-      downloadFile(
-        await markdownToPdf(markdown()),
-        `${exportFileName(chat.title)}.pdf`
-      )
+      await save(await exportDocument())
     } catch (error) {
       sileo.error({
         title: t('chat:header.exportFailed'),
         description: error instanceof Error ? error.message : undefined
       })
+    } finally {
+      setExporting(false)
     }
   }
-  const empty = messages.length === 0
+  const exportMarkdown = () =>
+    run((markdown) =>
+      downloadFile(
+        new Blob([markdown], { type: 'text/markdown;charset=utf-8' }),
+        `${exportFileName(chat.title)}.md`
+      )
+    )
+  const exportPdf = () =>
+    run(async (markdown) =>
+      downloadFile(
+        await markdownToPdf(markdown),
+        `${exportFileName(chat.title)}.pdf`
+      )
+    )
+  const off = messages.length === 0 || exporting
 
   return (
     <DropdownMenu>
@@ -118,14 +136,14 @@ export function ChatMenu({ chat }: { chat: Chat | undefined }) {
           </span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled={empty} onClick={exportMarkdown}>
+        <DropdownMenuItem disabled={off} onClick={() => void exportMarkdown()}>
           <HugeiconsIcon
             icon={FileExportIcon}
             className="text-muted-foreground"
           />
           <span>{t('chat:header.exportMarkdown')}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem disabled={empty} onClick={() => void exportPdf()}>
+        <DropdownMenuItem disabled={off} onClick={() => void exportPdf()}>
           <HugeiconsIcon icon={Pdf01Icon} className="text-muted-foreground" />
           <span>{t('chat:header.exportPdf')}</span>
         </DropdownMenuItem>

@@ -21,4 +21,22 @@ describe('printDocument', () => {
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
   })
+
+  it('prints a remote picture as a link to it, never as an <img> the window would fetch', () => {
+    const html = printDocument('![alt](https://attacker.example/p.png)')
+    expect(html).not.toContain('<img')
+    expect(html).toContain('<a href="https://attacker.example/p.png">alt</a>')
+    expect(printDocument('![](https://attacker.example/p.png)')).toContain(
+      '<a href="https://attacker.example/p.png">https://attacker.example/p.png</a>'
+    )
+  })
+
+  it('draws only a raster data: picture', () => {
+    expect(
+      printDocument('![dot](data:image/png;base64,iVBORw0KGgo=)')
+    ).toContain('<img src="data:image/png;base64,iVBORw0KGgo=" alt="dot">')
+    expect(
+      printDocument('![svg](data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=)')
+    ).not.toContain('<img')
+  })
 })
