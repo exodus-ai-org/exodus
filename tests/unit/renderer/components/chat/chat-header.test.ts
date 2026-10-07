@@ -200,4 +200,22 @@ describe('<ChatHeader>', () => {
       `${router.state.location.pathname}${router.state.location.search}`
     ).toBe('/settings?tab=devices')
   })
+
+  it('the phone dot greys out on its own once the last visit ages past the window, with the list unchanged', () => {
+    vi.useFakeTimers()
+    try {
+      lastSeenAt = new Date().toISOString()
+      const { byId } = mount('/')
+      expect(byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('true')
+
+      // Nothing re-renders the dot but its own clock: the minute poll hands
+      // back the same list, which is the same object.
+      act(() => {
+        vi.advanceTimersByTime(6 * 60_000)
+      })
+      expect(byId(TEST_IDS.chat.header.phone)?.dataset.online).toBe('false')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
