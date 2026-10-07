@@ -2,6 +2,7 @@ import { Outlet } from 'react-router'
 
 import { AppToaster } from '@/components/app/app-toaster'
 import { ChatHeader } from '@/components/chat/header/chat-header'
+import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import { ChatPanel } from '@/components/chat/panel/chat-panel'
 import { DeepResearchProcess } from '@/components/deep-research'
 import {
@@ -27,16 +28,24 @@ function ContentHeader() {
   return (
     <header
       className={cn(
-        'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-1 rounded-tl-xl border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+        // 44 px, the sidebar's own top row's height, so the toggle sits at the
+        // same spot in both (Claude's bar is this low). No rule under it: a
+        // shadow that fades into the page instead (owner, 2026-10-08).
+        'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+        'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-linear-to-b after:from-black/[0.06] after:to-transparent dark:after:from-black/35',
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >
-      {/* While the sidebar is open its toggle sits in the sidebar's own top
-          row, by the traffic lights (as Notes and ChatGPT keep it); it comes
-          here only once the sidebar is away, so it can be brought back. The
-          header stays a drag region: every control in it is `no-drag`. */}
+      {/* While the sidebar is open its toggle and the history arrows sit in
+          the sidebar's own top row, by the traffic lights (as Notes and
+          ChatGPT keep the toggle); they come here only once the sidebar is
+          away, so it can be brought back. The header stays a drag region:
+          every control in it is `no-drag`. */}
       {!open && (
-        <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+        <>
+          <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+          <HistoryArrows />
+        </>
       )}
       <ChatHeader />
     </header>

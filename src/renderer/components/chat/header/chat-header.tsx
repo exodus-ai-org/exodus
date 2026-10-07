@@ -1,110 +1,41 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  SidebarRightIcon
-} from '@hugeicons/core-free-icons'
-import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
+import { SidebarRightIcon } from '@hugeicons/core-free-icons'
 import { useAtom, useAtomValue } from 'jotai'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
-import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useChatHistory } from '@/hooks/use-chat-history'
-import { useRouteHistory } from '@/hooks/use-route-history'
 import { chatPanelItems, hasPanelItems } from '@/lib/chat-panel-items'
-import { cn } from '@/lib/utils'
 import { chatMessagesAtom, chatPanelAtom } from '@/stores/chat'
 import { chatStatusAtom } from '@/stores/input'
 
 import { ChatMenu } from './chat-menu'
+import { HeaderButton } from './header-button'
 import { ModelChip } from './model-chip'
 import { PhoneDot } from './phone-dot'
 
 /**
- * The chat header (spec 2026-10-08 §2), after the sidebar trigger: `←` `→`
- * over the app's own page history on the left; on a chat page the title, a
- * dot while a reply is on its way, the model chip and the `▾` menu in the
- * middle; the phone dot and the panel toggle on the right. The header is the
- * window's drag region, so every control here is `no-drag`.
+ * The chat header (spec 2026-10-08 §2), after the sidebar toggle and the
+ * history arrows: on the left, on a chat page, the title with a dot while a
+ * reply is on its way, the model chip and the `▾` menu; on the right the
+ * phone dot and the panel toggle. A left-and-right bar, as Claude's (owner,
+ * 2026-10-08), not a centred title. The header is the window's drag region,
+ * so every control here is `no-drag`.
  */
 export function ChatHeader() {
-  const { t } = useTranslation('chat')
   const { id } = useParams<{ id: string }>()
-  const { canGoBack, canGoForward, goBack, goForward } = useRouteHistory()
 
   return (
     <TooltipProvider>
-      <div className="flex min-w-0 flex-1 items-center gap-0.5 self-stretch">
-        <HeaderButton
-          label={t('header.back')}
-          icon={ArrowLeft01Icon}
-          disabled={!canGoBack}
-          onClick={goBack}
-          testId={TEST_IDS.chat.header.back}
-        />
-        <HeaderButton
-          label={t('header.forward')}
-          icon={ArrowRight01Icon}
-          disabled={!canGoForward}
-          onClick={goForward}
-          testId={TEST_IDS.chat.header.forward}
-        />
-        <div className="flex min-w-0 flex-1 items-center justify-center px-2">
-          {id && <TitleGroup id={id} />}
-        </div>
+      <div className="flex min-w-0 flex-1 items-center gap-2 self-stretch">
+        {id && <TitleGroup id={id} />}
+        <div className="min-w-0 flex-1" />
         <PhoneDot />
         {id && <PanelToggle />}
       </div>
     </TooltipProvider>
-  )
-}
-
-function HeaderButton({
-  label,
-  icon,
-  disabled,
-  pressed,
-  onClick,
-  testId
-}: {
-  label: string
-  icon: IconSvgElement
-  disabled?: boolean
-  pressed?: boolean
-  onClick: () => void
-  testId: string
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className={cn(
-              'no-drag text-muted-foreground hover:text-foreground',
-              pressed && 'bg-accent text-foreground'
-            )}
-            aria-label={label}
-            aria-pressed={pressed}
-            disabled={disabled}
-            onClick={onClick}
-            data-testid={testId}
-          />
-        }
-      >
-        <HugeiconsIcon icon={icon} />
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
   )
 }
 
@@ -118,7 +49,7 @@ function TitleGroup({ id }: { id: string }) {
   const replying = status === 'submitted' || status === 'streaming'
 
   return (
-    <div className="no-drag flex max-w-lg min-w-0 items-center gap-2">
+    <div className="no-drag flex max-w-lg min-w-0 items-center gap-2 pl-1">
       <h1
         className="truncate text-sm font-medium"
         title={title}

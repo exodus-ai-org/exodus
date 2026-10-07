@@ -1259,8 +1259,10 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   shown at that message's foot.
 - **The chat header** (`components/chat/header/`, spec
   `docs/superpowers/specs/2026-10-08-chat-header-redesign-design.md`): the
-  browser-like tab strip is gone (2026-10-08). `chat-header.tsx` draws `←`
-  `→` over the app's own page history — a pure stack in `lib/route-history.ts`
+  browser-like tab strip is gone (2026-10-08). `history-arrows.tsx` draws `←`
+  `→` beside the sidebar toggle — in the sidebar's top row while it is open,
+  in the 44 px header (a fading shadow under it, no rule) once it is away —
+  over the app's own page history — a pure stack in `lib/route-history.ts`
   (`historyAtom`, capped at 50, a deleted chat's entries removed), recorded
   once by `useRouteHistoryRecorder` in `layouts/chat-layout/index.tsx`, walked
   by the arrows and by `Mod+[` / `Mod+]` (`Mod+W` closes the chat on screen:

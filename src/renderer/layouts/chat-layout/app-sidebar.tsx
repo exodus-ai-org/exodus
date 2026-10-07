@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { WorkspaceSwitcher } from '@/components/app/workspace-switcher'
+import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import {
   Sidebar,
   SidebarContent,
@@ -42,16 +43,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     >
       <SidebarHeader className="draggable gap-2 pt-2">
         {/* The title bar's row: the sidebar toggle to the right of the traffic
-            lights, where Notes and ChatGPT keep it — at the same spot it takes
-            in the content header once the sidebar is away, so it does not
-            jump; in fullscreen the lights are gone and it moves to the edge. */}
+            lights, where Notes and ChatGPT keep it, and the history arrows
+            beside it (as Claude's) — at the same spot they take in the content
+            header once the sidebar is away, so nothing jumps; in fullscreen
+            the lights are gone and they move to the edge. */}
         <div
           className={cn(
-            'flex h-7 items-center transition-[padding] duration-200 ease-out mt-px',
+            'flex h-7 items-center gap-1 transition-[padding] duration-200 ease-out',
             isFullscreen ? 'pl-2' : 'pl-21'
           )}
         >
           <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+          <HistoryArrows />
         </div>
         <div className="flex items-center px-1">
           <WorkspaceSwitcher />
