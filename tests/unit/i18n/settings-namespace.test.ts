@@ -132,7 +132,11 @@ describe('settings namespace (en)', () => {
       'Close find bar'
     )
     expect(settings.keyboardShortcuts.shortcuts['close-tab'].label).toBe(
-      'Close current tab'
+      'Close chat'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['go-back'].label).toBe('Back')
+    expect(settings.keyboardShortcuts.shortcuts['go-forward'].label).toBe(
+      'Forward'
     )
     expect(settings.keyboardShortcuts.shortcuts['focus-chat-input'].label).toBe(
       'Focus chat input'

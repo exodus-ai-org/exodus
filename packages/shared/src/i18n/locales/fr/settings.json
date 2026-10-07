@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Ouvrir les paramètres"
       },
+      "go-back": {
+        "label": "Précédent"
+      },
+      "go-forward": {
+        "label": "Suivant"
+      },
       "lock-now": {
         "label": "Verrouiller maintenant"
       },
@@ -145,7 +151,7 @@
         "label": "Fermer la barre de recherche"
       },
       "close-tab": {
-        "label": "Fermer l'onglet actuel"
+        "label": "Fermer la discussion"
       },
       "focus-chat-input": {
         "label": "Placer le curseur dans le champ de saisie"

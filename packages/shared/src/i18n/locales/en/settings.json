@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Open settings"
       },
+      "go-back": {
+        "label": "Back"
+      },
+      "go-forward": {
+        "label": "Forward"
+      },
       "lock-now": {
         "label": "Lock now"
       },
@@ -145,7 +151,7 @@
         "label": "Close find bar"
       },
       "close-tab": {
-        "label": "Close current tab"
+        "label": "Close chat"
       },
       "focus-chat-input": {
         "label": "Focus chat input"

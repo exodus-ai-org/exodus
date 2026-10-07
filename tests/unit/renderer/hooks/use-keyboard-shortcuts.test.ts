@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { getDefaultStore } from 'jotai'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -28,6 +29,9 @@ const closeSearchbar = vi.fn(async () => {})
 vi.mock('@/lib/ipc', () => ({ closeSearchbar: () => closeSearchbar() }))
 
 const { useKeyboardShortcuts } = await import('@/hooks/use-keyboard-shortcuts')
+const { historyAtom } = await import('@/stores/history')
+const { EMPTY_HISTORY, pushed } = await import('@/lib/route-history')
+const visit = (...paths: string[]) => paths.reduce(pushed, EMPTY_HISTORY)
 
 function Probe() {
   useKeyboardShortcuts()
@@ -53,6 +57,8 @@ beforeEach(() => {
   disabled = []
   navigate.mockClear()
   closeSearchbar.mockClear()
+  window.location.hash = '#/'
+  getDefaultStore().set(historyAtom, EMPTY_HISTORY)
   root = createRoot(document.createElement('div'))
   act(() => root.render(createElement(Probe)))
 })
@@ -118,5 +124,49 @@ describe('useKeyboardShortcuts', () => {
     press(document.body, 'n', { ctrlKey: true })
     window.removeEventListener('keydown', seen)
     expect(seen).toHaveBeenCalled()
+  })
+
+  it('Mod+W closes the chat on screen: home, nothing deleted, even while typing', () => {
+    window.location.hash = '#/chat/abc'
+    const input = document.createElement('input')
+    document.body.append(input)
+    press(input, 'w', { ctrlKey: true })
+    expect(navigate).toHaveBeenCalledWith('/')
+  })
+
+  it('Mod+W does nothing off a chat page', () => {
+    window.location.hash = '#/'
+    press(document.body, 'w', { ctrlKey: true })
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('Mod+[ goes back along the history and Mod+] forward', () => {
+    const store = getDefaultStore()
+    act(() => store.set(historyAtom, visit('/', '/chat/a')))
+    act(() => root.render(createElement(Probe)))
+
+    press(document.body, '[', { ctrlKey: true })
+    expect(navigate).toHaveBeenCalledWith('/')
+    expect(store.get(historyAtom).index).toBe(0)
+
+    act(() => root.render(createElement(Probe)))
+    press(document.body, ']', { ctrlKey: true })
+    expect(navigate).toHaveBeenLastCalledWith('/chat/a')
+    expect(store.get(historyAtom).index).toBe(1)
+  })
+
+  it('Mod+[ does nothing with no page to go back to', () => {
+    act(() => getDefaultStore().set(historyAtom, visit('/')))
+    act(() => root.render(createElement(Probe)))
+    press(document.body, '[', { ctrlKey: true })
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('go-back turned off in settings does nothing', () => {
+    disabled = ['go-back']
+    act(() => getDefaultStore().set(historyAtom, visit('/', '/chat/a')))
+    act(() => root.render(createElement(Probe)))
+    press(document.body, '[', { ctrlKey: true })
+    expect(navigate).not.toHaveBeenCalled()
   })
 })

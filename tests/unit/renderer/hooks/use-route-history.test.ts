@@ -31,6 +31,10 @@ function Probe() {
     null,
     createElement('span', { id: 'path' }, pathname),
     createElement('button', { id: 'open', onClick: () => navigate('/chat/a') }),
+    createElement('button', {
+      id: 'openB',
+      onClick: () => navigate('/chat/b')
+    }),
     createElement('button', { id: 'home', onClick: () => navigate('/') }),
     createElement('button', {
       id: 'back',
@@ -125,9 +129,9 @@ describe('useRouteHistory', () => {
       index: 0,
       skipNext: false
     })
-    click('open')
+    click('openB')
     expect(store.get(historyAtom)).toEqual({
-      entries: ['/', '/chat/a'],
+      entries: ['/', '/chat/b'],
       index: 1,
       skipNext: false
     })

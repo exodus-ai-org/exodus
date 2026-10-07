@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Abrir configuración"
       },
+      "go-back": {
+        "label": "Atrás"
+      },
+      "go-forward": {
+        "label": "Adelante"
+      },
       "lock-now": {
         "label": "Bloquear ahora"
       },
@@ -145,7 +151,7 @@
         "label": "Cerrar barra de búsqueda"
       },
       "close-tab": {
-        "label": "Cerrar pestaña actual"
+        "label": "Cerrar chat"
       },
       "focus-chat-input": {
         "label": "Enfocar el campo de mensaje"

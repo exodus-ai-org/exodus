@@ -1,13 +1,10 @@
 import type { EffortLevel } from '@exodus/shared/schemas/settings-schema'
 import { AdvancedTools } from '@exodus/shared/types/ai'
-import { Attachment, ChatTab } from '@exodus/shared/types/chat'
+import { Attachment } from '@exodus/shared/types/chat'
 import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { atom } from 'jotai'
 
 import { Chat, DeepResearchMessage } from '@/types/db'
-
-export type { ChatTab }
-export const openTabsAtom = atom<ChatTab[]>([])
 
 export const isFullTextSearchVisibleAtom = atom(false)
 

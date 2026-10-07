@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "設定を開く"
       },
+      "go-back": {
+        "label": "戻る"
+      },
+      "go-forward": {
+        "label": "進む"
+      },
       "lock-now": {
         "label": "今すぐロック"
       },
@@ -145,7 +151,7 @@
         "label": "検索バーを閉じる"
       },
       "close-tab": {
-        "label": "現在のタブを閉じる"
+        "label": "チャットを閉じる"
       },
       "focus-chat-input": {
         "label": "チャット入力欄にフォーカス"

@@ -193,8 +193,6 @@ import type { WebSearchResult } from './web-search'
 
 export type ChatStatus = 'idle' | 'submitted' | 'streaming' | 'error'
 
-export type ChatTab = { id: string; title: string }
-
 export interface SendMessageOptions {
   text?: string
   attachments?: Attachment[]

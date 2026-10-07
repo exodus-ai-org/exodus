@@ -41,11 +41,7 @@ import { useChatHistory, useUpdateChat } from '@/hooks/use-chat-history'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { cn } from '@/lib/utils'
-import {
-  openTabsAtom,
-  renamedChatTitleAtom,
-  toBeDeletedChatAtom
-} from '@/stores/chat'
+import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
 import type { Chat } from '@/types/db'
 
 /**
@@ -95,7 +91,6 @@ export const NavItems = memo(function NavItems({
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
-  const setOpenTabs = useSetAtom(openTabsAtom)
   const { handleCopy } = useClipboard()
 
   // The id is what another chat is given to read this one: pasted into a
@@ -110,18 +105,7 @@ export const NavItems = memo(function NavItems({
     <SidebarMenuItem className={cn(className, 'h-8')}>
       <SidebarMenuButton
         isActive={chat.id === id}
-        render={
-          <Link
-            to={`/chat/${chat.id}`}
-            onClick={() =>
-              setOpenTabs((prev) =>
-                prev.find((tab) => tab.id === chat.id)
-                  ? prev
-                  : [...prev, { id: chat.id, title: chat.title }]
-              )
-            }
-          />
-        }
+        render={<Link to={`/chat/${chat.id}`} />}
       >
         <span className="min-w-0 flex-1 truncate">{chat.title}</span>
         <span className="text-muted-foreground shrink-0 text-[10px]">

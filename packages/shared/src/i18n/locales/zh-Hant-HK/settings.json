@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "開啟設定"
       },
+      "go-back": {
+        "label": "上一頁"
+      },
+      "go-forward": {
+        "label": "下一頁"
+      },
       "lock-now": {
         "label": "立即鎖定"
       },
@@ -145,7 +151,7 @@
         "label": "關閉尋找列"
       },
       "close-tab": {
-        "label": "關閉目前分頁"
+        "label": "關閉聊天"
       },
       "focus-chat-input": {
         "label": "聚焦聊天輸入框"

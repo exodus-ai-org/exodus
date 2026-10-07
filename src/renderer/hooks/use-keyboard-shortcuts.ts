@@ -5,9 +5,10 @@ import { useSetAtom } from 'jotai'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useRouteHistory } from '@/hooks/use-route-history'
 import { useSettings } from '@/hooks/use-settings'
 import { closeSearchbar } from '@/lib/ipc'
-import { isFullTextSearchVisibleAtom, openTabsAtom } from '@/stores/chat'
+import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 
 const isMac = navigator.platform.toUpperCase().includes('MAC')
 
@@ -35,7 +36,8 @@ export type ShortcutDef = {
  * Static shortcut map consumed by both the hook and the Settings page.
  * `keys` uses a normalized format: modifier symbols + key name. `id` is a
  * stable key for persisting per-shortcut enabled/disabled state — never
- * rename an existing id, it's stored in settings.
+ * rename an existing id, it's stored in settings (`close-tab` is the tab
+ * strip's id, kept for "Close chat").
  */
 export const SHORTCUT_MAP: ShortcutDef[] = [
   {
@@ -48,6 +50,18 @@ export const SHORTCUT_MAP: ShortcutDef[] = [
     id: 'open-settings',
     keys: [MOD_KEY, ','],
     labelKey: 'keyboardShortcuts.shortcuts.open-settings.label',
+    category: 'General'
+  },
+  {
+    id: 'go-back',
+    keys: [MOD_KEY, '['],
+    labelKey: 'keyboardShortcuts.shortcuts.go-back.label',
+    category: 'General'
+  },
+  {
+    id: 'go-forward',
+    keys: [MOD_KEY, ']'],
+    labelKey: 'keyboardShortcuts.shortcuts.go-forward.label',
     category: 'General'
   },
   {
@@ -138,6 +152,9 @@ export const CATEGORY_TITLE_KEYS = {
   Search: 'keyboardShortcuts.category.search'
 } as const satisfies Record<ShortcutDef['category'], ParseKeys<'settings'>>
 
+/** A chat page's hash: `#/chat/<id>`. */
+const CHAT_HASH = /^#\/chat\/.+/u
+
 /**
  * Central keyboard shortcuts listener. Mount once at the ChatLayout level.
  * Backed by TanStack Hotkeys' singleton manager — no manual addEventListener
@@ -148,7 +165,7 @@ export const CATEGORY_TITLE_KEYS = {
 export function useKeyboardShortcuts() {
   const navigate = useNavigate()
   const setSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
-  const setOpenTabs = useSetAtom(openTabsAtom)
+  const { canGoBack, canGoForward, goBack, goForward } = useRouteHistory()
   const { data: settings } = useSettings()
   const disabled = useMemo(
     () => new Set(settings?.keyboardShortcuts?.disabled ?? []),
@@ -172,8 +189,8 @@ export function useKeyboardShortcuts() {
       },
       {
         // Skips inputs to match the app's existing convention that Mod+N
-        // shouldn't fire while the user is mid-typing (Mod+W/Shift+F/Shift+E
-        // are the deliberate exceptions below).
+        // shouldn't fire while the user is mid-typing (Mod+W, the arrows,
+        // Shift+F and Shift+E are the deliberate exceptions below).
         hotkey: 'Mod+N',
         callback: () => navigate('/'),
         options: { enabled: !disabled.has('new-chat'), ignoreInputs: true }
@@ -184,28 +201,25 @@ export function useKeyboardShortcuts() {
         options: { enabled: !disabled.has('open-settings'), ignoreInputs: true }
       },
       {
-        // Always works, including while typing — closing/switching tabs from
-        // the composer is the whole point.
+        // Closes the chat on screen — home, nothing deleted; off a chat page
+        // it does nothing. Works while typing: closing the chat from the
+        // composer is the point.
         hotkey: 'Mod+W',
         callback: () => {
-          // Extract active tab id from URL hash: #/chat/:id
-          const match = window.location.hash.match(/^#\/chat\/(.+)$/)
-          if (!match) return
-          const activeId = match[1]
-          setOpenTabs((prev) => {
-            const idx = prev.findIndex((t) => t.id === activeId)
-            if (idx === -1) return prev
-            const next = prev.filter((t) => t.id !== activeId)
-            if (next.length > 0) {
-              const target = next[Math.max(0, idx - 1)]
-              navigate(`/chat/${target.id}`)
-            } else {
-              navigate('/')
-            }
-            return next
-          })
+          if (CHAT_HASH.test(window.location.hash)) navigate('/')
         },
         options: { enabled: !disabled.has('close-tab') }
+      },
+      {
+        // The header's `←` `→` (macOS's convention), from the composer too.
+        hotkey: 'Mod+[',
+        callback: goBack,
+        options: { enabled: !disabled.has('go-back') && canGoBack }
+      },
+      {
+        hotkey: 'Mod+]',
+        callback: goForward,
+        options: { enabled: !disabled.has('go-forward') && canGoForward }
       },
       {
         hotkey: 'Mod+Shift+F',
