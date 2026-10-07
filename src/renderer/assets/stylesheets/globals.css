@@ -19,6 +19,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-code: var(--code);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
@@ -204,6 +205,10 @@ html:lang(ko) {
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
+  /* A code block's panel: neutral in every tone — a tone tints --muted, and
+     code on a tinted panel read as part of the decoration (owner,
+     2026-10-08). Only :root and .dark set it. */
+  --code: oklch(0.97 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -242,6 +247,7 @@ html:lang(ko) {
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
+  --code: oklch(0.269 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -818,9 +824,10 @@ html:lang(ko) {
      Scroll long lines / tall dumps instead of clipping them or letting the
      block blow out the message column. */
   /* One panel, one background: the header strip and the highlighted code
-     share it (the highlighter's own is transparent); no border. */
+     share it (the highlighter's own is transparent); no border. Neutral in
+     every tone (--code), unlike the inline chips. */
   .markdown :where(pre) {
-    @apply bg-muted max-h-[32rem] max-w-full overflow-auto rounded-2xl p-0 text-inherit;
+    @apply bg-code max-h-[32rem] max-w-full overflow-auto rounded-2xl p-0 text-inherit;
   }
 
   /* Paragraphs — normal wrapping (soft newlines collapse to spaces, the way

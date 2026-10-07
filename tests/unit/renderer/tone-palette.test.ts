@@ -183,3 +183,29 @@ describe('text in the tone’s colour', () => {
     expect(offenders).toEqual([])
   })
 })
+
+describe('a code block’s panel', () => {
+  // A tone tints `--muted`; code on a tinted panel read as part of the
+  // decoration (owner, 2026-10-08), so the panel has a token of its own that
+  // only the two neutral schemes set.
+  it('is neutral in every tone: --code is set by :root and .dark alone', () => {
+    expect(block(':root')['--code']).toBe('oklch(0.97 0 0)')
+    expect(block('.dark')['--code']).toBe('oklch(0.269 0 0)')
+    for (const palette of palettes) {
+      if (palette.name.startsWith('neutral')) continue
+      expect(palette.tokens['--code'], palette.name).toBeUndefined()
+    }
+  })
+
+  it('and its header strip both use it, never --muted', () => {
+    expect(css).toMatch(/\.markdown :where\(pre\) \{\s*@apply bg-code /u)
+    const markdown = readFileSync(
+      join(ROOT, 'src/renderer/components/markdown/markdown.tsx'),
+      'utf8'
+    )
+    expect(markdown).toContain(
+      'className="bg-code text-muted-foreground sticky'
+    )
+    expect(markdown).not.toContain('bg-muted text-muted-foreground sticky')
+  })
+})
