@@ -293,7 +293,6 @@ export function PlaceDetail({
                   ? `tel:${place.phone.replace(/\s+/g, '')}`
                   : undefined
               }
-              monospace
             />
             <ContactRow
               icon={<HugeiconsIcon icon={Globe02Icon} size={12} />}
@@ -439,26 +438,16 @@ function ContactRow({
   icon,
   text,
   href,
-  monospace,
   truncate
 }: {
   icon: React.ReactNode
   text: string | undefined
   href?: string
-  monospace?: boolean
   truncate?: boolean
 }) {
   if (!text) return null
   const content = (
-    <span
-      className={cn(
-        'min-w-0 flex-1',
-        monospace && 'font-mono',
-        truncate && 'truncate'
-      )}
-    >
-      {text}
-    </span>
+    <span className={cn('min-w-0 flex-1', truncate && 'truncate')}>{text}</span>
   )
   return (
     <div className="text-muted-foreground flex items-start gap-2 text-xs">

@@ -176,7 +176,7 @@ function ServerCard({
         </>
       }
       description={
-        <p className="truncate font-mono text-xs">
+        <p className="truncate text-xs">
           {isRemote
             ? maskUrlSecrets(server.url ?? '')
             : `${server.command} ${(server.args ?? []).join(' ')}`}
@@ -253,7 +253,7 @@ function ServerCard({
                   className={cn('flex min-w-0 flex-col', ENTER_UP)}
                   style={staggerDelay(index)}
                 >
-                  <p className="font-mono text-xs font-medium">{tool.name}</p>
+                  <p className="text-xs font-medium">{tool.name}</p>
                   {tool.description && (
                     <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-[11px] [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
                       <Markdown src={tool.description} />

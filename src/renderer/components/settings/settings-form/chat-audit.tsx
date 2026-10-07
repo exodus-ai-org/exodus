@@ -165,7 +165,7 @@ export function ChatAudit() {
                       <Badge
                         key={table.name}
                         variant="secondary"
-                        className="gap-1.5 font-mono"
+                        className="gap-1.5"
                       >
                         {table.name}
                         <span className="text-muted-foreground tabular-nums">
@@ -175,7 +175,6 @@ export function ChatAudit() {
                     ))}
                     <Badge
                       variant={snapshot.logsIncluded ? 'secondary' : 'outline'}
-                      className="font-mono"
                     >
                       {snapshot.logsIncluded
                         ? t('chatAudit.snapshot.logsIncluded')
@@ -274,7 +273,7 @@ export function ChatAudit() {
           onRun={() => run(sql)}
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted-foreground font-mono text-xs">
+          <p className="text-muted-foreground text-xs">
             {t('chatAudit.query.tables')}
           </p>
           <div className="flex items-center gap-3">
@@ -309,7 +308,7 @@ export function ChatAudit() {
         <Alert variant="destructive">
           <HugeiconsIcon icon={Alert02Icon} />
           <AlertTitle>{t('chatAudit.results.failed')}</AlertTitle>
-          <AlertDescription className="font-mono text-xs whitespace-pre-wrap">
+          <AlertDescription className="text-xs whitespace-pre-wrap">
             {error}
           </AlertDescription>
         </Alert>
@@ -325,7 +324,7 @@ export function ChatAudit() {
           plain
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="text-muted-foreground font-mono text-xs">
+            <span className="text-muted-foreground text-xs">
               {t('chatAudit.results.duration', { ms: result.durationMs })}
             </span>
             <Button
@@ -356,7 +355,7 @@ export function ChatAudit() {
               data-testid={TEST_IDS.chatAudit.resultsTable}
               className="max-h-[28rem] overflow-auto rounded-xl border"
             >
-              <Table className="font-mono text-xs">
+              <Table className="text-xs">
                 <TableHeader className="bg-background sticky top-0 z-10">
                   <TableRow>
                     {result.columns.map((col) => (

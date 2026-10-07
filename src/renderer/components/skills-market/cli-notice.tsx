@@ -61,7 +61,7 @@ export function CliQuickStart() {
           value={manager}
           onValueChange={(value) => setManager(value as PackageManager)}
         >
-          <TabsList className="font-mono group-data-horizontal/tabs:h-6">
+          <TabsList className="group-data-horizontal/tabs:h-6">
             {PACKAGE_MANAGERS.map((name) => (
               <TabsTrigger key={name} value={name} className="px-2 text-xs">
                 {name}

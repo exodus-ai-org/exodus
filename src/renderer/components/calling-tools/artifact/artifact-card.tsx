@@ -127,7 +127,7 @@ function UrlPill({
       aria-label={t('artifactCard.revealAriaLabel', { title })}
       title={t('artifactCard.revealTitle')}
       className={cn(
-        'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
+        'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left text-[11.5px] leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
         'hover:bg-muted cursor-pointer'
       )}

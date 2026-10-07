@@ -312,7 +312,7 @@ describe('philharmonic namespace workforce delete-dialog descriptions render cor
       )
     )
     expect(html).toBe(
-      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Ada</span> will be permanently removed along with their accumulated memory.'
+      '<span class="bg-background rounded-md px-1.5 py-0.5 text-xs">Ada</span> will be permanently removed along with their accumulated memory.'
     )
   })
 
@@ -341,7 +341,7 @@ describe('philharmonic namespace workforce delete-dialog descriptions render cor
       )
     )
     expect(html).toBe(
-      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Marketing</span> will be removed. Existing members keep their records but lose this team affiliation.'
+      '<span class="bg-background rounded-md px-1.5 py-0.5 text-xs">Marketing</span> will be removed. Existing members keep their records but lose this team affiliation.'
     )
   })
 })
@@ -399,7 +399,7 @@ describe('philharmonic namespace chat.conversationList.deleteDialog.description 
       )
     )
     expect(html).toBe(
-      '<span class="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">Marketing Team</span> and all its messages, tasks, and executions will be permanently removed.'
+      '<span class="bg-muted rounded-sm px-1.5 py-0.5 text-xs">Marketing Team</span> and all its messages, tasks, and executions will be permanently removed.'
     )
   })
 })

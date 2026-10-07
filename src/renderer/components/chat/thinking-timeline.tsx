@@ -16,6 +16,7 @@ import {
   CancelCircleIcon
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { capitalCase } from 'change-case'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -184,7 +185,7 @@ function FoldedCard({
   const exitCode = terminal ? terminalExitCode(step.toolResult) : null
   const label = terminal
     ? exitCode === null
-      ? step.toolName
+      ? capitalCase(step.toolName ?? '')
       : t('terminalCard.exitCode', { code: exitCode })
     : (foldedFileName(step.toolResult) ?? step.toolName)
   return (
@@ -193,7 +194,7 @@ function FoldedCard({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-mono text-[11.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[11.5px] transition-colors"
       >
         <HugeiconsIcon
           icon={ArrowDown01Icon}

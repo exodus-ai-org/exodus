@@ -6,6 +6,7 @@ import {
   Wrench01Icon
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { capitalCase } from 'change-case'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -252,7 +253,7 @@ function ToolsSection({ tools }: { tools: ChatToolUse[] }) {
               <HugeiconsIcon icon={Wrench01Icon} />
             </span>
           }
-          name={<span className="font-mono">{tool.name}</span>}
+          name={capitalCase(tool.name)}
           caption={t('panel.calls', { count: tool.count })}
           onClick={() => scrollToRun(tool.lastRunId)}
         />

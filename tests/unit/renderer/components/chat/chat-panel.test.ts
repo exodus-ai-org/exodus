@@ -209,13 +209,13 @@ describe('<ChatPanel>', () => {
     expect(store.get(revealArtifactAtom)).toBe('r1-create_artifact-call')
   })
 
-  it('lists the tools most used first with their counts, a row scrolling to the latest call', () => {
+  it('lists the tools by their capital-case names, most used first with their counts, a row scrolling to the latest call', () => {
     const { host } = mount({ open: true, section: 'tools' })
     const items = rows(host)
     expect(items.map((r) => r.textContent)).toEqual([
-      'web_searchpanel.calls(2)',
-      'create_artifactpanel.calls(1)',
-      'write_filepanel.calls(1)'
+      'Web Searchpanel.calls(2)',
+      'Create Artifactpanel.calls(1)',
+      'Write Filepanel.calls(1)'
     ])
     act(() => items[0].click())
     expect(scrollToRun).toHaveBeenCalledWith('r2')

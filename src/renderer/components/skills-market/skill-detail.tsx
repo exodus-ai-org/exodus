@@ -280,13 +280,9 @@ export function SkillDetailPage({
             {t('skillsMarket.detail.files', { count: bundled.length })}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            {/* Paths are what you'd type, so they stay mono. */}
             <Card className="divide-border gap-0 divide-y py-0">
               {bundled.map((f) => (
-                <div
-                  key={f.path}
-                  className="truncate px-4 py-2 font-mono text-xs"
-                >
+                <div key={f.path} className="truncate px-4 py-2 text-xs">
                   {f.path}
                 </div>
               ))}

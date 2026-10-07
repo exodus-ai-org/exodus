@@ -142,7 +142,7 @@ export function DataControls() {
                   className={cn('flex items-center justify-between', ENTER_UP)}
                   style={staggerDelay(index)}
                 >
-                  <span className="flex items-center gap-2 font-mono">
+                  <span className="flex items-center gap-2">
                     <HugeiconsIcon
                       icon={Archive02Icon}
 

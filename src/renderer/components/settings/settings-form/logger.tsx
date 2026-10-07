@@ -246,7 +246,7 @@ export function Logger() {
           <button
             type="button"
             data-testid={TEST_IDS.logger.traceFilterChip}
-            className="border-border bg-muted/50 hover:bg-muted flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-xs"
+            className="border-border bg-muted/50 hover:bg-muted flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
             onClick={() => {
               setTraceId(null)
               setPage(1)
@@ -315,7 +315,7 @@ export function Logger() {
                   setExpandedIndex(expandedIndex === idx ? null : idx)
                 }
               >
-                <span className="text-muted-foreground w-[90px] shrink-0 font-mono">
+                <span className="text-muted-foreground w-[90px] shrink-0 tabular-nums">
                   {formatTime(entry.timestamp)}
                 </span>
                 <span className="w-[60px] shrink-0">
@@ -343,7 +343,7 @@ export function Logger() {
                     <Badge
                       variant="secondary"
                       data-testid={TEST_IDS.logger.traceBadge}
-                      className="cursor-pointer font-mono text-[10px]"
+                      className="cursor-pointer text-[10px]"
                       onClick={(e) => {
                         e.stopPropagation()
                         setTraceId(entry.traceId!)
@@ -357,7 +357,7 @@ export function Logger() {
                   {entry.originTraceId && (
                     <Badge
                       variant="outline"
-                      className="cursor-pointer font-mono text-[10px]"
+                      className="cursor-pointer text-[10px]"
                       onClick={(e) => {
                         e.stopPropagation()
                         setTraceId(entry.originTraceId!)
@@ -375,7 +375,7 @@ export function Logger() {
                   {/* A stack as a block of its own, then the rest as JSON. */}
                   <LogAttributes attributes={entry.attributes} />
                   {(entry.traceId || entry.originTraceId) && (
-                    <div className="text-muted-foreground font-mono text-[11px]">
+                    <div className="text-muted-foreground text-[11px]">
                       {entry.traceId && <div>traceId: {entry.traceId}</div>}
                       {entry.originTraceId && (
                         <div>originTraceId: {entry.originTraceId}</div>

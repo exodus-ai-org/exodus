@@ -64,9 +64,7 @@ export function DeleteGroupDescription({ title }: { title: string }) {
       i18nKey="chat.conversationList.deleteDialog.description"
       values={{ title }}
     >
-      <span className="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">
-        {title}
-      </span>{' '}
+      <span className="bg-muted rounded-sm px-1.5 py-0.5 text-xs">{title}</span>{' '}
       and all its messages, tasks, and executions will be permanently removed.
     </Trans>
   )

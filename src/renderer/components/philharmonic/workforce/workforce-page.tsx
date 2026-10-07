@@ -293,7 +293,7 @@ export function DeleteEmployeeDescription({ name }: { name: string }) {
       i18nKey="workforce.deleteEmployeeDialog.description"
       values={{ name }}
     >
-      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+      <span className="bg-background rounded-md px-1.5 py-0.5 text-xs">
         {name}
       </span>{' '}
       will be permanently removed along with their accumulated memory.
@@ -308,7 +308,7 @@ export function DeleteTeamDescription({ name }: { name: string }) {
       i18nKey="workforce.deleteTeamDialog.description"
       values={{ name }}
     >
-      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+      <span className="bg-background rounded-md px-1.5 py-0.5 text-xs">
         {name}
       </span>{' '}
       will be removed. Existing members keep their records but lose this team
