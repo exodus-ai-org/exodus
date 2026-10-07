@@ -67,10 +67,10 @@ function AboutHeader() {
   )
 }
 
-/** A read-only fact on the right of a row — versions line up in mono digits. */
+/** A read-only fact on the right of a row. */
 function Value({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-muted-foreground font-mono text-sm tabular-nums">
+    <span className="text-muted-foreground text-sm tabular-nums">
       {children}
     </span>
   )
