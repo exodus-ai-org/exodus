@@ -7,13 +7,12 @@ import { splitQuoted } from '@exodus/shared/utils/quoted-text'
 import { memo, type RefObject, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { SCROLL_OFFSET, scrollRunIntoView } from '@/lib/scroll-to-run'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
 // Below this many user messages there is nothing worth navigating.
 const MIN_ENTRIES = 2
-// Where a jumped-to message lands, measured from the scroll container's top.
-const SCROLL_OFFSET = 88
 
 interface TocEntry {
   id: string
@@ -160,16 +159,7 @@ function ChatTocImpl({
 
   const scrollToEntry = (id: string) => {
     const container = scrollContainerRef.current
-    const node = container?.querySelector<HTMLElement>(
-      `[data-user-msg-id="${CSS.escape(id)}"]`
-    )
-    if (!container || !node) return
-    const delta =
-      node.getBoundingClientRect().top -
-      container.getBoundingClientRect().top -
-      SCROLL_OFFSET
-    container.scrollBy({ top: delta, behavior: 'smooth' })
-    setActiveId(id)
+    if (container && scrollRunIntoView(container, id)) setActiveId(id)
   }
 
   const open = () => {

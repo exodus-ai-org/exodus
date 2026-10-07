@@ -5,6 +5,7 @@ import {
 import { Maximize01Icon, Minimize01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useHotkey } from '@tanstack/react-hotkeys'
+import { useAtom } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +18,7 @@ import {
   unsubscribeFullScreenChanged
 } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
+import { revealArtifactAtom } from '@/stores/chat'
 
 interface ArtifactDetails {
   type: 'artifact'
@@ -228,10 +230,13 @@ function FullscreenChromeBar({
 
 export function ArtifactCard({
   chatId,
-  toolResult
+  toolResult,
+  toolCallId
 }: {
   chatId: string
   toolResult: ArtifactDetails
+  /** The call's id: the header's panel names it to open this card. */
+  toolCallId?: string
 }) {
   const inlineIframeRef = useRef<HTMLIFrameElement>(null)
   const fullscreenIframeRef = useRef<HTMLIFrameElement>(null)
@@ -240,6 +245,14 @@ export function ArtifactCard({
   const codeRef = useRef(toolResult.code)
   const titleRef = useRef(toolResult.title)
   const [expanded, setExpanded] = useState(false)
+  const [reveal, setReveal] = useAtom(revealArtifactAtom)
+  // The panel's Files row for this artifact: open full screen, once.
+  useEffect(() => {
+    if (toolCallId && reveal === toolCallId) {
+      setExpanded(true)
+      setReveal(null)
+    }
+  }, [reveal, toolCallId, setReveal])
   const isNativeFullscreen = useIsNativeFullscreen()
 
   // Keep refs current so the message listener (attached once) always reads

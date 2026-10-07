@@ -175,7 +175,11 @@ function CallingTools({
         )}
       {toolName === TOOL_NAMES.createArtifact &&
         output?.type === 'artifact' && (
-          <ArtifactCard chatId={chatId} toolResult={output} />
+          <ArtifactCard
+            chatId={chatId}
+            toolResult={output}
+            toolCallId={toolResult.toolCallId}
+          />
         )}
       {!BUILTIN_TOOL_NAMES.has(toolName) &&
         (isDrawioOutput(output) ? (

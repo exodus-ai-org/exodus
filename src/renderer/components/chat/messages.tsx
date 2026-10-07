@@ -880,6 +880,7 @@ function Messages({
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
         )}
+        data-chat-scroll=""
         ref={chatBoxRef}
         onScroll={handleScroll}
       >

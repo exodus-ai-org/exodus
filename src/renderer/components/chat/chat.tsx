@@ -13,7 +13,11 @@ import { v4 as uuidV4 } from 'uuid'
 import { useChooseAttempt } from '@/hooks/use-attempts'
 import { useChat } from '@/hooks/use-chat'
 import { useOlderPages } from '@/hooks/use-older-pages'
-import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
+import {
+  advancedToolsAtom,
+  chatMessagesAtom,
+  reasoningEffortAtom
+} from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import MultimodalInput from './composer/composer'
@@ -63,6 +67,7 @@ export function Chat({
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
   const setChatStop = useSetAtom(chatStopFnAtom)
+  const setChatMessages = useSetAtom(chatMessagesAtom)
 
   const [title, setTitle] = useState(chatTitle)
 
@@ -117,6 +122,15 @@ export function Chat({
   useEffect(() => {
     setChatStop(() => stop)
   }, [stop, setChatStop])
+
+  // What the header and its panel show — pictures, tool results, sources —
+  // arrives whole, as a message: published when one is added or the stream
+  // settles, not on every frame of a reply.
+  useEffect(() => {
+    setChatMessages(messages)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- a message added, or the stream settled
+  }, [messages.length, status, setChatMessages])
+  useEffect(() => () => setChatMessages([]), [setChatMessages])
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
