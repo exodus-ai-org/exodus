@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 
 import { AppToaster } from '@/components/app/app-toaster'
+import { ChatHeader } from '@/components/chat/header/chat-header'
 import { ChatPanel } from '@/components/chat/panel/chat-panel'
 import { DeepResearchProcess } from '@/components/deep-research'
 import {
@@ -37,6 +38,7 @@ function ContentHeader() {
       {!open && (
         <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
       )}
+      <ChatHeader />
     </header>
   )
 }

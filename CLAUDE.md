@@ -157,7 +157,7 @@ Exodus is the successor of the older `universal-client` app and shares its
   where the legacy-location migration looks. There is no `-dev` variant of
   anything.
 - **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
-60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
+  60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
   renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
   can reach it. `LAN_SERVER_PORT = 63129` is what `exodus-ios` on a device
   connects to. Don't change either without updating the clients.
@@ -614,7 +614,7 @@ either client's chat code, and keep it true in the same change.
    accepted; only its last message is used). The question is stamped with the
    server's clock (every read orders by `createdAt`). With `protocol: 2`,
    `done` is `{ messages: <the run: its question as stored, then its
-answer>, attempts: <every group's stored state> }` and the client merges
+   answer>, attempts: <every group's stored state> }` and the client merges
    (`mergeRun()` in `packages/shared/src/utils/run-merge.ts`; exodus-ios
    `RunMerge`, same vectors); without it, `done` echoes the whole
    conversation (read from the database) as before
@@ -985,7 +985,7 @@ A local PIN lock protects the app and gates all API access.
 - Main process: `src/main/lib/lock/` (`lock-manager` state machine, `pin-store` using scrypt + Electron `safeStorage`, `idle-watcher`, `lock-config`, IPC handlers)
 - The `lockGate` middleware rejects every `/api/*` request with `423` while locked (`/api/v1/lock/unlock` excepted, below)
 - Unlock is IPC (the lock screen: PIN, or the Mac's Touch ID) or `POST
-/api/v1/lock/unlock` (`routes/lock.ts`), the one API route mounted ahead of
+  /api/v1/lock/unlock` (`routes/lock.ts`), the one API route mounted ahead of
   `lockGate`. It reads no PIN: a paired device's own biometric (Face ID on
   the phone) stands in for it, the way Touch ID does locally — the trust is
   in holding a device token. `authGate` still runs first, so on the LAN only
@@ -1126,7 +1126,7 @@ Their windows live in `src/main/lib/window.ts`.
   echo through `useForm({ values: settings })` and loop the autosave), so it `try`/`catch`es the write
   itself and toasts both outcomes directly, instead of going through a `useMutation`.
 - Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
-'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
+  'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
   (exodus-ios, exodus-cli, the phone) can change: chat history,
   devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
   (`use-chat-history.ts`, `use-devices.ts`, `use-installed-skills.ts`,
@@ -1257,6 +1257,26 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   is what Copy, read-aloud and the Sources panel take as the answer. A
   provider error is pinned to the run it ended (`useChat().runError`) and
   shown at that message's foot.
+- **The chat header** (`components/chat/header/`, spec
+  `docs/superpowers/specs/2026-10-08-chat-header-redesign-design.md`): the
+  browser-like tab strip is gone (2026-10-08). `chat-header.tsx` draws `←`
+  `→` over the app's own page history — a pure stack in `lib/route-history.ts`
+  (`historyAtom`, capped at 50, a deleted chat's entries removed), recorded
+  once by `useRouteHistoryRecorder` in `layouts/chat-layout/index.tsx`, walked
+  by the arrows and by `Mod+[` / `Mod+]` (`Mod+W` closes the chat on screen:
+  home, nothing deleted); on a chat page the title (the history list's, live)
+  with a dot while replying, `model-chip.tsx` (the provider and model from
+  `providerConfig`, a pick from the cached `modelCatalog` saved with its
+  snapshot) and `chat-menu.tsx` (rename, favourite, export as Markdown / PDF
+  through `lib/chat-export.ts` and the `md-to-pdf` route's print sheet
+  `main/lib/pdf/print-document.ts`, delete); `phone-dot.tsx` (a paired phone
+  seen in the last five minutes, `lib/phone-presence.ts`); and the toggle of
+  `components/chat/panel/chat-panel.tsx` — files, tools and sources derived
+  from the open chat's messages (`chatMessagesAtom`, set by `<Chat>` when a
+  message is added or the stream settles) by `lib/chat-panel-items.ts`, each
+  row scrolling to its run (`lib/scroll-to-run.ts`, the rail's rule) and an
+  artifact row opening its card (`revealArtifactAtom`). It replaced the
+  Sources panel: a message's Sources button opens the panel on that run.
 - **A regenerate group is one segment** (`type: 'compare'`, key
   `group:<firstRunId>`; spec
   `docs/superpowers/specs/2026-09-26-regenerate-compare-design.md`): the
@@ -1549,7 +1569,7 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
   registration replaces the one before it, so register last and pass
   `handle.getModel()` in. Modules that one-shot through `completeSimple` are
   mocked at `@main/lib/ai/kernel/models` (`getKernelModels: () => ({
-completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
+  completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
   `tests/unit/main/lib/server/routes/chat.faux.test.ts`
 - **A migration or a query is tested on a real in-memory PGlite** with the
   shipped migrations applied: `createMigratedPglite('0008')` in
@@ -1577,7 +1597,7 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 5. Configure at least one AI provider in settings before chatting
 6. The dev window opens DevTools automatically. A console error whose stack is
    only `VMnnn` / `<anonymous>` frames — e.g. `Cannot read properties of
-undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
+   undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
    frames show `localhost:5173/src/...`, and nothing here depends on
    `web-vitals`): it is the script DevTools injects for the Performance panel's
    Live metrics, and is noise.
@@ -1642,7 +1662,7 @@ undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
    the FULL `<Trans>` children array — text nodes and an explicit `{' '}`
    each occupy their own index too, not just element children. A block
    with two `<code>` children separated by plain text (`[text, <code>,
-text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
+   text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
    anywhere before the second one shifts it to `<4>`. This makes such a
    block fragile against `bun run fmt`/oxfmt reflowing the JSX (a
    line-wrap can insert or remove an explicit `{' '}` with no visible
@@ -1653,7 +1673,7 @@ text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
    renumbering had nothing to fail against. For any `<Trans>` block with
    two or more non-allowlisted (numbered) children, extract it into its
    own exported component and have the test `await
-import('@/path/to/the/file')` and render that component directly —
+   import('@/path/to/the/file')` and render that component directly —
    never hand-copy its children into the test (see `s3.tsx`'s
    `PublicReadAccessNotice` and its render test in
    `tests/unit/i18n/settings-namespace.test.ts` for the pattern). Don't
@@ -1859,7 +1879,7 @@ Main process:
   `~/.exodus/lan-revoked.json` that keeps the listener wanted until
   `authGate` answers that token once, or 30 days pass; a reset replaces the
   certificate, so it keeps none and drops the rest). Routes: `POST
-/api/v1/pair` (code → token), `DELETE /api/v1/pair` (a paired device
+  /api/v1/pair` (code → token), `DELETE /api/v1/pair` (a paired device
   unpairing itself — authenticated by its own token, it leaves the Devices
   list too), `/api/v1/devices` (list, open/close a window, revoke, reset —
   loopback only). Spec:
