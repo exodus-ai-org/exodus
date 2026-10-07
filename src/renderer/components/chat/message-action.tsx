@@ -1,6 +1,7 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { withBlockText } from '@exodus/shared/utils/interactive-plain-text'
 import { Tick02Icon, Copy01Icon, RefreshIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
@@ -90,11 +91,12 @@ export const MessageAction = memo(function MessageAction({
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
 
-  // What leaves the app carries its sources, not the chips' markers.
+  // What leaves the app carries its sources, not the chips' markers, and a
+  // block's words, not its JSON.
   const copyText = useMemo(
     () =>
       withReferences(
-        content,
+        withBlockText(content),
         citationSources ?? [],
         t('deepResearchCard.referencesHeading')
       ),

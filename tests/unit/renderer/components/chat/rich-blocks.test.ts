@@ -10,11 +10,13 @@ import type {
   SendMessageOptions,
   TurnBlock
 } from '@exodus/shared/types/chat'
+import type { EntitySummary } from '@exodus/shared/types/entity'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
   tradingViewEmbedUrl,
   tradingViewSymbolPageUrl
 } from '@exodus/shared/utils/stock-chart'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Provider as JotaiProvider } from 'jotai'
 import { act, createElement, type ReactElement } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -38,6 +40,12 @@ vi.mock('@/hooks/use-clipboard', () => ({
   useClipboard: () => ({ copied: null, handleCopy })
 }))
 vi.mock('@/components/chat/audio-player', () => ({ default: () => null }))
+const getEntitySummary =
+  vi.fn<(title: string, lang: string) => Promise<EntitySummary>>()
+vi.mock('@/services/entity-service', () => ({
+  getEntitySummary: (title: string, lang: string) =>
+    getEntitySummary(title, lang)
+}))
 
 const { default: Markdown } = await import('@/components/markdown/markdown')
 const {
@@ -48,6 +56,8 @@ const {
   useInteractiveTurn
 } = await import('@/components/chat/interactive/interactive-context')
 const { MessageAction } = await import('@/components/chat/message-action')
+const { EntityPanel } =
+  await import('@/components/chat/interactive/entity-link')
 
 const STEPS = {
   title: 'Replacing the strings',
@@ -297,15 +307,149 @@ describe('a stock chart in a reply', () => {
 })
 
 describe('copy and read aloud take the block’s words', () => {
-  // Task 5 wires the block's words into Copy (withBlockText).
-  it.skip("Copy writes the stock block's symbol and note, not its JSON", async () => {
+  it("Copy writes the stock block's symbol and note, not its JSON", async () => {
     const content = `Here:\n\n${fence('exodus-stock', STOCK)}`
     await show(createElement(MessageAction, { content }))
     const row = byId(TEST_IDS.chat.messageAction)
-    await act(async () => row?.querySelector('button')?.click())
+    // The copy button sits inside the tooltip's trigger button.
+    await act(async () => row?.querySelector('button button')?.click())
     expect(handleCopy).toHaveBeenCalledTimes(1)
     const copied = handleCopy.mock.calls[0]![0] as string
     expect(copied).toContain('NASDAQ:AAPL — Up 12% since the call.')
     expect(copied).not.toContain('exodus-stock')
+  })
+})
+
+describe('an entity link in a reply', () => {
+  it('is a button that opens the panel, never an anchor to entity:', async () => {
+    await show(
+      createElement(Turn, {
+        body: 'Ask [Marie Curie](entity:Marie_Curie) or [Kyoto](entity:Kyoto).'
+      })
+    )
+    const links = allById(TEST_IDS.chat.richBlocks.entityLink)
+    expect(links.map((l) => l.getAttribute('data-entity'))).toEqual([
+      'Marie_Curie',
+      'Kyoto'
+    ])
+    expect(links[0].tagName).toBe('BUTTON')
+    expect(links[0].textContent).toBe('Marie Curie')
+    expect(host.querySelector('a[href^="entity:"]')).toBeNull()
+  })
+
+  it.each([
+    'entity:../x',
+    'entity:Marie%20Curie',
+    `entity:${'a'.repeat(201)}`,
+    'entity:Marie%2FCurie',
+    'entity:'
+  ])('a target that is not a title (%s) is plain text', async (href) => {
+    await show(createElement(Turn, { body: `See [this](${href}) now.` }))
+    expect(allById(TEST_IDS.chat.richBlocks.entityLink)).toHaveLength(0)
+    expect(host.querySelector('a')).toBeNull()
+    expect(host.textContent).toContain('See this now.')
+  })
+
+  it('an ordinary link is still a link', async () => {
+    await show(
+      createElement(Turn, {
+        body: '[Wikipedia](https://en.wikipedia.org/wiki/Marie_Curie)'
+      })
+    )
+    expect(host.querySelector('a')?.getAttribute('href')).toBe(
+      'https://en.wikipedia.org/wiki/Marie_Curie'
+    )
+  })
+})
+
+describe('the entity panel', () => {
+  const client = () =>
+    new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  // react-query answers a tick or more after the render: wait until the
+  // panel has left "loading".
+  const settled = () =>
+    vi.waitFor(async () => {
+      await act(async () => {})
+      expect(
+        byId(TEST_IDS.chat.richBlocks.entityPanel)?.textContent
+      ).not.toContain('richBlocks.entityLoading')
+    })
+  const panel = (title: string) =>
+    createElement(
+      QueryClientProvider,
+      { client: client() },
+      createElement(EntityPanel, { title })
+    )
+
+  it("asks the computer for the title in the app's Wikipedia language and draws the summary", async () => {
+    getEntitySummary.mockResolvedValue({
+      title: 'Marie Curie',
+      extract: 'Polish and naturalised-French physicist.',
+      description: 'Physicist (1867–1934)',
+      thumbnail: {
+        source: 'https://upload.wikimedia.org/x.jpg',
+        width: 330,
+        height: 448
+      },
+      url: 'https://en.wikipedia.org/wiki/Marie_Curie',
+      lang: 'en'
+    })
+    await show(panel('Marie_Curie'))
+    await settled()
+    expect(getEntitySummary).toHaveBeenCalledWith('Marie_Curie', 'en')
+    const node = byId(TEST_IDS.chat.richBlocks.entityPanel)
+    expect(node?.textContent).toContain('Marie Curie')
+    expect(node?.textContent).toContain(
+      'Polish and naturalised-French physicist.'
+    )
+    expect(node?.querySelector('img')?.getAttribute('src')).toBe(
+      'https://upload.wikimedia.org/x.jpg'
+    )
+    expect(node?.querySelector('a')?.getAttribute('href')).toBe(
+      'https://en.wikipedia.org/wiki/Marie_Curie'
+    )
+    expect(node?.textContent).toContain('richBlocks.readMore')
+  })
+
+  it('says when Wikipedia has nothing, and when it could not be reached', async () => {
+    getEntitySummary.mockResolvedValue({
+      title: 'Nobody Here',
+      extract: null,
+      description: null,
+      thumbnail: null,
+      url: null,
+      lang: 'en'
+    })
+    await show(panel('Nobody_Here'))
+    await settled()
+    expect(byId(TEST_IDS.chat.richBlocks.entityPanel)?.textContent).toContain(
+      'richBlocks.entityNothing'
+    )
+
+    getEntitySummary.mockRejectedValue(new Error('HTTP 503'))
+    await show(panel('Marie_Curie'))
+    await settled()
+    expect(byId(TEST_IDS.chat.richBlocks.entityPanel)?.textContent).toContain(
+      'richBlocks.entityFailed'
+    )
+  })
+
+  it('cuts a long extract at 600 characters', async () => {
+    getEntitySummary.mockResolvedValue({
+      title: 'X',
+      extract: 'y'.repeat(700),
+      description: null,
+      thumbnail: null,
+      url: null,
+      lang: 'en'
+    })
+    await show(panel('X'))
+    await settled()
+    expect(byId(TEST_IDS.chat.richBlocks.entityPanel)?.textContent).toContain(
+      'y'.repeat(600) + '…'
+    )
+    expect(
+      byId(TEST_IDS.chat.richBlocks.entityPanel)?.textContent
+    ).not.toContain('y'.repeat(601))
   })
 })

@@ -232,7 +232,7 @@ leaves open, in one place:
   the window (a system notification action, Touch ID) — not done.
 - DevTools stay available in packaged builds — View → Toggle Developer Tools
   (⌥⌘I) and F12 (`main.ts`) — and no window sets `webPreferences.devTools:
-false`. The user can therefore open them on the main window, whose console
+  false`. The user can therefore open them on the main window, whose console
   can read the presence token; the model cannot open them itself except
   through the same synthetic-input residual above (keystrokes into the
   window). Kept on purpose (owner's decision 2026-09-26), not just left as
@@ -281,11 +281,15 @@ false`. The user can therefore open them on the main window, whose console
   it stays a billable key that the main window's renderer holds in memory.
 - The main window runs third-party script in the frame that holds the
   presence token and the Maps key: Maps JS (`script-src-elem
-https://maps.googleapis.com`, narrowed from `*.googleapis.com`, which
+  https://maps.googleapis.com`, narrowed from `*.googleapis.com`, which
   included `storage.googleapis.com` where anyone can host a script) and
   TradingView's widget loader (`https://*.tradingview.com`). Markdown renders
   no raw HTML, so model output cannot add a `<script>`; the exposure is a
-  compromise of those two origins.
+  compromise of those two origins. A reply's stock chart (`exodus-stock`) is
+  the widget's own embed URL in a sandboxed iframe (`allow-scripts
+  allow-same-origin`, `referrerpolicy=no-referrer`), built in the renderer
+  from a validated symbol — no TradingView script runs in our document;
+  `frame-src` already admits `https://*.tradingview-widget.com`.
 - Secrets at rest are as strong as the OS key store. On macOS the key is the
   login Keychain item "Exodus Safe Storage", whose access list admits the
   build that created it; another binary — a dev build, or an ad-hoc-signed

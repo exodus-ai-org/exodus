@@ -1,4 +1,5 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { entityTitle } from '@exodus/shared/utils/entity-link'
 import {
   Tick02Icon,
   Copy01Icon,
@@ -27,6 +28,10 @@ import {
 } from '@/lib/markdown-plugins'
 import { cn } from '@/lib/utils'
 
+import {
+  EntityLink,
+  markdownUrlTransform
+} from '../chat/interactive/entity-link'
 import {
   fenceOf,
   InteractiveFence,
@@ -94,6 +99,7 @@ const MarkdownBlock = memo(function MarkdownBlock({
       <ReactMarkdown
         remarkPlugins={remarkPluginsStable}
         rehypePlugins={rehypePluginsStable}
+        urlTransform={markdownUrlTransform}
         components={components}
       >
         {src}
@@ -304,6 +310,14 @@ export function Markdown({
         // A link still streaming in (see healStreamingTail) is text until
         // its URL is complete.
         if (href === INCOMPLETE_LINK_HREF) return <span>{children}</span>
+        // A name that opens a Wikipedia summary (entity-link.tsx): never an
+        // `<a href="entity:…">`.
+        const entity = entityTitle(href)
+        if (entity !== null)
+          return <EntityLink title={entity}>{children}</EntityLink>
+        // A scheme the URL rule emptied (`tel:`, `javascript:`, a bad
+        // `entity:`): the words alone.
+        if (!href) return <span>{children}</span>
         // Styling lives in globals.css `.markdown a` — primary color, no
         // underline by default, underline on hover. The previous always-bold
         // + always-underlined treatment made body text feel cluttered.

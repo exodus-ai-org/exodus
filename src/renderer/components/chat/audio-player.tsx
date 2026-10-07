@@ -1,3 +1,4 @@
+import { withBlockText } from '@exodus/shared/utils/interactive-plain-text'
 import {
   Loading03Icon,
   StopIcon,
@@ -42,7 +43,8 @@ export function AudioPlayer({ content }: { content: string }) {
 
   const fetchSpeech = async () => {
     if (!data) {
-      textToSpeech(content)
+      // A block is read as its words, not its JSON.
+      textToSpeech(withBlockText(content))
     } else {
       playAudio()
     }
