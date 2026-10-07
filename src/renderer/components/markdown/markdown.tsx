@@ -218,8 +218,13 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       code({ className, children, node, ...rest }: any) {
         // `[\w-]`: a fence named `exodus-ask` is labelled that, not `exodus`.
-        const match = /language-([\w-]+)/u.exec(className || 'javascript')
-        return match ? (
+        // A fence with no language (an ASCII diagram, plain output) is still
+        // a code block, labelled Text; its text ends in a newline, which
+        // inline code never does.
+        const language =
+          /language-([\w-]+)/u.exec(className ?? '')?.[1] ??
+          (String(children).endsWith('\n') ? 'text' : null)
+        return language ? (
           <>
             {/* The strip stays put while the code under it scrolls — the
                 panel (`.markdown pre`) is the scroll container — on the
@@ -231,7 +236,7 @@ export function Markdown({
 
                   size={14}
                 />
-                {languageName(match[1])}
+                {languageName(language)}
               </span>
               <div className="flex cursor-default items-center gap-6">
                 {copied === children ? (
@@ -268,7 +273,7 @@ export function Markdown({
               {...rest}
               PreTag="div"
               className="font-mono"
-              language={match[1]}
+              language={language}
               style={codeTheme}
               customStyle={codeBlockStyle}
               codeTagProps={codeTagProps}
