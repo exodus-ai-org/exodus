@@ -18,6 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { sileo } from 'sileo'
+import { VoiceBeam } from 'voice-glow'
 
 import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
@@ -45,6 +46,13 @@ import { FilePreview } from './file-preview'
 
 /** `gap-x-1` on the row, in pixels: what the field's compact width is measured with. */
 const ROW_GAP = 4
+
+/**
+ * The pill's `rounded-[28px]`, given to both glows around it: each reads the
+ * radius off its first child, and the border beam's first child is now the
+ * voice glow's stylesheet.
+ */
+const PILL_RADIUS = 28
 
 // Props are deliberately few and stable: this is `memo`'d, and `<Chat>`
 // re-renders on every streamed frame. It used to also take `messages`,
@@ -85,6 +93,8 @@ function InputBox({
   // button; more and it takes the top on its own, the buttons a row under it
   // (see composer-layout.ts).
   const [expanded, setExpanded] = useState(false)
+  // The microphone while a voice message is being recorded, for the glow.
+  const [voiceStream, setVoiceStream] = useState<MediaStream | null>(null)
 
   // Sizes the field to its text and decides the layout. Measured at the
   // width the field has beside the buttons whatever width it has now, else a
@@ -185,115 +195,133 @@ function InputBox({
   return (
     <BorderBeam
       size={resolvedTheme === 'light' ? 'pulse-outside' : 'pulse-inner'}
+      borderRadius={PILL_RADIUS}
       className={cn(
         'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-3xl',
         !id && 'mb-4'
       )}
     >
-      <div className="border-border/60 focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border bg-transparent px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] backdrop-blur-md transition-colors">
-        {quote !== null && (
-          <div
-            data-testid={TEST_IDS.composer.quote}
-            className="bg-muted/60 text-muted-foreground flex items-start gap-2 rounded-[20px] py-2 pr-1.5 pl-3 text-sm"
-          >
-            <HugeiconsIcon
-              icon={ArrowTurnForwardIcon}
+      {/*
+        Lit only while recording, from the recorder's own stream, and faded
+        out when it stops. Always mounted, so the field inside keeps its focus.
+        Its layers clip themselves to the pill, so the wrapper's own
+        `overflow: hidden` goes: it would cut the pill's shadow. Reduced
+        motion is the library's: no breathing, flow or hue drift, only the
+        level.
+      */}
+      <VoiceBeam
+        stream={voiceStream}
+        active={voiceStream !== null}
+        theme={resolvedTheme === 'light' ? 'light' : 'dark'}
+        borderRadius={PILL_RADIUS}
+        style={{ overflow: 'visible' }}
+      >
+        <div className="border-border/60 focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border bg-transparent px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] backdrop-blur-md transition-colors">
+          {quote !== null && (
+            <div
+              data-testid={TEST_IDS.composer.quote}
+              className="bg-muted/60 text-muted-foreground flex items-start gap-2 rounded-[20px] py-2 pr-1.5 pl-3 text-sm"
+            >
+              <HugeiconsIcon
+                icon={ArrowTurnForwardIcon}
 
-              className="mt-0.5 size-4 shrink-0"
-            />
-            <p
-              title={quote}
-              className="line-clamp-2 min-w-0 flex-1 wrap-break-word whitespace-pre-wrap"
-            >
-              {quote}
-            </p>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="size-6 shrink-0 rounded-full [&_svg]:size-3.5"
-              aria-label={t('ask.remove')}
-              data-testid={TEST_IDS.composer.quoteRemove}
-              onClick={() => setQuote(null)}
-            >
-              <HugeiconsIcon icon={Cancel01Icon} />
-            </Button>
-          </div>
-        )}
-        <FilePreview />
-        <ActiveToolPills />
-        {/*
+                className="mt-0.5 size-4 shrink-0"
+              />
+              <p
+                title={quote}
+                className="line-clamp-2 min-w-0 flex-1 wrap-break-word whitespace-pre-wrap"
+              >
+                {quote}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="size-6 shrink-0 rounded-full [&_svg]:size-3.5"
+                aria-label={t('ask.remove')}
+                data-testid={TEST_IDS.composer.quoteRemove}
+                onClick={() => setQuote(null)}
+              >
+                <HugeiconsIcon icon={Cancel01Icon} />
+              </Button>
+            </div>
+          )}
+          <FilePreview />
+          <ActiveToolPills />
+          {/*
           Two named rows: the field alone on the first, `+`, the middle and
           the round button on the second. Compact, the field takes the middle
           and the first row, empty, is no height; expanded, it takes the first
           row and the middle is left to the buttons' spacing. The same three
           children either way, so the field keeps its focus across the change.
         */}
-        <div
-          ref={rowRef}
-          data-expanded={expanded || undefined}
-          className="grid grid-cols-[auto_1fr_auto] items-end gap-x-1 [grid-template-areas:'field_field_field'_'leading_middle_trailing']"
-        >
-          <div ref={leadingRef} className="flex [grid-area:leading]">
-            <ComposerToolsButton />
-          </div>
-          {/*
+          <div
+            ref={rowRef}
+            data-expanded={expanded || undefined}
+            className="grid grid-cols-[auto_1fr_auto] items-end gap-x-1 [grid-template-areas:'field_field_field'_'leading_middle_trailing']"
+          >
+            <div ref={leadingRef} className="flex [grid-area:leading]">
+              <ComposerToolsButton />
+            </div>
+            {/*
             Pin to 14px (matching the message body) on a 24px line, so one
             line is the 32px row. The base Textarea is `text-base md:text-sm`,
             an iOS-zoom guard that's meaningless in Electron — it only made
             the composer text jump as the window crossed the `md` breakpoint.
           */}
-          <Textarea
-            ref={textareaRef}
-            data-testid={TEST_IDS.composer.textarea}
-            placeholder={t('composer.placeholder')}
-            value={input}
-            onChange={handleInput}
-            className={cn(
-              'max-h-[45dvh] min-h-8 w-full min-w-0 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm',
-              expanded ? 'mb-1 [grid-area:field]' : '[grid-area:middle]'
-            )}
-            rows={1}
-            autoFocus
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
+            <Textarea
+              ref={textareaRef}
+              data-testid={TEST_IDS.composer.textarea}
+              placeholder={t('composer.placeholder')}
+              value={input}
+              onChange={handleInput}
+              className={cn(
+                'max-h-[45dvh] min-h-8 w-full min-w-0 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-sm leading-6 shadow-none focus-visible:ring-0 md:text-sm',
+                expanded ? 'mb-1 [grid-area:field]' : '[grid-area:middle]'
+              )}
+              rows={1}
+              autoFocus
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
 
-                if (isTypingRef.current) {
-                  return
-                }
+                  if (isTypingRef.current) {
+                    return
+                  }
 
-                if (status === 'streaming') {
-                  sileo.warning({
-                    title: t('composer.pleaseWaitTitle'),
-                    description: t('composer.pleaseWaitDescription')
-                  })
-                } else {
-                  submitForm()
+                  if (status === 'streaming') {
+                    sileo.warning({
+                      title: t('composer.pleaseWaitTitle'),
+                      description: t('composer.pleaseWaitDescription')
+                    })
+                  } else {
+                    submitForm()
+                  }
                 }
-              }
-            }}
-            onCompositionStart={() => {
-              isTypingRef.current = true
-            }}
-            onCompositionEnd={() => {
-              isTypingRef.current = false
-            }}
-            onPaste={handlePaste}
-          />
-          <div
-            ref={trailingRef}
-            className="flex justify-end [grid-area:trailing]"
-          >
-            <ComposerTurnButton
-              status={status}
-              input={input}
-              setInput={setInput}
-              stop={stop}
-              submit={submitForm}
+              }}
+              onCompositionStart={() => {
+                isTypingRef.current = true
+              }}
+              onCompositionEnd={() => {
+                isTypingRef.current = false
+              }}
+              onPaste={handlePaste}
             />
+            <div
+              ref={trailingRef}
+              className="flex justify-end [grid-area:trailing]"
+            >
+              <ComposerTurnButton
+                status={status}
+                input={input}
+                setInput={setInput}
+                stop={stop}
+                submit={submitForm}
+                onRecordingStream={setVoiceStream}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </VoiceBeam>
       {/* {lastUsage && (
         <div className="text-muted-foreground/70 flex justify-end gap-2 px-1 py-1 text-[10px]">
           <span>↑{lastUsage.input.toLocaleString()}</span>

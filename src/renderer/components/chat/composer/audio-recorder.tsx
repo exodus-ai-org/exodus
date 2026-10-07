@@ -34,10 +34,13 @@ function extForMime(mime: string): string {
 
 export function AudioRecorder({
   input,
-  setInput
+  setInput,
+  onStream
 }: {
   input: string
   setInput: (input: string) => void
+  /** The microphone while recording, null otherwise: the voice glow listens. */
+  onStream?: (stream: MediaStream | null) => void
 }) {
   const { t } = useTranslation('audio')
   const [isRecording, setIsRecording] = useState(false)
@@ -63,6 +66,7 @@ export function AudioRecorder({
       recorder.onstop = async () => {
         // Release the mic so the OS recording indicator turns off.
         stream.getTracks().forEach((t) => t.stop())
+        onStream?.(null)
         const type = recorder.mimeType || 'audio/webm'
         const blob = new Blob(audioChunksRef.current, { type })
         audioChunksRef.current = []
@@ -74,6 +78,7 @@ export function AudioRecorder({
 
       recorder.start()
       setIsRecording(true)
+      onStream?.(stream)
     } catch (error) {
       sileo.error({
         title: t('recorder.toast.micErrorTitle'),
@@ -88,7 +93,12 @@ export function AudioRecorder({
   const stopRecording = () => {
     mediaRecorderRef.current?.stop()
     setIsRecording(false)
+    onStream?.(null)
   }
+
+  // The button gives way to send as soon as anything is typed; the glow goes
+  // with it rather than outliving the control that would stop it.
+  useEffect(() => () => onStream?.(null), [onStream])
 
   // Append each new transcription once. `input` is in the deps so the append
   // uses the current value, and the ref guard stops the re-render from

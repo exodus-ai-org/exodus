@@ -15,13 +15,15 @@ export function ComposerTurnButton({
   input,
   setInput,
   stop,
-  submit
+  submit,
+  onRecordingStream
 }: {
   status: ChatStatus
   input: string
   setInput: (value: string) => void
   stop: (() => void) | null
   submit: () => void
+  onRecordingStream?: (stream: MediaStream | null) => void
 }) {
   const { t } = useTranslation('chat')
 
@@ -45,7 +47,13 @@ export function ComposerTurnButton({
     )
   }
   if (input.trim() === '') {
-    return <AudioRecorder input={input} setInput={setInput} />
+    return (
+      <AudioRecorder
+        input={input}
+        setInput={setInput}
+        onStream={onRecordingStream}
+      />
+    )
   }
   return (
     <Button

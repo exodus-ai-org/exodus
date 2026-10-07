@@ -1,0 +1,166 @@
+// @vitest-environment happy-dom
+// The composer's voice glow: lit from the recorder's own stream while a voice
+// message is recorded, and nowhere else.
+import { createStore, Provider } from 'jotai'
+import { act, createElement, type ReactNode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+;(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true
+
+const t = (key: string) => key
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
+vi.mock('sileo', () => ({
+  sileo: { success: vi.fn(), error: vi.fn(), warning: vi.fn() }
+}))
+vi.mock('border-beam', () => ({
+  BorderBeam: ({ children }: { children: ReactNode }) =>
+    createElement('div', null, children)
+}))
+let resolvedTheme = 'light'
+vi.mock('next-themes', () => ({ useTheme: () => ({ resolvedTheme }) }))
+vi.mock('react-router', () => ({ useParams: () => ({ id: 'chat-1' }) }))
+vi.mock('@/hooks/use-upload', () => ({
+  useUpload: () => ({ uploadFile: vi.fn() })
+}))
+vi.mock('@/hooks/use-audio', () => ({
+  useAudio: () => ({ data: null, loading: false, speechToText: vi.fn() })
+}))
+vi.mock('@/components/chat/composer/composer-tools', () => ({
+  ActiveToolPills: () => null,
+  ComposerToolsButton: () => null
+}))
+vi.mock('@/components/chat/composer/file-preview', () => ({
+  FilePreview: () => null
+}))
+// The library paints with Web Audio, canvas and rAF: stood in for by a div
+// that keeps the props it was last given.
+type GlowProps = Record<string, unknown> & { children?: ReactNode }
+let glow: GlowProps = {}
+vi.mock('voice-glow', () => ({
+  VoiceBeam: ({ children, ...props }: GlowProps) => {
+    glow = props
+    return createElement('div', { 'data-glow': '' }, children)
+  }
+}))
+
+const { chatInputAtom } = await import('@/stores/input')
+const { default: InputBox } =
+  await import('@/components/chat/composer/composer')
+
+// A recorder that records nothing, and calls back on stop as the real one.
+class FakeRecorder {
+  mimeType = 'audio/webm'
+  ondataavailable: ((event: { data: Blob }) => void) | null = null
+  onstop: (() => void) | null = null
+  static isTypeSupported = () => true
+  constructor(readonly stream: MediaStream) {}
+  start() {}
+  stop() {
+    this.onstop?.()
+  }
+}
+
+let stream: MediaStream
+let getUserMedia: ReturnType<typeof vi.fn>
+let host: HTMLDivElement
+let root: ReturnType<typeof createRoot>
+let store: ReturnType<typeof createStore>
+
+beforeEach(() => {
+  glow = {}
+  resolvedTheme = 'light'
+  stream = { getTracks: () => [{ stop: vi.fn() }] } as unknown as MediaStream
+  getUserMedia = vi.fn(() => Promise.resolve(stream))
+  vi.stubGlobal('MediaRecorder', FakeRecorder)
+  Object.defineProperty(navigator, 'mediaDevices', {
+    configurable: true,
+    value: { getUserMedia }
+  })
+  store = createStore()
+  host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+})
+
+afterEach(async () => {
+  await act(async () => root.unmount())
+  host.remove()
+  vi.unstubAllGlobals()
+})
+
+const show = () =>
+  act(async () =>
+    root.render(
+      createElement(
+        Provider,
+        { store },
+        createElement(InputBox, { chatId: 'chat-1', sendMessage: vi.fn() })
+      )
+    )
+  )
+const button = (label: string) =>
+  host.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!
+const press = (label: string) => act(async () => button(label).click())
+
+describe('the composer voice glow', () => {
+  it('is dark while nothing is being recorded', async () => {
+    await show()
+
+    expect(glow.active).toBe(false)
+    expect(glow.stream).toBeNull()
+  })
+
+  it('lights from the recorder’s own stream, and goes out on stop', async () => {
+    await show()
+
+    await press('recorder.dictate')
+
+    expect(getUserMedia).toHaveBeenCalledTimes(1)
+    expect(glow.active).toBe(true)
+    expect(glow.stream).toBe(stream)
+
+    await press('recorder.stopRecording')
+
+    expect(glow.active).toBe(false)
+    expect(glow.stream).toBeNull()
+  })
+
+  it('goes out when typing takes the recorder’s place', async () => {
+    await show()
+    await press('recorder.dictate')
+
+    await act(async () => store.set(chatInputAtom, 'hello'))
+
+    expect(glow.active).toBe(false)
+  })
+
+  it('wraps the pill without moving it: same radius, nothing clipped', async () => {
+    await show()
+
+    expect(glow.borderRadius).toBe(28)
+    expect(glow.style).toEqual({ overflow: 'visible' })
+    const pill = host.querySelector('[data-glow] > div')
+    expect(pill?.className).toContain('rounded-[28px]')
+  })
+
+  it.each(['light', 'dark'])('takes the %s theme', async (theme) => {
+    resolvedTheme = theme
+    await show()
+
+    expect(glow.theme).toBe(theme)
+  })
+
+  it('leaves reduced motion to the library, overriding none of it', async () => {
+    await show()
+    await press('recorder.dictate')
+
+    // The library stops its breathing, flow, warp and hue drift under
+    // prefers-reduced-motion; a motion or drift prop here would bypass that.
+    for (const prop of ['motion', 'flow', 'hueDuration', 'paused']) {
+      expect(glow[prop]).toBeUndefined()
+    }
+  })
+})
