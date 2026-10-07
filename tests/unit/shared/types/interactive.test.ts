@@ -129,6 +129,136 @@ const CONFIRM_CASES: Array<[string, string, boolean]> = [
   ['a 121-character note', confirm({ note: 'n'.repeat(121) }), false]
 ]
 
+const STEPS_SOURCE =
+  '{"title":"Replacing the strings","steps":[{"text":"Loosen the old string from the tuning peg.","image":"https://imgs.search.brave.com/peg.jpg"},{"text":"Thread the new one through the bridge."},{"text":"Tune up slowly, stretching the string as you go.","image":"https://imgs.search.brave.com/tune.jpg"}]}'
+const STOCK_SOURCE =
+  '{"symbol":"NASDAQ:AAPL","range":"1D","note":"Up 12% since the earnings call; the gap at Oct 2 is the split."}'
+
+const step = (i: number, extra: Record<string, unknown> = {}) => ({
+  text: `Step ${i}`,
+  ...extra
+})
+const steps = (extra: Record<string, unknown> = {}) =>
+  JSON.stringify({ steps: [step(1), step(2)], ...extra })
+const stock = (extra: Record<string, unknown> = {}) =>
+  JSON.stringify({ symbol: 'NASDAQ:AAPL', ...extra })
+
+const STEPS_CASES: Array<[string, string, boolean]> = [
+  ["the spec's example", STEPS_SOURCE, true],
+  ['two steps, no title', steps(), true],
+  ['one step', steps({ steps: [step(1)] }), false],
+  ['twelve steps', steps({ steps: range(12).map((i) => step(i)) }), true],
+  ['thirteen steps', steps({ steps: range(13).map((i) => step(i)) }), false],
+  [
+    'a 300-character step',
+    steps({ steps: [step(1, { text: 'x'.repeat(300) }), step(2)] }),
+    true
+  ],
+  [
+    'a 301-character step',
+    steps({ steps: [step(1, { text: 'x'.repeat(301) }), step(2)] }),
+    false
+  ],
+  [
+    '150 emoji (300 UTF-16 units)',
+    steps({ steps: [step(1, { text: '😀'.repeat(150) }), step(2)] }),
+    true
+  ],
+  [
+    '151 emoji (302 UTF-16 units)',
+    steps({ steps: [step(1, { text: '😀'.repeat(151) }), step(2)] }),
+    false
+  ],
+  [
+    'a step on two lines',
+    steps({ steps: [step(1, { text: 'a\nb' }), step(2)] }),
+    false
+  ],
+  ['an empty step', steps({ steps: [step(1, { text: '' }), step(2)] }), false],
+  [
+    'an https picture',
+    steps({
+      steps: [
+        step(1, { image: 'https://imgs.search.brave.com/x.jpg' }),
+        step(2)
+      ]
+    }),
+    true
+  ],
+  [
+    'an http picture',
+    steps({ steps: [step(1, { image: 'http://example.com/x.jpg' }), step(2)] }),
+    false
+  ],
+  [
+    'a data: picture',
+    steps({
+      steps: [step(1, { image: 'data:image/png;base64,AAAA' }), step(2)]
+    }),
+    false
+  ],
+  [
+    'a picture URL with a space',
+    steps({
+      steps: [step(1, { image: 'https://example.com/a b.jpg' }), step(2)]
+    }),
+    false
+  ],
+  [
+    'a 2048-character picture URL',
+    steps({
+      steps: [step(1, { image: 'https://e.co/' + 'a'.repeat(2035) }), step(2)]
+    }),
+    true
+  ],
+  [
+    'a 2049-character picture URL',
+    steps({
+      steps: [step(1, { image: 'https://e.co/' + 'a'.repeat(2036) }), step(2)]
+    }),
+    false
+  ],
+  ['a 200-character title', steps({ title: 't'.repeat(200) }), true],
+  ['a 201-character title', steps({ title: 't'.repeat(201) }), false],
+  ['a title on two lines', steps({ title: 'a\nb' }), false],
+  ['an empty title (none)', steps({ title: '' }), true],
+  [
+    'nulls for what is optional',
+    steps({ title: null, steps: [step(1, { image: null }), step(2)] }),
+    true
+  ],
+  ['keys it does not know', steps({ colour: 'red' }), true],
+  ['not JSON', '{"steps":', false],
+  ['an array', '[]', false]
+]
+
+const STOCK_CASES: Array<[string, string, boolean]> = [
+  ["the spec's example", STOCK_SOURCE, true],
+  ['a symbol alone', stock(), true],
+  ...['1D', '1M', '3M', '12M', '60M', 'ALL'].map(
+    (r): [string, string, boolean] => [
+      `the range ${r}`,
+      stock({ range: r }),
+      true
+    ]
+  ),
+  ['a range it does not know (5D)', stock({ range: '5D' }), false],
+  ['a lowercase range', stock({ range: '1d' }), false],
+  ['a lowercase symbol', stock({ symbol: 'nasdaq:aapl' }), false],
+  ['a symbol without an exchange', stock({ symbol: 'AAPL' }), false],
+  ['a symbol with a space', stock({ symbol: 'NASDAQ: AAPL' }), false],
+  ['a symbol with a slash', stock({ symbol: 'NASDAQ:AAPL/../X' }), false],
+  ['a symbol with a dot and a dash', stock({ symbol: 'TSE:7203.T-A' }), true],
+  ['a 40-character symbol', stock({ symbol: 'X:' + 'A'.repeat(38) }), true],
+  ['a 41-character symbol', stock({ symbol: 'X:' + 'A'.repeat(39) }), false],
+  ['a 300-character note', stock({ note: 'n'.repeat(300) }), true],
+  ['a 301-character note', stock({ note: 'n'.repeat(301) }), false],
+  ['a note on two lines', stock({ note: 'a\nb' }), true],
+  ['nulls for what is optional', stock({ range: null, note: null }), true],
+  ['no symbol', JSON.stringify({ note: 'x' }), false],
+  ['an array', '[]', false]
+]
+
 describe('parseInteractiveBlock', () => {
   it.each(ASK_CASES)('exodus-ask: %s → valid: %s', (_name, source, valid) => {
     expect(parseInteractiveBlock('ask', source) !== null).toBe(valid)
@@ -140,6 +270,30 @@ describe('parseInteractiveBlock', () => {
       expect(parseInteractiveBlock('confirm', source) !== null).toBe(valid)
     }
   )
+
+  it.each(STEPS_CASES)(
+    'exodus-steps: %s → valid: %s',
+    (_name, source, valid) => {
+      expect(parseInteractiveBlock('steps', source) !== null).toBe(valid)
+    }
+  )
+  it.each(STOCK_CASES)(
+    'exodus-stock: %s → valid: %s',
+    (_name, source, valid) => {
+      expect(parseInteractiveBlock('stock', source) !== null).toBe(valid)
+    }
+  )
+  it('keeps the parsed blocks', () => {
+    const steps = parseInteractiveBlock('steps', STEPS_SOURCE)
+    expect(steps?.kind).toBe('steps')
+    if (steps?.kind === 'steps') {
+      expect(steps.block.steps).toHaveLength(3)
+      expect(steps.block.steps[1].image).toBeUndefined()
+    }
+    const stock = parseInteractiveBlock('stock', STOCK_SOURCE)
+    expect(stock?.kind).toBe('stock')
+    if (stock?.kind === 'stock') expect(stock.block.range).toBe('1D')
+  })
 
   it('keeps what the fence said, and reads a missing "other" as no Other', () => {
     const fence = parseInteractiveBlock('ask', ASK_SOURCE)
@@ -153,7 +307,9 @@ describe('parseInteractiveBlock', () => {
   })
 })
 
-const FIND_CASES: Array<[string, string, 'ask' | 'confirm' | null]> = [
+const FIND_CASES: Array<
+  [string, string, 'ask' | 'confirm' | 'steps' | 'stock' | null]
+> = [
   [
     'a questionnaire after a paragraph',
     `Intro\n\n\`\`\`exodus-ask\n${ASK_SOURCE}\n\`\`\`\n\nAfter`,
@@ -222,6 +378,22 @@ const FIND_CASES: Array<[string, string, 'ask' | 'confirm' | null]> = [
   [
     'another name',
     `\`\`\`exodus-answer\n{"block":"ask","ref":"r"}\n\`\`\``,
+    null
+  ],
+  [
+    'a steps block',
+    `Here:\n\n\`\`\`exodus-steps\n${STEPS_SOURCE}\n\`\`\``,
+    'steps'
+  ],
+  ['a stock block', `\`\`\`exodus-stock\n${STOCK_SOURCE}\n\`\`\``, 'stock'],
+  [
+    'a stock block after a questionnaire: the questionnaire',
+    `\`\`\`exodus-ask\n${ASK_SOURCE}\n\`\`\`\n\n\`\`\`exodus-stock\n${STOCK_SOURCE}\n\`\`\``,
+    'ask'
+  ],
+  [
+    'a stock block that does not validate, then steps: none',
+    `\`\`\`exodus-stock\n{"symbol":"aapl"}\n\`\`\`\n\n\`\`\`exodus-steps\n${STEPS_SOURCE}\n\`\`\``,
     null
   ]
 ]

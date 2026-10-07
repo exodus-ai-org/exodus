@@ -132,8 +132,11 @@ export function InteractiveFence({
     <ErrorBoundary scope="interactive-block" fallback={children}>
       {fence.kind === 'ask' ? (
         <QuestionnaireBlock block={fence.block} {...props} />
-      ) : (
+      ) : fence.kind === 'confirm' ? (
         <ConfirmationBlock block={fence.block} {...props} />
+      ) : (
+        // Steps and a chart: drawn by a later change; until then the code block.
+        children
       )}
     </ErrorBoundary>
   )
