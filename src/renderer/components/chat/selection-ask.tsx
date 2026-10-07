@@ -117,7 +117,7 @@ export const SelectionAsk = memo(function SelectionAsk({
         setOffer(null)
       }}
     >
-      <HugeiconsIcon icon={ArrowTurnForwardIcon} strokeWidth={2} />
+      <HugeiconsIcon icon={ArrowTurnForwardIcon} />
       {t('ask.button')}
     </Button>
   )

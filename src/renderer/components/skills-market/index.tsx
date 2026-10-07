@@ -130,7 +130,7 @@ export function SkillsMarket() {
               placeholder={t('skillsMarket.searchPlaceholder')}
             />
             <InputGroupAddon align="inline-start">
-              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={SearchIcon} />
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
               <Kbd>{'/'}</Kbd>

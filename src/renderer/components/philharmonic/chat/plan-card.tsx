@@ -94,13 +94,13 @@ export function PlanCard({ plan, agentsById }: Props) {
         {collapsed ? (
           <HugeiconsIcon
             icon={ArrowRight01Icon}
-            strokeWidth={2}
+
             className="text-muted-foreground h-4 w-4"
           />
         ) : (
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            strokeWidth={2}
+
             className="text-muted-foreground h-4 w-4"
           />
         )}
@@ -134,13 +134,13 @@ export function PlanCard({ plan, agentsById }: Props) {
                   {s.status === 'done' ? (
                     <HugeiconsIcon
                       icon={Tick02Icon}
-                      strokeWidth={2}
+
                       className="h-3.5 w-3.5"
                     />
                   ) : s.status === 'failed' ? (
                     <HugeiconsIcon
                       icon={Cancel01Icon}
-                      strokeWidth={2}
+
                       className="h-3.5 w-3.5"
                     />
                   ) : (

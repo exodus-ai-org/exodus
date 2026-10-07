@@ -99,7 +99,7 @@ function ConfigurableRow({
           {t('tools.configure')}
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            strokeWidth={2}
+
             className={cn(
               'transition-transform duration-200 ease-out',
               open && 'rotate-180'

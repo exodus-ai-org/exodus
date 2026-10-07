@@ -117,7 +117,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
         <ContextMenuItem onClick={() => onEdit(employee)}>
           <HugeiconsIcon
             icon={EditIcon}
-            strokeWidth={2}
+
             className="mr-1.5 h-3.5 w-3.5"
           />
           {t('action.edit')}
@@ -129,7 +129,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
         >
           <HugeiconsIcon
             icon={Delete02Icon}
-            strokeWidth={2}
+
             className="mr-1.5 h-3.5 w-3.5"
           />
           {t('action.delete')}
@@ -171,7 +171,7 @@ function TeamSection({
     >
       <HugeiconsIcon
         icon={ArrowRight01Icon}
-        strokeWidth={2}
+
         className={cn(
           'text-muted-foreground h-4 w-4 transition-transform',
           !collapsed && 'rotate-90'
@@ -188,13 +188,13 @@ function TeamSection({
           (team ? (
             <HugeiconsIcon
               icon={Building03Icon}
-              strokeWidth={2}
+
               className="h-4 w-4 opacity-60"
             />
           ) : (
             <HugeiconsIcon
               icon={UserGroupIcon}
-              strokeWidth={2}
+
               className="h-4 w-4 opacity-60"
             />
           ))}
@@ -223,7 +223,7 @@ function TeamSection({
               <ContextMenuItem onClick={() => onEditTeam?.(team)}>
                 <HugeiconsIcon
                   icon={EditIcon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.editTeam')}
@@ -231,7 +231,7 @@ function TeamSection({
               <ContextMenuItem onClick={() => onAddEmployeeToTeam(team.id)}>
                 <HugeiconsIcon
                   icon={UserAdd01Icon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.addEmployeeHere')}
@@ -243,7 +243,7 @@ function TeamSection({
               >
                 <HugeiconsIcon
                   icon={Delete02Icon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.deleteTeam')}
@@ -274,7 +274,7 @@ function TeamSection({
             >
               <HugeiconsIcon
                 icon={Add01Icon}
-                strokeWidth={2}
+
                 className="h-3.5 w-3.5"
               />
               {t('workforce.teamSection.addEmployeeButton')}
@@ -475,7 +475,7 @@ export function WorkforcePage() {
           <Button variant="ghost" size="sm" onClick={openNewTeam}>
             <HugeiconsIcon
               icon={Add01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
             {t('philharmonic:workforce.header.addTeamButton')}
@@ -492,7 +492,7 @@ export function WorkforcePage() {
           >
             <HugeiconsIcon
               icon={UserAdd01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
             {t('philharmonic:workforce.header.addEmployeeButton')}

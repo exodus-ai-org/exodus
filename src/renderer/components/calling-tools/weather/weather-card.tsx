@@ -240,7 +240,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon
                     icon={SunriseIcon}
-                    strokeWidth={2}
+
                     className="size-3"
                     aria-hidden="true"
                   />
@@ -250,7 +250,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon
                     icon={SunsetIcon}
-                    strokeWidth={2}
+
                     className="size-3"
                     aria-hidden="true"
                   />
@@ -366,7 +366,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         {expanded ? t('weatherCard.less') : t('weatherCard.details')}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           className={cn(
             'size-3.5 transition-transform duration-200 ease-out',
             expanded && 'rotate-180'

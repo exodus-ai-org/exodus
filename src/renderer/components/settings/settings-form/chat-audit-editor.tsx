@@ -88,7 +88,7 @@ export function ChatAuditEditor({
           <div className="flex h-full items-center justify-center">
             <HugeiconsIcon
               icon={Loading03Icon}
-              strokeWidth={2}
+
               className="text-muted-foreground size-4 animate-spin"
             />
           </div>

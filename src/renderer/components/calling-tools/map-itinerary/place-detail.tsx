@@ -147,7 +147,7 @@ export function PlaceDetail({
           aria-label={t('placeDetail.closeAriaLabel')}
           className="bg-background/80 text-foreground hover:bg-background absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
         >
-          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} size={14} />
         </button>
       </div>
 
@@ -191,7 +191,7 @@ export function PlaceDetail({
                 </span>
                 <HugeiconsIcon
                   icon={StarIcon}
-                  strokeWidth={2}
+
                   size={11}
                   className="fill-amber-500 text-amber-500"
                 />
@@ -275,7 +275,7 @@ export function PlaceDetail({
               icon={
                 <HugeiconsIcon
                   icon={Location01Icon}
-                  strokeWidth={2}
+
                   size={12}
                 />
               }
@@ -286,7 +286,7 @@ export function PlaceDetail({
               }
             />
             <ContactRow
-              icon={<HugeiconsIcon icon={CallIcon} strokeWidth={2} size={12} />}
+              icon={<HugeiconsIcon icon={CallIcon} size={12} />}
               text={place.phone}
               href={
                 place.phone
@@ -296,9 +296,7 @@ export function PlaceDetail({
               monospace
             />
             <ContactRow
-              icon={
-                <HugeiconsIcon icon={Globe02Icon} strokeWidth={2} size={12} />
-              }
+              icon={<HugeiconsIcon icon={Globe02Icon} size={12} />}
               text={place.websiteUri?.replace(/^https?:\/\//, '')}
               href={place.websiteUri}
               truncate
@@ -325,7 +323,7 @@ export function PlaceDetail({
                           {Array.from({ length: 5 }).map((_, j) => (
                             <HugeiconsIcon
                               icon={StarIcon}
-                              strokeWidth={2}
+
                               key={j}
                               size={9}
                               className={
@@ -366,7 +364,7 @@ export function PlaceDetail({
                   <span className="text-muted-foreground flex items-center gap-1">
                     <HugeiconsIcon
                       icon={Clock01Icon}
-                      strokeWidth={2}
+
                       size={10}
                     />
                     {time}
@@ -391,7 +389,7 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
         </button>
         <span className="text-muted-foreground text-[11px]">
           {t('placeDetail.pagination', { index: index + 1, total })}
@@ -406,7 +404,7 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
         </button>
       </div>
     </div>

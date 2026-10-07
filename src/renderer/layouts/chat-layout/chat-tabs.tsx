@@ -74,7 +74,7 @@ export function ChatTabs() {
                 active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
               )}
             >
-              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={11} />
+              <HugeiconsIcon icon={Cancel01Icon} size={11} />
             </Button>
           </Link>
         )

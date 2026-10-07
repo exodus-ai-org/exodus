@@ -164,9 +164,9 @@ function FullscreenButton({
       className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       {isFullscreen ? (
-        <HugeiconsIcon icon={Minimize01Icon} strokeWidth={2} size={14} />
+        <HugeiconsIcon icon={Minimize01Icon} size={14} />
       ) : (
-        <HugeiconsIcon icon={Maximize01Icon} strokeWidth={2} size={14} />
+        <HugeiconsIcon icon={Maximize01Icon} size={14} />
       )}
     </button>
   )

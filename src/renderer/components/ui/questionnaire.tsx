@@ -129,7 +129,7 @@ function QuestionnaireChoice({
         />
         <HugeiconsIcon
           icon={Tick02Icon}
-          strokeWidth={2}
+
           data-slot="questionnaire-choice-indicator-check"
           className="hidden size-3.5 group-data-checked/questionnaire-choice:block group-data-[type=radio]/questionnaire-choice:hidden"
         />

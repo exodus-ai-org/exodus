@@ -118,37 +118,29 @@ function ApprovalCard({
   if (state !== 'pending') {
     const settled = {
       allowed: {
-        icon: (
-          <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className={ICON} />
-        ),
+        icon: <HugeiconsIcon icon={Tick02Icon} className={ICON} />,
         label: t('approval.allowed')
       },
       denied: {
         icon: (
           <HugeiconsIcon
             icon={MultiplicationSignCircleIcon}
-            strokeWidth={2}
+
             className={ICON}
           />
         ),
         label: t('approval.denied')
       },
       timed_out: {
-        icon: (
-          <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className={ICON} />
-        ),
+        icon: <HugeiconsIcon icon={Clock01Icon} className={ICON} />,
         label: t('approval.timedOut')
       },
       stopped: {
-        icon: (
-          <HugeiconsIcon icon={StopIcon} strokeWidth={2} className={ICON} />
-        ),
+        icon: <HugeiconsIcon icon={StopIcon} className={ICON} />,
         label: t('approval.stopped')
       },
       expired: {
-        icon: (
-          <HugeiconsIcon icon={Clock01Icon} strokeWidth={2} className={ICON} />
-        ),
+        icon: <HugeiconsIcon icon={Clock01Icon} className={ICON} />,
         label: t('approval.expired')
       }
     }[state]
@@ -173,7 +165,7 @@ function ApprovalCard({
       role="group"
       aria-label={t('approval.title')}
       data-testid={TEST_IDS.chat.approval.card}
-      icon={<HugeiconsIcon icon={Key01Icon} strokeWidth={2} className={ICON} />}
+      icon={<HugeiconsIcon icon={Key01Icon} className={ICON} />}
       className="text-foreground"
       details={
         <div className="flex flex-col gap-2 pt-2 pl-5.5">

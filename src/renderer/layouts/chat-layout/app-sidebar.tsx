@@ -62,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               data-testid={TEST_IDS.chatLayout.newChat}
               onClick={() => navigate('/')}
             >
-              <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={PencilEdit02Icon} />
               <span>{t('sidebar.newChat')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               data-testid={TEST_IDS.chatLayout.searchButton}
               onClick={() => setIsFullTextSearchVisible(true)}
             >
-              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={SearchIcon} />
               <span className="flex-1">{t('sidebar.searchChats')}</span>
               <span className="text-muted-foreground text-xs tracking-wide">
                 {MOD_KEY}⇧F

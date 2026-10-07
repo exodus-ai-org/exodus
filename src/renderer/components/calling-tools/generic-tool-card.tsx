@@ -49,7 +49,7 @@ export function GenericToolCard({
       >
         <HugeiconsIcon
           icon={Wrench01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground size-3.5 shrink-0"
         />
         <span className="font-medium">{label}</span>
@@ -58,7 +58,7 @@ export function GenericToolCard({
         </Badge>
         <HugeiconsIcon
           icon={ArrowRight01Icon}
-          strokeWidth={2}
+
           className={cn(
             'text-muted-foreground ml-auto size-3.5 shrink-0 transition-transform',
             open && 'rotate-90'

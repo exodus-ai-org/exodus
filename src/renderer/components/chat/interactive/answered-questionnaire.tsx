@@ -74,7 +74,7 @@ export function AnsweredQuestionnaire({
       <p className="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
         <HugeiconsIcon
           icon={Tick02Icon}
-          strokeWidth={2}
+
           aria-hidden
           className="size-3.5"
         />
@@ -96,7 +96,7 @@ function Pick({ picked, children }: { picked: boolean; children: ReactNode }) {
       {picked && (
         <HugeiconsIcon
           icon={Tick02Icon}
-          strokeWidth={2}
+
           aria-hidden
           className="size-3"
         />

@@ -107,7 +107,7 @@ export function EmployeeEditor({
               >
                 <HugeiconsIcon
                   icon={EditIcon}
-                  strokeWidth={2}
+
                   className="text-muted-foreground h-3 w-3"
                 />
               </span>

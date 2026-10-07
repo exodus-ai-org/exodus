@@ -50,7 +50,7 @@ export function WorkspaceSwitcher() {
         <span className="font-semibold">{active.label}</span>
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground size-4"
         />
       </DropdownMenuTrigger>
@@ -63,14 +63,14 @@ export function WorkspaceSwitcher() {
           >
             <HugeiconsIcon
               icon={w.icon}
-              strokeWidth={2}
+
               className="text-muted-foreground size-4"
             />
             <span className="flex-1">{w.label}</span>
             {w.id === active.id && (
               <HugeiconsIcon
                 icon={Tick02Icon}
-                strokeWidth={2}
+
                 className="size-4"
               />
             )}

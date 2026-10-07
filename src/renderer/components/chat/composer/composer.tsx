@@ -198,7 +198,7 @@ function InputBox({
           >
             <HugeiconsIcon
               icon={ArrowTurnForwardIcon}
-              strokeWidth={2}
+
               className="mt-0.5 size-4 shrink-0"
             />
             <p
@@ -215,7 +215,7 @@ function InputBox({
               data-testid={TEST_IDS.composer.quoteRemove}
               onClick={() => setQuote(null)}
             >
-              <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Cancel01Icon} />
             </Button>
           </div>
         )}

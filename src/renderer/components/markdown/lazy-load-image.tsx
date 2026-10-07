@@ -88,7 +88,7 @@ export function LazyLoadImage({
               holds a 48px icon. */}
           <HugeiconsIcon
             icon={ImageNotFound01Icon}
-            strokeWidth={2}
+
             className="size-1/3 max-h-12 max-w-12"
           />
         </div>

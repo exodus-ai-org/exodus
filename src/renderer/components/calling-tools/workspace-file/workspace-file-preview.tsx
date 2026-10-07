@@ -92,9 +92,9 @@ export function WorkspaceFilePreview({
               onClick={() => handleCopy(content)}
             >
               {isCopied ? (
-                <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+                <HugeiconsIcon icon={Tick02Icon} />
               ) : (
-                <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+                <HugeiconsIcon icon={Copy01Icon} />
               )}
               {isCopied ? t('workspaceFile.copied') : t('workspaceFile.copy')}
             </Button>
@@ -104,7 +104,7 @@ export function WorkspaceFilePreview({
             size="sm"
             onClick={() => void openWorkspaceFileWithFeedback(path, t)}
           >
-            <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={LinkSquare02Icon} />
             {t('workspaceFile.open')}
           </Button>
         </div>

@@ -56,7 +56,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           onClick={() => navigate(-1)}
           className="no-drag text-muted-foreground flex justify-start gap-2"
         >
-          <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowLeft02Icon} />
           {t('common.backToApp')}
         </Button>
 
@@ -73,7 +73,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             placeholder={t('common.searchPlaceholder')}
           />
           <InputGroupAddon align="inline-start">
-            <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
+            <HugeiconsIcon icon={SearchIcon} />
           </InputGroupAddon>
         </InputGroup>
       </SidebarHeader>
@@ -92,9 +92,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                     isActive={item.title === active}
                     onClick={() => setActive(item.title)}
                   >
-                    {item.icon && (
-                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />
-                    )}
+                    {item.icon && <HugeiconsIcon icon={item.icon} />}
                     {t(NAV_TITLE_KEYS[item.title])}
                   </SidebarMenuButton>
                 </SidebarMenuItem>

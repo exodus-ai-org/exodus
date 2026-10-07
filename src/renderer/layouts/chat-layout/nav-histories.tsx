@@ -135,10 +135,7 @@ export const NavItems = memo(function NavItems({
               showOnHover
               data-testid={TEST_IDS.chatLayout.historyItemMenu}
             >
-              <HugeiconsIcon
-                icon={MoreHorizontalCircle01Icon}
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={MoreHorizontalCircle01Icon} />
               <span className="sr-only">{t('chat:sidebar.history.more')}</span>
             </SidebarMenuAction>
           }
@@ -151,7 +148,7 @@ export const NavItems = memo(function NavItems({
           <DropdownMenuItem onClick={() => onToggleFavorite(chat)}>
             <HugeiconsIcon
               icon={StarIcon}
-              strokeWidth={2}
+
               className={cn('text-muted-foreground', {
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
@@ -173,7 +170,7 @@ export const NavItems = memo(function NavItems({
           >
             <HugeiconsIcon
               icon={EditIcon}
-              strokeWidth={2}
+
               className="text-muted-foreground"
             />
             <span>{t('chat:sidebar.history.rename')}</span>
@@ -184,7 +181,7 @@ export const NavItems = memo(function NavItems({
           >
             <HugeiconsIcon
               icon={Copy01Icon}
-              strokeWidth={2}
+
               className="text-muted-foreground"
             />
             <span>{t('chat:sidebar.history.copyId')}</span>
@@ -193,7 +190,7 @@ export const NavItems = memo(function NavItems({
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
             <HugeiconsIcon
               icon={Delete02Icon}
-              strokeWidth={2}
+
               className="text-destructive"
             />
             <span className="text-destructive hover:text-destructive">
@@ -262,7 +259,7 @@ export function NavHistories() {
                   </SidebarGroupLabel>
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
-                    strokeWidth={2}
+
                     className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90"
                   />
                 </CollapsibleTrigger>

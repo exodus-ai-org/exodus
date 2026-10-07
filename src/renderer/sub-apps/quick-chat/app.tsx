@@ -91,7 +91,7 @@ export function QuickChat() {
             hasText ? 'opacity-100' : 'opacity-0'
           )}
         >
-          <HugeiconsIcon icon={ArrowTurnBackwardIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowTurnBackwardIcon} />
         </Kbd>
       </div>
     </div>

@@ -96,7 +96,7 @@ function CallingTools({
         <div className="text-destructive border-destructive/30 bg-destructive/10 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
           <HugeiconsIcon
             icon={AlertCircleIcon}
-            strokeWidth={2}
+
             size={14}
             className="mt-0.5 shrink-0"
           />

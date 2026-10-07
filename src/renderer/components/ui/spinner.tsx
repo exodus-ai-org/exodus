@@ -7,7 +7,7 @@ function Spinner({ className, ...props }: Omit<HugeiconsIconProps, 'icon'>) {
   return (
     <HugeiconsIcon
       icon={Loading03Icon}
-      strokeWidth={2}
+
       data-slot="spinner"
       role="status"
       aria-label="Loading"

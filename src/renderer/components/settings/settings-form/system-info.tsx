@@ -34,7 +34,7 @@ function ExternalLink({
       className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm underline-offset-4 transition-colors hover:underline"
     >
       {children}
-      <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} size={12} />
+      <HugeiconsIcon icon={LinkSquare02Icon} size={12} />
     </a>
   )
 }

@@ -99,7 +99,7 @@ export function Composer({
             >
               <HugeiconsIcon
                 icon={StopIcon}
-                strokeWidth={2}
+
                 className="h-3 w-3 fill-current"
               />
             </Button>
@@ -113,7 +113,7 @@ export function Composer({
             >
               <HugeiconsIcon
                 icon={SentIcon}
-                strokeWidth={2}
+
                 className="h-3.5 w-3.5"
               />
             </Button>

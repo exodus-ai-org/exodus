@@ -62,7 +62,7 @@ export function NavFooter({
               </div>
               <HugeiconsIcon
                 icon={UnfoldMoreIcon}
-                strokeWidth={2}
+
                 className="ml-auto size-4"
               />
             </SidebarMenuButton>
@@ -100,7 +100,7 @@ export function NavFooter({
                 data-testid={TEST_IDS.chatLayout.accountSettings}
                 onClick={() => navigate('/settings')}
               >
-                <HugeiconsIcon icon={SettingsIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={SettingsIcon} />
                 {t('nav.settings')}
               </DropdownMenuItem>
             </DropdownMenuGroup>

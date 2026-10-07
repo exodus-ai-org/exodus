@@ -256,7 +256,7 @@ export function Logger() {
             {t('logger.filters.traceChip', { id: traceId.slice(0, 8) })}
             <HugeiconsIcon
               icon={Cancel01Icon}
-              strokeWidth={2}
+
               className="h-3 w-3"
             />
           </button>
@@ -268,11 +268,11 @@ export function Logger() {
 
         {/* Action buttons */}
         <Button variant="outline" size="sm" onClick={handleOpenDir}>
-          <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={FolderOpenIcon} />
           {t('logger.actions.openDirectory')}
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
-          <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={DownloadIcon} />
           {t('logger.actions.export')}
         </Button>
         {/* Destructive, so it looks it and asks first. */}
@@ -282,7 +282,7 @@ export function Logger() {
           className="ml-auto"
           onClick={() => setClearing(true)}
         >
-          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Delete02Icon} />
           {t('logger.actions.clearAll')}
         </Button>
       </div>
@@ -411,7 +411,7 @@ export function Logger() {
           >
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
             {t('logger.pagination.prev')}
@@ -431,7 +431,7 @@ export function Logger() {
             {t('logger.pagination.next')}
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
           </Button>

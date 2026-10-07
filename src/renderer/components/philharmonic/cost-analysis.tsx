@@ -348,7 +348,6 @@ export function CostAnalysis() {
                   type="natural"
                   fill="url(#ph-cost-fill)"
                   stroke="var(--primary-ink)"
-                  strokeWidth={2}
                 />
               </AreaChart>
             </ChartContainer>

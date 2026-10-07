@@ -114,17 +114,17 @@ export function AudioRecorder({
       {loading ? (
         <HugeiconsIcon
           icon={Loading03Icon}
-          strokeWidth={2}
+
           className="animate-spin"
         />
       ) : isRecording ? (
         <HugeiconsIcon
           icon={StopIcon}
-          strokeWidth={2}
+
           className="size-3 fill-current"
         />
       ) : (
-        <HugeiconsIcon icon={AudioWave01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={AudioWave01Icon} />
       )}
     </Button>
   )

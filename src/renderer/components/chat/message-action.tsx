@@ -124,9 +124,9 @@ export const MessageAction = memo(function MessageAction({
         <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
             {copied === copyText ? (
-              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Tick02Icon} />
             ) : (
-              <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Copy01Icon} />
             )}
           </IconWrapper>
         </MessageActionItem>
@@ -140,7 +140,7 @@ export const MessageAction = memo(function MessageAction({
               label={t('messageAction.regenerate')}
               testId={TEST_IDS.chat.regenerate}
             >
-              <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={RefreshIcon} />
             </IconWrapper>
           </MessageActionItem>
         )}

@@ -183,7 +183,7 @@ export function ModelPicker({
               data-testid={TEST_IDS.providerModels.modelSelect}
             >
               <InputGroupAddon>
-                <HugeiconsIcon icon={AsteroidIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={AsteroidIcon} />
               </InputGroupAddon>
             </ComboboxInput>
             <ComboboxContent>

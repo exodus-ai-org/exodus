@@ -135,7 +135,7 @@ export function ChatAudit() {
       <SettingsSection title={t('chatAudit.snapshot.title')} plain>
         {unavailable ? (
           <Alert variant="destructive">
-            <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={Alert02Icon} />
             <AlertTitle>{t('chatAudit.snapshot.unavailable')}</AlertTitle>
             <AlertDescription>
               {status?.error ?? t('chatAudit.snapshot.unavailableHint')}
@@ -212,7 +212,7 @@ export function ChatAudit() {
                     window.electron.ipcRenderer.invoke('open-analytics-dir')
                   }
                 >
-                  <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={FolderOpenIcon} />
                 </Button>
               )}
               <Button
@@ -225,13 +225,13 @@ export function ChatAudit() {
                 {building ? (
                   <HugeiconsIcon
                     icon={Loading03Icon}
-                    strokeWidth={2}
+
                     className="animate-spin"
                   />
                 ) : snapshot ? (
-                  <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={RefreshIcon} />
                 ) : (
-                  <HugeiconsIcon icon={DatabaseIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={DatabaseIcon} />
                 )}
                 {building
                   ? t('chatAudit.snapshot.building')
@@ -291,11 +291,11 @@ export function ChatAudit() {
               {running ? (
                 <HugeiconsIcon
                   icon={Loading03Icon}
-                  strokeWidth={2}
+
                   className="animate-spin"
                 />
               ) : (
-                <HugeiconsIcon icon={PlayIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={PlayIcon} />
               )}
               {running
                 ? t('chatAudit.query.running')
@@ -307,7 +307,7 @@ export function ChatAudit() {
 
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Alert02Icon} />
           <AlertTitle>{t('chatAudit.results.failed')}</AlertTitle>
           <AlertDescription className="font-mono text-xs whitespace-pre-wrap">
             {error}
@@ -335,7 +335,7 @@ export function ChatAudit() {
               disabled={result.rowCount === 0}
               onClick={() => downloadCsv(result)}
             >
-              <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={DownloadIcon} />
               {t('chatAudit.results.downloadCsv')}
             </Button>
           </div>
@@ -343,7 +343,7 @@ export function ChatAudit() {
             <Empty className="py-8">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <HugeiconsIcon icon={DatabaseIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={DatabaseIcon} />
                 </EmptyMedia>
                 <EmptyTitle>{t('chatAudit.results.empty')}</EmptyTitle>
                 <EmptyDescription>

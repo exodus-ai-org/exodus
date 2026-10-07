@@ -29,13 +29,13 @@ export function ComposerUploader() {
       {uploading ? (
         <HugeiconsIcon
           icon={Loading03Icon}
-          strokeWidth={2}
+
           className="h-4 w-4 animate-spin"
         />
       ) : (
         <HugeiconsIcon
           icon={AttachmentIcon}
-          strokeWidth={2}
+
           className="h-4 w-4"
         />
       )}

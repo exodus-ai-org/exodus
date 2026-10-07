@@ -82,13 +82,13 @@ export function TaskCard({
           {cancelling ? (
             <HugeiconsIcon
               icon={Loading03Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5 animate-spin"
             />
           ) : (
             <HugeiconsIcon
               icon={Cancel01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
           )}

@@ -73,7 +73,7 @@ function NavButton({
         direction === 'prev' ? 'left-4' : 'right-4'
       )}
     >
-      <HugeiconsIcon icon={Icon} size={22} strokeWidth={2} />
+      <HugeiconsIcon icon={Icon} size={22} />
     </button>
   )
 }
@@ -141,7 +141,7 @@ export function ImageLightbox({
           aria-label={t('action.close')}
           className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground flex size-8 items-center justify-center rounded-full transition"
         >
-          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={18} />
+          <HugeiconsIcon icon={Cancel01Icon} size={18} />
         </button>
         <AttachmentDownloadButton
           attachment={galleryAttachment(current)}

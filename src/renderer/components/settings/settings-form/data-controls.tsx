@@ -116,11 +116,11 @@ export function DataControls() {
             {createBackup.isPending ? (
               <HugeiconsIcon
                 icon={Loading03Icon}
-                strokeWidth={2}
+
                 className="animate-spin"
               />
             ) : (
-              <HugeiconsIcon icon={ShieldCheckIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={ShieldCheckIcon} />
             )}
             {t('settings:dataControls.backupNow.button')}
           </Button>
@@ -145,7 +145,7 @@ export function DataControls() {
                   <span className="flex items-center gap-2 font-mono">
                     <HugeiconsIcon
                       icon={Archive02Icon}
-                      strokeWidth={2}
+
                       className="size-3.5"
                     />
                     {b.name}
@@ -172,11 +172,11 @@ export function DataControls() {
             {exportLoading ? (
               <HugeiconsIcon
                 icon={Loading03Icon}
-                strokeWidth={2}
+
                 className="animate-spin"
               />
             ) : (
-              <HugeiconsIcon icon={HardDriveDownloadIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={HardDriveDownloadIcon} />
             )}
             {t('settings:dataControls.export.button')}
           </Button>
@@ -194,11 +194,11 @@ export function DataControls() {
                   {importLoading ? (
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="animate-spin"
                     />
                   ) : (
-                    <HugeiconsIcon icon={HardDriveUploadIcon} strokeWidth={2} />
+                    <HugeiconsIcon icon={HardDriveUploadIcon} />
                   )}
                   {t('settings:dataControls.import.button')}
                 </Button>
@@ -233,7 +233,7 @@ export function DataControls() {
                   {importLoading && (
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="animate-spin"
                     />
                   )}
@@ -259,11 +259,11 @@ export function DataControls() {
                   {deleteLoading ? (
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="animate-spin"
                     />
                   ) : (
-                    <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                    <HugeiconsIcon icon={Delete02Icon} />
                   )}
                   {t('settings:dataControls.delete.label')}
                 </Button>
@@ -311,7 +311,7 @@ export function DataControls() {
                   {deleteLoading && (
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="animate-spin"
                     />
                   )}

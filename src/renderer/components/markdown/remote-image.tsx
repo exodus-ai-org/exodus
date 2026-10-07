@@ -232,7 +232,7 @@ export function RemoteImage({
     >
       <HugeiconsIcon
         icon={Image01Icon}
-        strokeWidth={2}
+
         className="size-3.5 shrink-0"
         aria-hidden
       />

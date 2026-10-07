@@ -185,7 +185,7 @@ export function ConversationList({
               )}
             />
             <InputGroupAddon align="inline-start">
-              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={SearchIcon} />
             </InputGroupAddon>
           </InputGroup>
         </div>
@@ -196,7 +196,7 @@ export function ConversationList({
             onClick={onCreate}
             data-testid={TEST_IDS.philharmonic.newGroup}
           >
-            <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={2} size={16} />
+            <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
             {t('philharmonic:chat.conversationList.newGroupMenuItem')}
           </SidebarMenuItem>
         </SidebarMenu>
@@ -273,7 +273,7 @@ export function ConversationList({
                       >
                         <HugeiconsIcon
                           icon={Delete02Icon}
-                          strokeWidth={2}
+
                           className="mr-1.5 h-3.5 w-3.5"
                         />
                         {t('action.delete')}
@@ -297,7 +297,7 @@ export function ConversationList({
                   isActive={activePage === item.page}
                   onClick={() => onNavigateConfig(item.page)}
                 >
-                  <HugeiconsIcon icon={Icon} strokeWidth={2} />
+                  <HugeiconsIcon icon={Icon} />
                   {item.label}
                 </SidebarMenuButton>
               </SidebarMenuItem>

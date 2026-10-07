@@ -228,7 +228,7 @@ export function Markdown({
               <span className="flex items-center gap-2 font-medium">
                 <HugeiconsIcon
                   icon={SourceCodeIcon}
-                  strokeWidth={2}
+
                   size={14}
                 />
                 {languageName(match[1])}
@@ -255,7 +255,7 @@ export function Markdown({
                   >
                     <HugeiconsIcon
                       icon={Copy01Icon}
-                      strokeWidth={2}
+
                       size={14}
                     />
                     {t('action.copy')}

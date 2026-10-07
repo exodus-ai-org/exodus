@@ -87,7 +87,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={CancelCircleIcon}
-        strokeWidth={2}
+
         size={15}
         className="text-destructive shrink-0"
       />
@@ -98,7 +98,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={Globe02Icon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -107,7 +107,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={AiBrainIcon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -116,7 +116,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={MessageSquareTextIcon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -124,7 +124,7 @@ function StepIcon({
   return (
     <HugeiconsIcon
       icon={ClockFadingIcon}
-      strokeWidth={2}
+
       size={15}
       className={cls}
     />
@@ -197,7 +197,7 @@ function FoldedCard({
       >
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           size={13}
           className={cn('shrink-0 transition-transform', !open && '-rotate-90')}
         />
@@ -344,7 +344,7 @@ export function ThinkingTimeline({
         ) : (
           <HugeiconsIcon
             icon={Tick02Icon}
-            strokeWidth={2}
+
             size={16}
             className="shrink-0"
           />
@@ -360,7 +360,7 @@ export function ThinkingTimeline({
         )}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           size={16}
           className={cn(
             'shrink-0 transition-transform duration-200',
@@ -451,7 +451,7 @@ export function ThinkingTimeline({
                 icon={
                   <HugeiconsIcon
                     icon={CircleCheckBigIcon}
-                    strokeWidth={2}
+
                     size={15}
                     className="text-muted-foreground shrink-0"
                   />

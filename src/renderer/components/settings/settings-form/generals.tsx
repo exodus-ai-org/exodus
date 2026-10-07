@@ -84,7 +84,7 @@ function AppearanceSwitcher() {
             aria-label={t(labelKey)}
             className="text-muted-foreground peer-checked:bg-background peer-checked:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors peer-checked:shadow-sm"
           >
-            <HugeiconsIcon icon={Icon} strokeWidth={2} className="size-4" />
+            <HugeiconsIcon icon={Icon} className="size-4" />
           </label>
         </span>
       ))}
@@ -157,7 +157,7 @@ export function General({ form }: { form: UseFormReturnType }) {
         ) : (
           <HugeiconsIcon
             icon={Globe02Icon}
-            strokeWidth={2}
+
             aria-hidden
             className="text-muted-foreground size-4"
           />

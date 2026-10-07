@@ -98,7 +98,7 @@ export function SettingsNotice({
 }) {
   return (
     <Alert className={className} style={style}>
-      <HugeiconsIcon icon={Icon} strokeWidth={2} />
+      <HugeiconsIcon icon={Icon} />
       <AlertDescription>{children}</AlertDescription>
     </Alert>
   )
@@ -124,7 +124,7 @@ export function SettingsEmpty({
       <Empty className="p-4">
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <HugeiconsIcon icon={Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={Icon} />
           </EmptyMedia>
           <EmptyTitle className="text-base">{title}</EmptyTitle>
           {description && <EmptyDescription>{description}</EmptyDescription>}

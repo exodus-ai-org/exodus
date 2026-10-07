@@ -1004,7 +1004,7 @@ function Messages({
           className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border shadow-md"
           aria-label={t('messageList.scrollToBottom')}
         >
-          <HugeiconsIcon icon={ArrowDownIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowDownIcon} />
         </Button>
       )}
     </div>

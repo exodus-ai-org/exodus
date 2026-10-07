@@ -55,12 +55,12 @@ export function CommandLine({
         <span className="grid *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200">
           <HugeiconsIcon
             icon={Copy01Icon}
-            strokeWidth={2}
+
             className={cn(done && 'scale-75 opacity-0 blur-[2px]')}
           />
           <HugeiconsIcon
             icon={Tick02Icon}
-            strokeWidth={2}
+
             className={cn(!done && 'scale-75 opacity-0 blur-[2px]')}
           />
         </span>

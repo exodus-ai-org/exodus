@@ -52,7 +52,7 @@ export function InstalledBadge() {
       variant="secondary"
       className="shrink-0 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
     >
-      <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+      <HugeiconsIcon icon={Tick02Icon} />
       {t('skillsMarket.card.installedBadge')}
     </Badge>
   )

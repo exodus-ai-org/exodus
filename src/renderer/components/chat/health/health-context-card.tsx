@@ -76,7 +76,7 @@ export function HealthContextCard({ json }: { json: string }) {
             >
               <HugeiconsIcon
                 icon={Icon}
-                strokeWidth={2}
+
                 aria-hidden
                 className="text-primary-ink size-3.5 shrink-0"
               />
@@ -86,7 +86,7 @@ export function HealthContextCard({ json }: { json: string }) {
         })}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           aria-hidden
           className="size-3 shrink-0 transition-transform duration-200 group-data-panel-open/health:rotate-180 motion-reduce:transition-none"
         />

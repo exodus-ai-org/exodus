@@ -73,7 +73,7 @@ function UsedMemoriesLine({ used }: { used: UsedMemory[] }) {
       >
         <HugeiconsIcon
           icon={AiBrainIcon}
-          strokeWidth={2}
+
           className="size-3.5 shrink-0"
         />
         <span className="truncate">
@@ -158,7 +158,7 @@ function UsedMemoriesList({
                     // entry, so it reads as a button at a glance.
                     className="bg-primary/12 text-primary-ink hover:bg-primary/20 hover:text-primary-ink dark:bg-primary/20 dark:hover:bg-primary/30 shrink-0 rounded-full"
                   >
-                    <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
+                    <HugeiconsIcon icon={EditIcon} />
                     {t('usedMemories.wrong')}
                   </Button>
                 )}

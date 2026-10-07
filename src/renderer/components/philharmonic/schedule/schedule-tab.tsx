@@ -97,7 +97,7 @@ export function ScheduleTab({
           size="sm"
           onClick={() => setFormOpen(true)}
         >
-          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="h-4 w-4" />
+          <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
           {t('schedule.scheduleTaskButton')}
         </Button>
       </div>

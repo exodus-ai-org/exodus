@@ -170,7 +170,7 @@ export function DeepResearchCard({
             <div className="text-destructive flex items-center gap-1.5">
               <HugeiconsIcon
                 icon={AlertCircleIcon}
-                strokeWidth={2}
+
                 size={14}
                 className="shrink-0"
               />
@@ -197,7 +197,7 @@ export function DeepResearchCard({
                       className="animate-spin"
                     />
                   ) : (
-                    <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
+                    <HugeiconsIcon icon={DownloadIcon} />
                   )}
                 </Button>
               </TooltipTrigger>

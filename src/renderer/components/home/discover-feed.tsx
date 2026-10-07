@@ -192,7 +192,7 @@ export function DiscoverFeed() {
         >
           <HugeiconsIcon
             icon={RefreshIcon}
-            strokeWidth={2}
+
             className={cn('size-4', isBusy && 'animate-spin')}
           />
         </Button>

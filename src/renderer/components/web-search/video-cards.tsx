@@ -40,7 +40,7 @@ export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
               <span className="flex size-10 items-center justify-center rounded-full bg-black/60 text-white">
                 <HugeiconsIcon
                   icon={PlayIcon}
-                  strokeWidth={2}
+
                   size={18}
                   className="translate-x-px fill-current"
                 />

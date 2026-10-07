@@ -62,7 +62,7 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
       {children}
       <HugeiconsIcon
         icon={LinkSquare02Icon}
-        strokeWidth={2}
+
         className="size-3"
       />
     </a>
@@ -139,7 +139,7 @@ export function SkillDetailPage({
           onClick={onBack}
           className="text-muted-foreground -ml-2"
         >
-          <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowLeft02Icon} />
           {t('skillsMarket.detail.back')}
         </Button>
       </div>
@@ -182,7 +182,7 @@ export function SkillDetailPage({
                 {pending && (
                   <HugeiconsIcon
                     icon={Loading03Icon}
-                    strokeWidth={2}
+
                     className="animate-spin"
                   />
                 )}
@@ -201,7 +201,7 @@ export function SkillDetailPage({
                 labels={{
                   idle: (
                     <>
-                      <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
+                      <HugeiconsIcon icon={DownloadIcon} />
                       {t('skillsMarket.detail.install')}
                     </>
                   ),
@@ -209,7 +209,7 @@ export function SkillDetailPage({
                     <>
                       <HugeiconsIcon
                         icon={Loading03Icon}
-                        strokeWidth={2}
+
                         className="animate-spin"
                       />
                       {t('skillsMarket.detail.installing')}
@@ -274,7 +274,7 @@ export function SkillDetailPage({
           >
             <HugeiconsIcon
               icon={ArrowDown01Icon}
-              strokeWidth={2}
+
               className="transition-transform duration-200 group-data-panel-open:rotate-180"
             />
             {t('skillsMarket.detail.files', { count: bundled.length })}

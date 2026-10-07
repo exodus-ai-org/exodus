@@ -38,7 +38,7 @@ export function ComposerTurnButton({
       >
         <HugeiconsIcon
           icon={StopIcon}
-          strokeWidth={2}
+
           className="size-3 fill-current"
         />
       </Button>
@@ -57,7 +57,7 @@ export function ComposerTurnButton({
       aria-label={t('composer.send')}
       onClick={submit}
     >
-      <HugeiconsIcon icon={ArrowUpIcon} strokeWidth={2} />
+      <HugeiconsIcon icon={ArrowUpIcon} />
     </Button>
   )
 }

@@ -111,7 +111,7 @@ export function LockScreen({
           onClick={tryTouchId}
           className="no-drag text-muted-foreground"
         >
-          <HugeiconsIcon icon={FingerPrintIcon} strokeWidth={2} size={18} />{' '}
+          <HugeiconsIcon icon={FingerPrintIcon} size={18} />{' '}
           {t('screen.unlockWithTouchId')}
         </Button>
       )}

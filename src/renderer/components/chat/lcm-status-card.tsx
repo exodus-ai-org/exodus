@@ -64,7 +64,7 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
         icon={
           <HugeiconsIcon
             icon={Alert02Icon}
-            strokeWidth={2}
+
             className="size-3.5 shrink-0"
           />
         }
@@ -85,7 +85,7 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
         ) : (
           <HugeiconsIcon
             icon={Tick02Icon}
-            strokeWidth={2}
+
             className="size-3.5 shrink-0"
           />
         )

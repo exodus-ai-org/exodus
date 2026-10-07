@@ -153,7 +153,7 @@ function Calendar({
             return (
               <HugeiconsIcon
                 icon={ArrowLeft01Icon}
-                strokeWidth={2}
+
                 className={cn('size-4', className)}
                 {...props}
               />
@@ -164,7 +164,7 @@ function Calendar({
             return (
               <HugeiconsIcon
                 icon={ArrowRight01Icon}
-                strokeWidth={2}
+
                 className={cn('size-4', className)}
                 {...props}
               />
@@ -174,7 +174,7 @@ function Calendar({
           return (
             <HugeiconsIcon
               icon={ArrowDown01Icon}
-              strokeWidth={2}
+
               className={cn('size-4', className)}
               {...props}
             />

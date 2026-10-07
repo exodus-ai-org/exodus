@@ -196,7 +196,7 @@ export function GroupMessageBubble({
                 <div className="bg-accent text-accent-foreground flex h-6 w-6 items-center justify-center rounded-md">
                   <HugeiconsIcon
                     icon={Wrench01Icon}
-                    strokeWidth={2}
+
                     className="h-3.5 w-3.5"
                   />
                 </div>
@@ -206,13 +206,13 @@ export function GroupMessageBubble({
                 {card.phase === 'start' ? (
                   <HugeiconsIcon
                     icon={Loading03Icon}
-                    strokeWidth={2}
+
                     className="text-muted-foreground h-3.5 w-3.5 animate-spin"
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={Tick02Icon}
-                    strokeWidth={2}
+
                     className="h-3.5 w-3.5 text-emerald-500"
                   />
                 )}

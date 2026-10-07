@@ -41,7 +41,7 @@ export function SheetPanel({
         className="absolute top-2 right-3 z-20 rounded-full"
         onClick={onClose}
       >
-        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={Cancel01Icon} />
         <span className="sr-only">{t('action.close')}</span>
       </Button>
     </section>

@@ -63,7 +63,7 @@ export function AudioPlayer({ content }: { content: string }) {
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper onClick={fetchSpeech}>
-            <HugeiconsIcon icon={VolumeHighIcon} strokeWidth={2} size={16} />
+            <HugeiconsIcon icon={VolumeHighIcon} size={16} />
           </IconWrapper>
         )}
 
@@ -71,7 +71,7 @@ export function AudioPlayer({ content }: { content: string }) {
           <IconWrapper>
             <HugeiconsIcon
               icon={Loading03Icon}
-              strokeWidth={2}
+
               size={16}
               className={cn('animate-spin')}
             />
@@ -82,7 +82,7 @@ export function AudioPlayer({ content }: { content: string }) {
           <IconWrapper onClick={handleStop}>
             <HugeiconsIcon
               icon={StopIcon}
-              strokeWidth={2}
+
               size={11}
               className="fill-current"
             />

@@ -114,7 +114,7 @@ function MemoryRow({
       <div className="relative flex h-7 w-16 shrink-0 items-center justify-end">
         <HugeiconsIcon
           icon={ArrowRight01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground/40 size-4 transition-opacity group-hover:opacity-0"
           data-icon
         />
@@ -137,14 +137,14 @@ function MemoryRow({
             {disabled ? (
               <HugeiconsIcon
                 icon={EyeIcon}
-                strokeWidth={2}
+
                 className="size-3.5"
                 data-icon
               />
             ) : (
               <HugeiconsIcon
                 icon={ViewOffIcon}
-                strokeWidth={2}
+
                 className="size-3.5"
                 data-icon
               />
@@ -163,7 +163,7 @@ function MemoryRow({
           >
             <HugeiconsIcon
               icon={Delete02Icon}
-              strokeWidth={2}
+
               className="size-3.5"
               data-icon
             />
@@ -289,7 +289,7 @@ function MemoryDetail({
         >
           <HugeiconsIcon
             icon={ArrowLeft02Icon}
-            strokeWidth={2}
+
             className="size-4"
             data-icon
           />
@@ -448,14 +448,14 @@ function MemoryComposer({
         {busy ? (
           <HugeiconsIcon
             icon={Loading03Icon}
-            strokeWidth={2}
+
             className="size-4 animate-spin"
             data-icon
           />
         ) : (
           <HugeiconsIcon
             icon={ArrowUpIcon}
-            strokeWidth={2}
+
             className="size-4"
             data-icon
           />
@@ -716,7 +716,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           <Button type="button" size="sm" variant="outline" onClick={handleNew}>
             <HugeiconsIcon
               icon={Add01Icon}
-              strokeWidth={2}
+
               className="mr-1 size-3.5"
               data-icon
             />

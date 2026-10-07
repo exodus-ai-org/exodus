@@ -304,7 +304,7 @@ export function GroupChat({
             membersOpen && 'bg-accent text-foreground'
           )}
         >
-          <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={UserGroupIcon} />
         </Button>
       </header>
 
@@ -355,7 +355,7 @@ export function GroupChat({
           <div className="text-destructive bg-destructive/10 mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
             <HugeiconsIcon
               icon={Alert02Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5 shrink-0"
             />
             <span>{error}</span>
@@ -366,7 +366,7 @@ export function GroupChat({
             <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
               <HugeiconsIcon
                 icon={HelpCircleIcon}
-                strokeWidth={2}
+
                 className="text-primary-ink mt-0.5 h-4 w-4 shrink-0"
               />
               <span>{askUser.question}</span>

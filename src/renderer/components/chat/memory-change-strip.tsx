@@ -141,9 +141,7 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
         role="status"
         tone="destructive"
         data-testid={TEST_IDS.chat.memoryStrip.root}
-        icon={
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} className={ICON} />
-        }
+        icon={<HugeiconsIcon icon={Alert02Icon} className={ICON} />}
       >
         <span>{t('memoryStrip.failed')}</span>
       </StatusStrip>
@@ -200,9 +198,9 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
       data-testid={TEST_IDS.chat.memoryStrip.root}
       icon={
         partly && shown.kind === 'idle' ? (
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} className={ICON} />
+          <HugeiconsIcon icon={Alert02Icon} className={ICON} />
         ) : (
-          <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} className={ICON} />
+          <HugeiconsIcon icon={Tick02Icon} className={ICON} />
         )
       }
       details={
@@ -227,7 +225,7 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
         <span className="truncate">{label}</span>
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           className={cn(
             ICON,
             'transition-transform duration-200 ease-out',
