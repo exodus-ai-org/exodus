@@ -398,6 +398,16 @@
       "title": "Your answer"
     }
   },
+  "richBlocks": {
+    "stepLabel": "Step {{number}}",
+    "openOnTradingView": "Open on TradingView",
+    "chartBy": "Chart by TradingView",
+    "chartUnavailable": "The chart could not be loaded.",
+    "entityLoading": "Loading…",
+    "entityNothing": "Nothing found on Wikipedia.",
+    "entityFailed": "Could not reach Wikipedia.",
+    "readMore": "Read more on Wikipedia"
+  },
   "workspaceFile": {
     "created": "Created",
     "edited": "Edited",

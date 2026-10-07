@@ -384,6 +384,16 @@
       "title": "あなたの回答"
     }
   },
+  "richBlocks": {
+    "stepLabel": "ステップ {{number}}",
+    "openOnTradingView": "TradingView で開く",
+    "chartBy": "チャート: TradingView",
+    "chartUnavailable": "チャートを読み込めませんでした。",
+    "entityLoading": "読み込み中…",
+    "entityNothing": "Wikipedia に該当する記事はありません。",
+    "entityFailed": "Wikipedia に接続できませんでした。",
+    "readMore": "Wikipedia で続きを読む"
+  },
   "workspaceFile": {
     "created": "作成",
     "edited": "編集",

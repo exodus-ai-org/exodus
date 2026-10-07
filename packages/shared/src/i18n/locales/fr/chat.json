@@ -398,6 +398,16 @@
       "title": "Ta réponse"
     }
   },
+  "richBlocks": {
+    "stepLabel": "Étape {{number}}",
+    "openOnTradingView": "Ouvrir sur TradingView",
+    "chartBy": "Graphique TradingView",
+    "chartUnavailable": "Le graphique n'a pas pu être chargé.",
+    "entityLoading": "Chargement…",
+    "entityNothing": "Rien trouvé sur Wikipédia.",
+    "entityFailed": "Wikipédia est injoignable.",
+    "readMore": "Lire la suite sur Wikipédia"
+  },
   "workspaceFile": {
     "created": "Créé",
     "edited": "Modifié",

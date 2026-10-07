@@ -41,7 +41,9 @@ import {
 import {
   AllowedImageUrlsContext,
   RemoteImage,
-  allowedImageUrls
+  SearchThumbnailUrlsContext,
+  allowedImageUrls,
+  searchThumbnailUrls
 } from './remote-image'
 import { WorkspacePathCode } from './workspace-path-code'
 
@@ -148,8 +150,9 @@ function Pre({ className, children, node, ...rest }: any) {
       {children}
     </pre>
   )
-  // A reply's questionnaire or confirmation: the control, or this code when
-  // it is not the turn's block (see interactive-fence.tsx).
+  // A reply's block — a questionnaire, a confirmation, steps or a chart: the
+  // control, or this code when it is not the turn's block (see
+  // interactive-fence.tsx).
   const fence = fenceOf(node)
   return fence ? (
     <InteractiveFence
@@ -194,6 +197,10 @@ export function Markdown({
   // memoized block) whenever search results streamed in.
   const allowedUrls = useMemo(
     () => allowedImageUrls(webSearchResults),
+    [webSearchResults]
+  )
+  const thumbnailUrls = useMemo(
+    () => searchThumbnailUrls(webSearchResults),
     [webSearchResults]
   )
 
@@ -393,20 +400,22 @@ export function Markdown({
   return (
     <WebSearchRankMapContext.Provider value={rankMap}>
       <AllowedImageUrlsContext.Provider value={allowedUrls}>
-        <section className="markdown max-w-none">
-          {/* Blocks are only ever appended or grown in place — never reordered
+        <SearchThumbnailUrlsContext.Provider value={thumbnailUrls}>
+          <section className="markdown max-w-none">
+            {/* Blocks are only ever appended or grown in place — never reordered
               — so the index is their identity. They render as fragments: the DOM
               under .markdown is the same flat run of elements as before. */}
-          {blocks.map((block, i) => (
-            <MarkdownBlock
-              // eslint-disable-next-line react/no-array-index-key -- see above
-              key={i}
-              src={block}
-              before={befores[i]}
-              components={components}
-            />
-          ))}
-        </section>
+            {blocks.map((block, i) => (
+              <MarkdownBlock
+                // eslint-disable-next-line react/no-array-index-key -- see above
+                key={i}
+                src={block}
+                before={befores[i]}
+                components={components}
+              />
+            ))}
+          </section>
+        </SearchThumbnailUrlsContext.Provider>
       </AllowedImageUrlsContext.Provider>
     </WebSearchRankMapContext.Provider>
   )

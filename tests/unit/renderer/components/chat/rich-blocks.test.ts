@@ -1,0 +1,311 @@
+// @vitest-environment happy-dom
+// @vitest-environment-options { "settings": { "disableIframePageLoading": true, "disableJavaScriptFileLoading": true, "disableCSSFileLoading": true } }
+// A reply's illustrated steps and stock chart are drawn in place of their
+// fences: steps with only the run's own search thumbnails as pictures, the
+// chart as TradingView's embed in a sandboxed frame that falls back to a card
+// when it cannot load. Copy takes the block's words.
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type {
+  ChatMessage,
+  SendMessageOptions,
+  TurnBlock
+} from '@exodus/shared/types/chat'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import {
+  tradingViewEmbedUrl,
+  tradingViewSymbolPageUrl
+} from '@exodus/shared/utils/stock-chart'
+import { Provider as JotaiProvider } from 'jotai'
+import { act, createElement, type ReactElement } from 'react'
+import { createRoot } from 'react-dom/client'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+;(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true
+
+const t = (key: string, params?: Record<string, unknown>) =>
+  params ? `${key} ${JSON.stringify(params)}` : key
+const i18n = { resolvedLanguage: 'en', language: 'en' }
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t, i18n }) }))
+// The real one observes the viewport; here a picture is an <img>.
+vi.mock('@/components/markdown/lazy-load-image', () => ({
+  LazyLoadImage: ({ src, alt }: { src: string; alt: string }) =>
+    createElement('img', { src, alt, 'data-lazy': '' })
+}))
+const handleCopy = vi.fn()
+vi.mock('@/hooks/use-clipboard', () => ({
+  useClipboard: () => ({ copied: null, handleCopy })
+}))
+vi.mock('@/components/chat/audio-player', () => ({ default: () => null }))
+
+const { default: Markdown } = await import('@/components/markdown/markdown')
+const {
+  InteractiveProvider,
+  InteractiveTurnContext,
+  TurnTextAboveContext,
+  turnTextsAbove,
+  useInteractiveTurn
+} = await import('@/components/chat/interactive/interactive-context')
+const { MessageAction } = await import('@/components/chat/message-action')
+
+const STEPS = {
+  title: 'Replacing the strings',
+  steps: [
+    {
+      text: 'Loosen the old string.',
+      image: 'https://imgs.search.brave.com/peg.jpg'
+    },
+    {
+      text: 'Thread the new one.',
+      image: 'https://cdn.example.com/original/bridge.jpg'
+    },
+    {
+      text: 'Tune up slowly.',
+      image: 'https://imgs.search.brave.com/not-from-this-run.jpg'
+    },
+    { text: 'Stretch it.' }
+  ]
+}
+const STOCK = {
+  symbol: 'NASDAQ:AAPL',
+  range: '12M',
+  note: 'Up 12% since the call.'
+}
+// A search this run made: a page with a thumbnail, and an image result whose
+// original is the second step's picture.
+const RESULTS: WebSearchResult[] = [
+  {
+    rank: 1,
+    link: 'https://guitars.example/strings',
+    title: 'Restringing',
+    content: '',
+    snippet: '',
+    thumbnail: 'https://imgs.search.brave.com/peg.jpg',
+    media: [
+      {
+        kind: 'image',
+        title: 'bridge',
+        url: 'https://cdn.example.com/original/bridge.jpg',
+        sourceUrl: 'https://guitars.example/strings',
+        thumbnailUrl: 'https://imgs.search.brave.com/bridge-thumb.jpg'
+      }
+    ]
+  }
+]
+
+const fence = (language: string, value: unknown) =>
+  `\`\`\`${language}\n${JSON.stringify(value)}\n\`\`\``
+
+function Turn({
+  body,
+  results
+}: {
+  body: string
+  results?: WebSearchResult[]
+}) {
+  const turn = useInteractiveTurn('run-1', body)
+  const above = turnTextsAbove([
+    { kind: 'text', key: 't0', text: body } as TurnBlock
+  ])
+  return createElement(
+    InteractiveTurnContext.Provider,
+    { value: turn },
+    createElement(
+      TurnTextAboveContext.Provider,
+      { value: above[0] },
+      createElement(Markdown, { src: body, webSearchResults: results })
+    )
+  )
+}
+
+let host: HTMLDivElement
+let root: ReturnType<typeof createRoot>
+const send = vi.fn(async (_opts: SendMessageOptions) => {})
+const messages: ChatMessage[] = []
+
+// happy-dom reports on the console each frame it was told not to load (the
+// chart's); anything else still prints.
+const consoleError = console.error.bind(console)
+vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+  if (args[0] instanceof DOMException && args[0].name === 'NotSupportedError')
+    return
+  consoleError(...args)
+})
+
+beforeEach(() => {
+  handleCopy.mockClear()
+  host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+})
+
+afterEach(async () => {
+  await act(async () => root.unmount())
+  host.remove()
+})
+
+const show = (node: ReactElement) =>
+  act(async () =>
+    root.render(
+      createElement(
+        JotaiProvider,
+        null,
+        createElement(
+          InteractiveProvider,
+          { messages, status: 'idle', send },
+          node
+        )
+      )
+    )
+  )
+const byId = (id: string) =>
+  host.querySelector<HTMLElement>(`[data-testid="${id}"]`)
+const allById = (id: string) =>
+  Array.from(host.querySelectorAll<HTMLElement>(`[data-testid="${id}"]`))
+
+describe('illustrated steps in a reply', () => {
+  it('are drawn as a numbered list in place of the code, with the title', async () => {
+    await show(
+      createElement(Turn, {
+        body: `How to:\n\n${fence('exodus-steps', STEPS)}`,
+        results: RESULTS
+      })
+    )
+    expect(byId(TEST_IDS.chat.richBlocks.steps)).not.toBeNull()
+    expect(host.querySelector('pre')).toBeNull()
+    expect(allById(TEST_IDS.chat.richBlocks.step)).toHaveLength(4)
+    expect(host.textContent).toContain('Replacing the strings')
+    expect(host.textContent).toContain('Tune up slowly.')
+  })
+
+  it("draws a picture only when it is one of the run's search thumbnails", async () => {
+    await show(
+      createElement(Turn, {
+        body: fence('exodus-steps', STEPS),
+        results: RESULTS
+      })
+    )
+    const pictures = allById(TEST_IDS.chat.richBlocks.stepImage)
+    expect(pictures).toHaveLength(1)
+    expect(pictures[0].querySelector('img')?.getAttribute('src')).toBe(
+      'https://imgs.search.brave.com/peg.jpg'
+    )
+    // The second step's picture is an image result's *original*: not a thumbnail, not drawn.
+    expect(host.innerHTML).not.toContain('original/bridge.jpg')
+    // The third is a Brave URL this run never returned.
+    expect(host.innerHTML).not.toContain('not-from-this-run')
+    // No placeholder either: a dropped picture is nothing, not a "Load image" button.
+    expect(byId(TEST_IDS.chat.remoteImage.placeholder)).toBeNull()
+  })
+
+  it('draws no pictures when the run searched nothing', async () => {
+    await show(createElement(Turn, { body: fence('exodus-steps', STEPS) }))
+    expect(allById(TEST_IDS.chat.richBlocks.step)).toHaveLength(4)
+    expect(allById(TEST_IDS.chat.richBlocks.stepImage)).toHaveLength(0)
+  })
+
+  it('a second block in the reply stays code', async () => {
+    await show(
+      createElement(Turn, {
+        body: `${fence('exodus-steps', STEPS)}\n\n${fence('exodus-stock', STOCK)}`
+      })
+    )
+    expect(byId(TEST_IDS.chat.richBlocks.steps)).not.toBeNull()
+    expect(byId(TEST_IDS.chat.richBlocks.stock)).toBeNull()
+    expect(host.querySelector('pre')).not.toBeNull()
+  })
+})
+
+describe('a stock chart in a reply', () => {
+  it("is TradingView's embed in a sandboxed frame, with the note and the symbol's page under it", async () => {
+    await show(createElement(Turn, { body: fence('exodus-stock', STOCK) }))
+    const frame = byId(TEST_IDS.chat.richBlocks.stockFrame)
+    expect(frame?.getAttribute('src')).toBe(
+      tradingViewEmbedUrl({
+        symbol: 'NASDAQ:AAPL',
+        range: '12M',
+        theme: 'light',
+        locale: 'en'
+      })
+    )
+    expect(frame?.getAttribute('sandbox')).toBe(
+      'allow-scripts allow-same-origin'
+    )
+    expect(frame?.getAttribute('referrerpolicy')).toBe('no-referrer')
+    expect(frame?.getAttribute('height')).toBe('220')
+    expect(host.textContent).toContain('Up 12% since the call.')
+    expect(host.textContent).toContain('richBlocks.chartBy')
+    const link = host.querySelector<HTMLAnchorElement>('a[target="_blank"]')
+    expect(link?.getAttribute('href')).toBe(
+      tradingViewSymbolPageUrl('NASDAQ:AAPL')
+    )
+    expect(host.querySelector('pre')).toBeNull()
+  })
+
+  it('takes 1D when the block names no range', async () => {
+    await show(
+      createElement(Turn, {
+        body: fence('exodus-stock', { symbol: 'NYSE:BRK.B' })
+      })
+    )
+    expect(
+      byId(TEST_IDS.chat.richBlocks.stockFrame)?.getAttribute('src')
+    ).toContain('%22dateRange%22%3A%221D%22')
+  })
+
+  it('falls back to a card when the frame fails', async () => {
+    await show(createElement(Turn, { body: fence('exodus-stock', STOCK) }))
+    await act(async () => {
+      byId(TEST_IDS.chat.richBlocks.stockFrame)?.dispatchEvent(
+        new Event('error')
+      )
+    })
+    expect(byId(TEST_IDS.chat.richBlocks.stockFrame)).toBeNull()
+    const fallback = byId(TEST_IDS.chat.richBlocks.stockFallback)
+    expect(fallback?.textContent).toContain('NASDAQ:AAPL')
+    expect(fallback?.textContent).toContain('richBlocks.chartUnavailable')
+    expect(
+      byId(TEST_IDS.chat.richBlocks.stock)?.getAttribute('data-state')
+    ).toBe('failed')
+    // The note and the page link stay.
+    expect(host.textContent).toContain('Up 12% since the call.')
+  })
+
+  it('falls back when the frame says nothing for ten seconds', async () => {
+    vi.useFakeTimers()
+    try {
+      await show(createElement(Turn, { body: fence('exodus-stock', STOCK) }))
+      await act(async () => {
+        vi.advanceTimersByTime(10_001)
+      })
+      expect(byId(TEST_IDS.chat.richBlocks.stockFallback)).not.toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('a symbol the widget would not take stays code', async () => {
+    await show(
+      createElement(Turn, {
+        body: fence('exodus-stock', { symbol: 'nasdaq:aapl' })
+      })
+    )
+    expect(byId(TEST_IDS.chat.richBlocks.stock)).toBeNull()
+    expect(host.querySelector('pre')).not.toBeNull()
+  })
+})
+
+describe('copy and read aloud take the block’s words', () => {
+  // Task 5 wires the block's words into Copy (withBlockText).
+  it.skip("Copy writes the stock block's symbol and note, not its JSON", async () => {
+    const content = `Here:\n\n${fence('exodus-stock', STOCK)}`
+    await show(createElement(MessageAction, { content }))
+    const row = byId(TEST_IDS.chat.messageAction)
+    await act(async () => row?.querySelector('button')?.click())
+    expect(handleCopy).toHaveBeenCalledTimes(1)
+    const copied = handleCopy.mock.calls[0]![0] as string
+    expect(copied).toContain('NASDAQ:AAPL — Up 12% since the call.')
+    expect(copied).not.toContain('exodus-stock')
+  })
+})

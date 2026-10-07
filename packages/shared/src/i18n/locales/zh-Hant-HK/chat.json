@@ -384,6 +384,16 @@
       "title": "你嘅答案"
     }
   },
+  "richBlocks": {
+    "stepLabel": "第 {{number}} 步",
+    "openOnTradingView": "喺 TradingView 開啟",
+    "chartBy": "圖表：TradingView",
+    "chartUnavailable": "載入唔到圖表。",
+    "entityLoading": "載入緊…",
+    "entityNothing": "維基百科冇相關條目。",
+    "entityFailed": "連接唔到維基百科。",
+    "readMore": "喺維基百科閱讀更多"
+  },
   "workspaceFile": {
     "created": "已建立",
     "edited": "已編輯",

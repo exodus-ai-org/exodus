@@ -234,6 +234,17 @@ export const TEST_IDS = {
     remoteImage: {
       placeholder: 'chat.remote-image.placeholder',
       loadButton: 'chat.remote-image.load-button'
+    },
+    /** The phase-2 blocks drawn in a reply: steps, the stock chart, the entity link and its panel (chat/interactive/). */
+    richBlocks: {
+      steps: 'chat.rich-blocks.steps',
+      step: 'chat.rich-blocks.step',
+      stepImage: 'chat.rich-blocks.step-image',
+      stock: 'chat.rich-blocks.stock',
+      stockFrame: 'chat.rich-blocks.stock-frame',
+      stockFallback: 'chat.rich-blocks.stock-fallback',
+      entityLink: 'chat.rich-blocks.entity-link',
+      entityPanel: 'chat.rich-blocks.entity-panel'
     }
   },
   composer: {
