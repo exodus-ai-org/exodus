@@ -1,5 +1,4 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -12,25 +11,19 @@ import { useDevices } from '@/hooks/use-devices'
 import { isPhoneOnline } from '@/lib/phone-presence'
 import { cn } from '@/lib/utils'
 
-/** How often the five-minute window is re-read without a fetch: a phone that went quiet greys out within a minute. */
-const TICK_MS = 60_000
-
 /**
  * The paired-phone dot (spec 2026-10-08 §6): green when a paired phone
  * called the computer in the last five minutes, grey otherwise. The devices
- * query refetches on window focus; between fetches the window is re-read on
- * a minute's tick. Click opens Settings › Devices.
+ * list is re-read once a minute while the dot is on screen (the phone's
+ * visits happen without this window's involvement — the owner's phone read
+ * as gone while it was there, 2026-10-08), and on window focus. Click opens
+ * Settings › Devices.
  */
 export function PhoneDot() {
   const { t } = useTranslation('chat')
   const navigate = useNavigate()
-  const { data } = useDevices()
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), TICK_MS)
-    return () => clearInterval(timer)
-  }, [])
-  const online = isPhoneOnline(data, now)
+  const { data } = useDevices({ watchPresence: true })
+  const online = isPhoneOnline(data)
   const label = online ? t('header.phonePaired') : t('header.phoneNotPaired')
 
   return (

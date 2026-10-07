@@ -21,17 +21,29 @@ export const devicesKeys = { all: ['devices'] as const }
 // While a pairing window is open the page polls: that is how it learns the
 // phone has paired.
 const PAIRING_POLL_MS = 1500
+// The header's phone dot watches a phone's `lastSeenAt`, which the phone
+// changes by calling the LAN API while this window may stay focused for
+// hours: a minute's poll of a loopback route, only where asked for.
+const PRESENCE_POLL_MS = 60_000
 
-const pollWhilePairing = (query: Query<DevicesState>) =>
-  query.state.data?.pairing ? PAIRING_POLL_MS : false
+const pollInterval =
+  (watchPresence: boolean) => (query: Query<DevicesState>) => {
+    if (query.state.data?.pairing) return PAIRING_POLL_MS
+    return watchPresence ? PRESENCE_POLL_MS : false
+  }
 
 // `data` keeps its identity across polls that return equal data (structural
 // sharing — never turn it off): the "device paired" toast is an effect over it.
-export function useDevices() {
+export function useDevices({
+  watchPresence = false
+}: {
+  /** Re-read once a minute even with no pairing window: the header's phone dot. */
+  watchPresence?: boolean
+} = {}) {
   const { data } = useQuery({
     queryKey: devicesKeys.all,
     queryFn: () => getDevices(),
-    refetchInterval: pollWhilePairing,
+    refetchInterval: pollInterval(watchPresence),
     // The QR code is scanned from a phone, so this window is usually blurred
     // when the "device paired" toast has to land, and React Query would pause
     // the interval on blur. The poll ends when a read shows `pairing: null`
