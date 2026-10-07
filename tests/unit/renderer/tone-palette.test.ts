@@ -118,7 +118,7 @@ describe('colour tones', () => {
     ],
     [
       'send',
-      'src/renderer/components/chat/composer/composer.tsx',
+      'src/renderer/components/chat/composer/composer-turn-button.tsx',
       "t('composer.send')"
     ]
   ])(
@@ -138,7 +138,7 @@ describe('colour tones', () => {
 
   it('draws the stop button neutral, its square white in light', () => {
     const classes = classesBefore(
-      'src/renderer/components/chat/composer/composer.tsx',
+      'src/renderer/components/chat/composer/composer-turn-button.tsx',
       "t('composer.stop')"
     )
     expect(classes).toContain('bg-foreground')
