@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 
 import { AppToaster } from '@/components/app/app-toaster'
+import { ChatPanel } from '@/components/chat/panel/chat-panel'
 import { DeepResearchProcess } from '@/components/deep-research'
 import {
   SidebarInset,
@@ -8,7 +9,6 @@ import {
   SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar'
-import { SourcesPanel } from '@/components/web-search/sources-panel'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { useRouteHistoryRecorder } from '@/hooks/use-route-history'
@@ -72,7 +72,7 @@ export function Layout() {
     <SidebarProvider className="h-screen overflow-hidden">
       <ChatWorkspace />
       <DeepResearchProcess />
-      <SourcesPanel />
+      <ChatPanel />
     </SidebarProvider>
   )
 }

@@ -196,10 +196,17 @@
     "details": "상세",
     "less": "접기"
   },
-  "sourcesPanel": {
-    "title_other": "출처 {{count}}개",
-    "citations": "인용 ({{count}})",
-    "more": "더 보기"
+  "panel": {
+    "files": "파일",
+    "tools": "도구",
+    "sources": "출처",
+    "empty": "이 채팅의 파일, 도구, 출처가 여기에 표시됩니다.",
+    "yours": "내 파일",
+    "madeHere": "여기서 생성됨",
+    "picture": "사진 {{index}}",
+    "generatedPicture": "생성된 사진 {{index}}",
+    "calls_other": "{{count}}회",
+    "untitledQuestion": "(텍스트 없음)"
   },
   "sidebar": {
     "newChat": "새 채팅",

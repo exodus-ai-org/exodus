@@ -268,6 +268,7 @@ export const AssistantTurnSegment = memo(
               webSearchResults={ownSources}
               citationSources={citationResults}
               timestamp={turn.timestamp}
+              runId={turn.runId}
             />
           )}
           {foot && <div className="mt-2">{foot}</div>}

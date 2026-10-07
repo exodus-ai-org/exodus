@@ -196,10 +196,17 @@
     "details": "詳細",
     "less": "收合"
   },
-  "sourcesPanel": {
-    "title_other": "{{count}} 個來源",
-    "citations": "引用來源（{{count}}）",
-    "more": "更多"
+  "panel": {
+    "files": "檔案",
+    "tools": "工具",
+    "sources": "來源",
+    "empty": "此聊天的檔案、工具與來源會顯示在這裡。",
+    "yours": "你的",
+    "madeHere": "在此產生",
+    "picture": "圖片 {{index}}",
+    "generatedPicture": "生成圖片 {{index}}",
+    "calls_other": "{{count}} 次",
+    "untitledQuestion": "（無文字）"
   },
   "sidebar": {
     "newChat": "開新聊天",

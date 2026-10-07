@@ -16,7 +16,8 @@ import { useOlderPages } from '@/hooks/use-older-pages'
 import {
   advancedToolsAtom,
   chatMessagesAtom,
-  reasoningEffortAtom
+  reasoningEffortAtom,
+  revealArtifactAtom
 } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
@@ -68,6 +69,7 @@ export function Chat({
   const setChatStatus = useSetAtom(chatStatusAtom)
   const setChatStop = useSetAtom(chatStopFnAtom)
   const setChatMessages = useSetAtom(chatMessagesAtom)
+  const setRevealArtifact = useSetAtom(revealArtifactAtom)
 
   const [title, setTitle] = useState(chatTitle)
 
@@ -125,12 +127,19 @@ export function Chat({
 
   // What the header and its panel show — pictures, tool results, sources —
   // arrives whole, as a message: published when one is added or the stream
-  // settles, not on every frame of a reply.
+  // settles, not on every frame of a reply. They go with the chat, and a
+  // reveal no card answered goes with them.
   useEffect(() => {
     setChatMessages(messages)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- a message added, or the stream settled
   }, [messages.length, status, setChatMessages])
-  useEffect(() => () => setChatMessages([]), [setChatMessages])
+  useEffect(
+    () => () => {
+      setChatMessages([])
+      setRevealArtifact(null)
+    },
+    [setChatMessages, setRevealArtifact]
+  )
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {

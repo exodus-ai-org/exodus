@@ -203,11 +203,18 @@
     "details": "Details",
     "less": "Less"
   },
-  "sourcesPanel": {
-    "title_one": "{{count}} Source",
-    "title_other": "{{count}} Sources",
-    "citations": "Citations ({{count}})",
-    "more": "More"
+  "panel": {
+    "files": "Files",
+    "tools": "Tools",
+    "sources": "Sources",
+    "empty": "Files, tools and sources from this chat will show up here.",
+    "yours": "Yours",
+    "madeHere": "Made here",
+    "picture": "Picture {{index}}",
+    "generatedPicture": "Generated picture {{index}}",
+    "calls_one": "{{count}} call",
+    "calls_other": "{{count}} calls",
+    "untitledQuestion": "(no text)"
   },
   "sidebar": {
     "newChat": "New chat",

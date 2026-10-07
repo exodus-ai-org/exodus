@@ -196,10 +196,17 @@
     "details": "詳細",
     "less": "閉じる"
   },
-  "sourcesPanel": {
-    "title_other": "{{count}}件のソース",
-    "citations": "引用({{count}}件)",
-    "more": "もっと見る"
+  "panel": {
+    "files": "ファイル",
+    "tools": "ツール",
+    "sources": "ソース",
+    "empty": "このチャットのファイル・ツール・ソースがここに表示されます。",
+    "yours": "あなたのもの",
+    "madeHere": "ここで作成",
+    "picture": "画像 {{index}}",
+    "generatedPicture": "生成画像 {{index}}",
+    "calls_other": "{{count}} 回",
+    "untitledQuestion": "（テキストなし）"
   },
   "sidebar": {
     "newChat": "新しいチャット",

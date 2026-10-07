@@ -1,7 +1,6 @@
 import type { EffortLevel } from '@exodus/shared/schemas/settings-schema'
 import { AdvancedTools } from '@exodus/shared/types/ai'
 import { Attachment, ChatMessage } from '@exodus/shared/types/chat'
-import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { atom } from 'jotai'
 
 import { Chat, DeepResearchMessage } from '@/types/db'
@@ -41,7 +40,17 @@ export const chatMessagesAtom = atom<ChatMessage[]>([])
  */
 export const revealArtifactAtom = atom<string | null>(null)
 
-export const sourcesPanelAtom = atom<{
-  webSearchResults: WebSearchResult[]
-  messageText: string
-} | null>(null)
+export type ChatPanelSection = 'files' | 'tools' | 'sources'
+
+export interface ChatPanelState {
+  open: boolean
+  section: ChatPanelSection
+  /** A run whose Sources group the panel scrolls to (a message's Sources button). */
+  runId?: string
+}
+
+/** The header's files / tools / sources panel (`chat/panel/chat-panel.tsx`). */
+export const chatPanelAtom = atom<ChatPanelState>({
+  open: false,
+  section: 'files'
+})
