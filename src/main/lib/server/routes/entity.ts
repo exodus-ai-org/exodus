@@ -58,7 +58,10 @@ export function summaryOf(
     typeof thumb?.source === 'string' &&
     thumb.source.startsWith('https://') &&
     typeof thumb.width === 'number' &&
-    typeof thumb.height === 'number'
+    typeof thumb.height === 'number' &&
+    thumb.width > 0 &&
+    thumb.height > 0
+  const page = json.content_urls?.desktop?.page
   return {
     title: json.title ?? askedTitle.replaceAll('_', ' '),
     extract: json.extract?.trim() || null,
@@ -66,7 +69,7 @@ export function summaryOf(
     thumbnail: hasThumb
       ? { source: thumb.source!, width: thumb.width!, height: thumb.height! }
       : null,
-    url: json.content_urls?.desktop?.page ?? null,
+    url: typeof page === 'string' && page.startsWith('https://') ? page : null,
     lang: json.lang ?? lang
   }
 }

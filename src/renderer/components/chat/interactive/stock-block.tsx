@@ -15,6 +15,14 @@ import { useTranslation } from 'react-i18next'
 /** How long the frame may say nothing before the card gives up on it (offline, blocked). */
 export const STOCK_FRAME_TIMEOUT_MS = 10_000
 
+type Phase = 'loading' | 'loaded' | 'failed'
+
+/** Where a chart URL starts: an app that knows it is offline gives up at once. */
+const firstPhase = (): Phase =>
+  typeof navigator !== 'undefined' && navigator.onLine === false
+    ? 'failed'
+    : 'loading'
+
 /**
  * A reply's stock chart (`exodus-stock`): TradingView's Mini Chart as its
  * own embed URL in a sandboxed frame — no script of theirs in our document;
@@ -22,11 +30,18 @@ export const STOCK_FRAME_TIMEOUT_MS = 10_000
  * and "Chart by TradingView" with the symbol's page. The frame is not lazy:
  * a frame that never starts could not be told from one that failed, and the
  * card falls back to the symbol and the note when it fails or stays silent.
+ *
+ * Each chart URL (a theme or language change makes a new one) starts over:
+ * the frame is mounted afresh with the watchdog re-armed, or, when the app
+ * is offline, the card falls back at once without a frame. A navigation that
+ * fails does not fire the frame's `error` — Chromium commits its own error
+ * page into the frame and fires `load` — so a network that is up but blocks
+ * TradingView shows that error page inside the card; only a main-process
+ * `did-fail-load` relay could catch it, and that is not done here.
  */
 export function StockBlock({ block }: { block: StockBlockData }) {
   const { t, i18n } = useTranslation('chat')
   const { resolvedTheme } = useTheme()
-  const [phase, setPhase] = useState<'loading' | 'loaded' | 'failed'>('loading')
   const locale = i18n.resolvedLanguage ?? i18n.language ?? 'en'
   const src = useMemo(
     () =>
@@ -38,21 +53,35 @@ export function StockBlock({ block }: { block: StockBlockData }) {
       }),
     [block.symbol, block.range, resolvedTheme, locale]
   )
+  // The phase belongs to one chart URL; a new URL starts from its first phase.
+  const [state, setState] = useState(() => ({ src, phase: firstPhase() }))
+  if (state.src !== src) setState({ src, phase: firstPhase() })
+  const phase = state.src === src ? state.phase : 'loading'
+  const setPhase = useCallback(
+    (next: Phase) =>
+      setState((current) =>
+        current.src === src ? { src, phase: next } : current
+      ),
+    [src]
+  )
 
   useEffect(() => {
     if (phase !== 'loading') return
     const timer = setTimeout(() => setPhase('failed'), STOCK_FRAME_TIMEOUT_MS)
     return () => clearTimeout(timer)
-  }, [phase, src])
+  }, [phase, setPhase])
 
   // React wires no `error` listener on an <iframe> (only `load`), so
   // `onError` would never fire; the frame's own listener does.
-  const frameRef = useCallback((frame: HTMLIFrameElement | null) => {
-    if (!frame) return
-    const fail = () => setPhase('failed')
-    frame.addEventListener('error', fail)
-    return () => frame.removeEventListener('error', fail)
-  }, [])
+  const frameRef = useCallback(
+    (frame: HTMLIFrameElement | null) => {
+      if (!frame) return
+      const fail = () => setPhase('failed')
+      frame.addEventListener('error', fail)
+      return () => frame.removeEventListener('error', fail)
+    },
+    [setPhase]
+  )
 
   const note = block.note?.trim()
   return (

@@ -17,13 +17,16 @@ const EXTRACT_MAX = 600
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /**
- * react-markdown's URL rule, plus ours: a valid `entity:` href passes
+ * react-markdown's URL rule, plus ours: a valid `entity:` link's href passes
  * through to the `a` renderer (which draws it as `EntityLink`, never as an
- * anchor); everything else is the default's call — `http(s)`, `mailto` and
- * a few more pass, any other scheme is emptied.
+ * anchor); everything else — an image's `src` included, so `![x](entity:…)`
+ * is emptied — is the default's call: `http(s)`, `mailto` and a few more
+ * pass, any other scheme is emptied.
  */
-export function markdownUrlTransform(url: string): string {
-  return entityTitle(url) !== null ? url : defaultUrlTransform(url)
+export function markdownUrlTransform(url: string, key: string): string {
+  return key === 'href' && entityTitle(url) !== null
+    ? url
+    : defaultUrlTransform(url)
 }
 
 /**

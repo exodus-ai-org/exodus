@@ -289,7 +289,16 @@ leaves open, in one place:
   the widget's own embed URL in a sandboxed iframe (`allow-scripts
   allow-same-origin`, `referrerpolicy=no-referrer`), built in the renderer
   from a validated symbol — no TradingView script runs in our document;
-  `frame-src` already admits `https://*.tradingview-widget.com`.
+  `frame-src` already admits `https://*.tradingview-widget.com`. The frame
+  keeps `allow-same-origin` because the widget reads `document.cookie` to
+  connect (verified: without it the widget throws `SecurityError` and never
+  connects), so TradingView's own cookies persist in the Electron session as
+  any embedded chart's would; the Lock & Privacy sentence says TradingView
+  sees the symbol and the IP address, as any embedded chart would, and claims
+  nothing beyond that. The entity route (`GET /api/v1/entity/:title`) is a
+  new outbound fetch from main: the host is fixed to `<lang>.wikipedia.org`,
+  the title is a validated path segment, and it goes through
+  `fetchPublicHttps`.
 - Secrets at rest are as strong as the OS key store. On macOS the key is the
   login Keychain item "Exodus Safe Storage", whose access list admits the
   build that created it; another binary — a dev build, or an ad-hoc-signed

@@ -177,4 +177,25 @@ describe('GET /api/v1/entity/:title', () => {
       (await (await get('/Marie_Curie?lang=en')).json()).thumbnail
     ).toBeNull()
   })
+
+  it('a thumbnail with no size is dropped', async () => {
+    fetchPublicHttps.mockResolvedValue(
+      json({ ...CURIE, thumbnail: { ...CURIE.thumbnail, width: 0 } })
+    )
+    expect(
+      (await (await get('/Marie_Curie?lang=en')).json()).thumbnail
+    ).toBeNull()
+  })
+
+  it('a page URL that is not https is dropped', async () => {
+    fetchPublicHttps.mockResolvedValue(
+      json({
+        ...CURIE,
+        content_urls: {
+          desktop: { page: 'http://en.wikipedia.org/wiki/Marie_Curie' }
+        }
+      })
+    )
+    expect((await (await get('/Marie_Curie?lang=en')).json()).url).toBeNull()
+  })
 })

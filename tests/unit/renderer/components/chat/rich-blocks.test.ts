@@ -56,7 +56,7 @@ const {
   useInteractiveTurn
 } = await import('@/components/chat/interactive/interactive-context')
 const { MessageAction } = await import('@/components/chat/message-action')
-const { EntityPanel } =
+const { EntityPanel, markdownUrlTransform } =
   await import('@/components/chat/interactive/entity-link')
 
 const STEPS = {
@@ -295,6 +295,37 @@ describe('a stock chart in a reply', () => {
     }
   })
 
+  it('falls back at once when the app is offline', async () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    try {
+      await show(createElement(Turn, { body: fence('exodus-stock', STOCK) }))
+      expect(byId(TEST_IDS.chat.richBlocks.stockFallback)).not.toBeNull()
+      expect(byId(TEST_IDS.chat.richBlocks.stockFrame)).toBeNull()
+    } finally {
+      onLine.mockRestore()
+    }
+  })
+
+  it('re-arms when the chart URL changes', async () => {
+    await show(createElement(Turn, { body: fence('exodus-stock', STOCK) }))
+    await act(async () => {
+      byId(TEST_IDS.chat.richBlocks.stockFrame)?.dispatchEvent(
+        new Event('error')
+      )
+    })
+    expect(byId(TEST_IDS.chat.richBlocks.stockFallback)).not.toBeNull()
+    await show(
+      createElement(Turn, {
+        body: fence('exodus-stock', { ...STOCK, range: '1M' })
+      })
+    )
+    expect(byId(TEST_IDS.chat.richBlocks.stockFallback)).toBeNull()
+    expect(
+      byId(TEST_IDS.chat.richBlocks.stockFrame)?.getAttribute('src')
+    ).toContain('%22dateRange%22%3A%221M%22')
+    expect(byId(TEST_IDS.chat.richBlocks.stock)?.dataset.state).toBe('loading')
+  })
+
   it('a symbol the widget would not take stays code', async () => {
     await show(
       createElement(Turn, {
@@ -348,6 +379,17 @@ describe('an entity link in a reply', () => {
     expect(allById(TEST_IDS.chat.richBlocks.entityLink)).toHaveLength(0)
     expect(host.querySelector('a')).toBeNull()
     expect(host.textContent).toContain('See this now.')
+  })
+
+  it('an entity: target is not a picture source', async () => {
+    await show(createElement(Turn, { body: '![x](entity:Marie_Curie)' }))
+    expect(allById(TEST_IDS.chat.richBlocks.entityLink)).toHaveLength(0)
+    expect(host.querySelector('[src*="entity:"]')).toBeNull()
+    // The rule itself: an entity: target passes only as a link's href.
+    expect(markdownUrlTransform('entity:Marie_Curie', 'src')).toBe('')
+    expect(markdownUrlTransform('entity:Marie_Curie', 'href')).toBe(
+      'entity:Marie_Curie'
+    )
   })
 
   it('an ordinary link is still a link', async () => {

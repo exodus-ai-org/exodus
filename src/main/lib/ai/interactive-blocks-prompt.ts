@@ -73,7 +73,7 @@ ${FENCE}exodus-confirm
 ${JSON.stringify(CONFIRM_EXAMPLE)}
 ${FENCE}
 
-\`exodus-steps\` is a how-to as numbered steps, each a line or two and, where a picture from your web search in this reply fits, that picture. Use it for "how do I…" answers of 3–12 ordered actions. "image" is optional and must be, character for character, a thumbnail URL a search result of this reply carried (a page's thumbnail, or an image result's thumbnail) — never an original image, never a URL you made up; the app drops anything else and draws the step without a picture.
+\`exodus-steps\` is a how-to as numbered steps, each a line or two and, where a picture from your web search in this reply fits, that picture. Use it for "how do I…" answers of 3–12 ordered actions. "image" is optional and must be, character for character, the URL on a search result's "thumbnail:" line in this reply — never its "url:" line, never an original image, never a URL you made up; the app drops anything else and draws the step without a picture.
 ${FENCE}exodus-steps
 ${JSON.stringify(STEPS_EXAMPLE)}
 ${FENCE}
