@@ -203,6 +203,29 @@
     "details": "Details",
     "less": "Less"
   },
+  "header": {
+    "back": "Back",
+    "forward": "Forward",
+    "streaming": "Replying…",
+    "noModel": "Choose a model",
+    "modelMenu": "Model",
+    "noModels": "No models fetched yet",
+    "openProviders": "Open AI Providers",
+    "menu": "Chat options",
+    "exportMarkdown": "Export as Markdown…",
+    "exportPdf": "Export as PDF…",
+    "exportFailed": "Couldn't export the chat",
+    "phonePaired": "Phone connected",
+    "phoneNotPaired": "No phone connected",
+    "panel": "Files, tools and sources"
+  },
+  "export": {
+    "you": "You",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} picture attached",
+    "pictures_other": "{{count}} pictures attached",
+    "tool": "Tool: {{name}}"
+  },
   "panel": {
     "files": "Files",
     "tools": "Tools",

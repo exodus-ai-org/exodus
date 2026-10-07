@@ -196,6 +196,28 @@
     "details": "詳細",
     "less": "收合"
   },
+  "header": {
+    "back": "上一頁",
+    "forward": "下一頁",
+    "streaming": "回覆中…",
+    "noModel": "選擇模型",
+    "modelMenu": "模型",
+    "noModels": "尚未取得模型",
+    "openProviders": "開啟 AI 供應商",
+    "menu": "聊天選項",
+    "exportMarkdown": "匯出為 Markdown…",
+    "exportPdf": "匯出為 PDF…",
+    "exportFailed": "無法匯出聊天",
+    "phonePaired": "手機已連線",
+    "phoneNotPaired": "未連線手機",
+    "panel": "檔案、工具與來源"
+  },
+  "export": {
+    "you": "你",
+    "assistant": "Exodus",
+    "pictures_other": "附加 {{count}} 張圖片",
+    "tool": "工具：{{name}}"
+  },
   "panel": {
     "files": "檔案",
     "tools": "工具",

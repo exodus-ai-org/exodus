@@ -366,6 +366,14 @@ describe('chat namespace Phase 5 additions (en)', () => {
     expect(chat.panel.calls_other).toBe('{{count}} calls')
   })
 
+  it('has the header and export keys', () => {
+    expect(chat.header.noModel).toBe('Choose a model')
+    expect(chat.header.exportMarkdown).toBe('Export as Markdown…')
+    expect(chat.header.phonePaired).toBe('Phone connected')
+    expect(chat.export.pictures_one).toBe('{{count}} picture attached')
+    expect(chat.export.tool).toBe('Tool: {{name}}')
+  })
+
   it('has the sidebar.newChat / searchChats / history / dialogs / search keys', () => {
     expect(chat.sidebar.newChat).toBe('New chat')
     expect(chat.sidebar.searchChats).toBe('Search chats')

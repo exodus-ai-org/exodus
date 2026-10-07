@@ -203,6 +203,29 @@
     "details": "Dettagli",
     "less": "Meno"
   },
+  "header": {
+    "back": "Indietro",
+    "forward": "Avanti",
+    "streaming": "Sta rispondendo…",
+    "noModel": "Scegli un modello",
+    "modelMenu": "Modello",
+    "noModels": "Nessun modello recuperato finora",
+    "openProviders": "Apri provider IA",
+    "menu": "Opzioni della chat",
+    "exportMarkdown": "Esporta come Markdown…",
+    "exportPdf": "Esporta come PDF…",
+    "exportFailed": "Impossibile esportare la chat",
+    "phonePaired": "Telefono connesso",
+    "phoneNotPaired": "Nessun telefono connesso",
+    "panel": "File, strumenti e fonti"
+  },
+  "export": {
+    "you": "Tu",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} immagine allegata",
+    "pictures_other": "{{count}} immagini allegate",
+    "tool": "Strumento: {{name}}"
+  },
   "panel": {
     "files": "File",
     "tools": "Strumenti",

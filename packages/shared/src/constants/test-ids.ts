@@ -247,6 +247,18 @@ export const TEST_IDS = {
       entityPanel: 'chat.rich-blocks.entity-panel'
     },
     /** The header's files / tools / sources panel (chat/panel/): its root, a section tab, a row, the empty line. */
+    /** The chat header (chat/header/): the history arrows, the title group, the phone dot, the panel toggle. */
+    header: {
+      back: 'chat.header.back',
+      forward: 'chat.header.forward',
+      title: 'chat.header.title',
+      modelChip: 'chat.header.model-chip',
+      /** One per model in the chip's list (`data-model` holds the id). */
+      modelOption: 'chat.header.model-option',
+      menu: 'chat.header.menu',
+      phone: 'chat.header.phone',
+      panelToggle: 'chat.header.panel-toggle'
+    },
     panel: {
       root: 'chat.panel.root',
       tab: 'chat.panel.tab',

@@ -203,6 +203,29 @@
     "details": "Détails",
     "less": "Moins"
   },
+  "header": {
+    "back": "Précédent",
+    "forward": "Suivant",
+    "streaming": "Réponse en cours…",
+    "noModel": "Choisir un modèle",
+    "modelMenu": "Modèle",
+    "noModels": "Aucun modèle récupéré pour l'instant",
+    "openProviders": "Ouvrir les fournisseurs d'IA",
+    "menu": "Options de la discussion",
+    "exportMarkdown": "Exporter en Markdown…",
+    "exportPdf": "Exporter en PDF…",
+    "exportFailed": "Impossible d'exporter la discussion",
+    "phonePaired": "Téléphone connecté",
+    "phoneNotPaired": "Aucun téléphone connecté",
+    "panel": "Fichiers, outils et sources"
+  },
+  "export": {
+    "you": "Vous",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} image jointe",
+    "pictures_other": "{{count}} images jointes",
+    "tool": "Outil : {{name}}"
+  },
   "panel": {
     "files": "Fichiers",
     "tools": "Outils",

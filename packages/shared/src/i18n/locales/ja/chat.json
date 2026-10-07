@@ -196,6 +196,28 @@
     "details": "詳細",
     "less": "閉じる"
   },
+  "header": {
+    "back": "戻る",
+    "forward": "進む",
+    "streaming": "返信中…",
+    "noModel": "モデルを選択",
+    "modelMenu": "モデル",
+    "noModels": "まだモデルを取得していません",
+    "openProviders": "AIプロバイダーを開く",
+    "menu": "チャットのオプション",
+    "exportMarkdown": "Markdownとして書き出す…",
+    "exportPdf": "PDFとして書き出す…",
+    "exportFailed": "チャットを書き出せませんでした",
+    "phonePaired": "スマートフォン接続中",
+    "phoneNotPaired": "スマートフォン未接続",
+    "panel": "ファイル・ツール・ソース"
+  },
+  "export": {
+    "you": "あなた",
+    "assistant": "Exodus",
+    "pictures_other": "添付画像 {{count}} 枚",
+    "tool": "ツール: {{name}}"
+  },
   "panel": {
     "files": "ファイル",
     "tools": "ツール",

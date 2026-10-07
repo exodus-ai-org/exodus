@@ -196,6 +196,28 @@
     "details": "상세",
     "less": "접기"
   },
+  "header": {
+    "back": "뒤로",
+    "forward": "앞으로",
+    "streaming": "답변 중…",
+    "noModel": "모델 선택",
+    "modelMenu": "모델",
+    "noModels": "아직 가져온 모델이 없습니다",
+    "openProviders": "AI 제공업체 열기",
+    "menu": "채팅 옵션",
+    "exportMarkdown": "Markdown으로 내보내기…",
+    "exportPdf": "PDF로 내보내기…",
+    "exportFailed": "채팅을 내보낼 수 없습니다",
+    "phonePaired": "휴대폰 연결됨",
+    "phoneNotPaired": "연결된 휴대폰 없음",
+    "panel": "파일, 도구 및 출처"
+  },
+  "export": {
+    "you": "나",
+    "assistant": "Exodus",
+    "pictures_other": "사진 {{count}}장 첨부",
+    "tool": "도구: {{name}}"
+  },
   "panel": {
     "files": "파일",
     "tools": "도구",
