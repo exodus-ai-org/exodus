@@ -454,8 +454,12 @@ describe('useRouteHistory', () => {
     click('open')
     click('back')
     click('home')
-    // Home again from home: the same entry, nothing pushed.
-    expect(store.get(historyAtom).entries).toEqual(['/'])
+    // Home again from home: the same entry, nothing pushed, the forward page still there.
+    expect(store.get(historyAtom)).toEqual({
+      entries: ['/', '/chat/a'],
+      index: 0,
+      skipNext: false
+    })
     click('open')
     expect(store.get(historyAtom)).toEqual({
       entries: ['/', '/chat/a'],
@@ -2507,7 +2511,7 @@ describe('<ChatPanel>', () => {
       tabs.map((tab) => `${tab.dataset.section}:${tab.textContent}`)
     ).toEqual([
       'files:panel.files3',
-      'tools:panel.tools2',
+      'tools:panel.tools3',
       'sources:panel.sources1'
     ])
   })
@@ -2568,11 +2572,10 @@ describe('<ChatPanel>', () => {
     const root = host.querySelector<HTMLElement>(
       `[data-testid="${TEST_IDS.chat.panel.root}"]`
     )
-    act(() =>
-      root!
-        .querySelector('button:last-of-type')!
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    const close = [...root!.querySelectorAll<HTMLButtonElement>('button')].find(
+      (button) => button.textContent === 'action.close'
     )
+    act(() => close!.click())
     expect(store.get(chatPanelAtom).open).toBe(false)
   })
 })
