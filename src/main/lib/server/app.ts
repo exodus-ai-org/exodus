@@ -29,6 +29,7 @@ import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import devicesRouter from './routes/devices'
 import discoverRouter from './routes/discover'
+import entityRouter from './routes/entity'
 import healthRouter from './routes/health'
 import historyRouter from './routes/history'
 import knowledgeBaseRouter from './routes/knowledge-base'
@@ -122,6 +123,7 @@ export function createApp() {
   v1.route('/db-io', dbIoRouter)
   v1.route('/deep-research', deepResearchRouter)
   v1.route('/discover', discoverRouter)
+  v1.route('/entity', entityRouter)
   v1.route('/computer-use', computerUseRouter)
   v1.route('/tools', toolsRouter)
   v1.route('/philharmonic', philharmonicRouter)

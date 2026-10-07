@@ -571,3 +571,19 @@ Re-measure against these numbers with Chat Audit and a page's size after any cha
 4. Anything sent for the past must stay a pure function of stored data (§5); a digest change bumps `DIGEST_VERSION`.
 5. A new field a client reads: keep it out of `compactRow`'s drop list, or the page will not carry it.
 6. This document, CLAUDE.md, and the design spec it came from.
+
+## 15. Entity summaries: `GET /api/v1/entity/:title`
+
+For the panel a reply's `[name](entity:Title)` link opens (rich blocks phase 2). `title` is a Wikipedia article
+title (1–200 units of letters, digits, `_ ( ) . , ' - :`, percent-encoded in the path); `lang` a two- or
+three-letter Wikipedia language, default `en`. The computer reads `https://<lang>.wikipedia.org/api/rest_v1/page/summary/<title>`
+through the safe fetch (https, public addresses only), then English when that is a 404, and keeps the answer a day:
+
+```jsonc
+{ "title": "Marie Curie", "extract": "…", "description": "…",
+  "thumbnail": { "source": "https://upload.wikimedia.org/…", "width": 330, "height": 448 } | null,
+  "url": "https://en.wikipedia.org/wiki/Marie_Curie" | null, "lang": "en" }
+```
+
+An article neither language has is a `200` with `extract: null` and `url: null`. `400 VALIDATION_FAILED` for a title or
+`lang` outside the rule; `503 SERVICE_UNAVAILABLE` when Wikipedia could not be reached.
