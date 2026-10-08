@@ -71,25 +71,32 @@ function publishedAtMs(r: BraveNewsRawResult): number {
   return 0
 }
 
+/** A pool article: what is shown, and when it was published (epoch ms, 0 when unknown). */
+export interface PooledNewsArticle extends BraveNewsArticle {
+  publishedMs: number
+}
+
 /**
- * Brave News ranks by relevance, not recency, and has no sort param — so a
- * generic query ("FC Barcelona news") surfaces heavily-linked pre-match
- * previews over the match report that broke two hours ago. We pull a wide
- * relevance-ranked pool, re-sort it by recency, and return the freshest of
- * the still-relevant results — a Google-News-style "latest" within the pool.
+ * A wide pool for `count` articles, in Brave's relevance order, from the past
+ * week. Which of them are shown is the caller's: Brave News ranks by
+ * relevance with no sort param, and re-sorting the raw pool by recency put a
+ * fresh but unrelated story (a court case under "Beijing travel") ahead of
+ * the ones about the topic. The manager has them judged first, then takes
+ * the freshest of what is left (`freshest`). A week, not a day: a niche topic
+ * has too few stories in a day, and Brave fills the pool with loose matches.
  */
 export async function searchBraveNews(
   apiKey: string,
   query: string,
   opts: { count: number; country?: string | null; language?: string | null }
-): Promise<BraveNewsArticle[]> {
+): Promise<PooledNewsArticle[]> {
   const want = Math.max(opts.count, 1)
   const poolSize = Math.min(Math.max(want * 5, 12), 30)
 
   const params = new URLSearchParams()
   params.set('q', query)
   params.set('count', String(poolSize))
-  params.set('freshness', 'pd')
+  params.set('freshness', 'pw')
   if (opts.country) params.set('country', opts.country.toLowerCase())
   if (opts.language) params.set('search_lang', opts.language)
 
@@ -101,24 +108,37 @@ export async function searchBraveNews(
   }
   const body = (await res.json()) as { results?: BraveNewsRawResult[] }
 
-  const pool = (body.results ?? [])
+  return (body.results ?? [])
     .filter((r) => r.title && r.url)
-    .map((r) => ({ r, ts: publishedAtMs(r) }))
-    .sort((a, b) => b.ts - a.ts)
+    .map((r) => ({
+      title: r.title!,
+      url: r.url!,
+      description: r.description ?? '',
+      source:
+        r.profile?.name ??
+        r.profile?.long_name ??
+        r.source ??
+        r.meta_url?.hostname ??
+        safeHostname(r.url!),
+      favicon: r.meta_url?.favicon,
+      thumbnail: r.thumbnail?.src,
+      age: r.age,
+      publishedAt: normalizeIso(r.page_age),
+      publishedMs: publishedAtMs(r)
+    }))
+}
 
-  return pool.slice(0, want).map(({ r }) => ({
-    title: r.title!,
-    url: r.url!,
-    description: r.description ?? '',
-    source:
-      r.profile?.name ??
-      r.profile?.long_name ??
-      r.source ??
-      r.meta_url?.hostname ??
-      safeHostname(r.url!),
-    favicon: r.meta_url?.favicon,
-    thumbnail: r.thumbnail?.src,
-    age: r.age,
-    publishedAt: normalizeIso(r.page_age)
-  }))
+/**
+ * The `count` most recent of `articles`, as shown: a Google-News-style
+ * "latest" among the ones kept. One with no timestamp (usually an evergreen
+ * page, a club profile or a "how to watch" hub) sorts last.
+ */
+export function freshest(
+  articles: PooledNewsArticle[],
+  count: number
+): BraveNewsArticle[] {
+  return articles
+    .toSorted((a, b) => b.publishedMs - a.publishedMs)
+    .slice(0, Math.max(count, 1))
+    .map(({ publishedMs: _publishedMs, ...article }) => article)
 }
