@@ -629,8 +629,7 @@ chat.post('/', async (c) => {
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
+      'Cache-Control': 'no-cache'
     }
   })
 })

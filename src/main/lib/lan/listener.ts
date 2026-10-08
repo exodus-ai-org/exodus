@@ -1,4 +1,4 @@
-import https from 'https'
+import http2 from 'http2'
 
 import { LAN_SERVER_PORT } from '@exodus/shared/constants/systems'
 import type { serve as honoServe, ServerType } from '@hono/node-server'
@@ -48,8 +48,12 @@ export function createLanListener(deps: {
               deps.fetch(request, { ...(env as Bindings), listener: 'lan' }),
             port: deps.port ?? LAN_SERVER_PORT,
             hostname: '0.0.0.0',
-            createServer: https.createServer,
-            serverOptions: { cert: certPem, key: keyPem }
+            // HTTP/2 where the client offers it (the phone's URLSession
+            // does, over ALPN): its page, pictures, media and live streams
+            // share one connection, where HTTP/1.1 opened several, each its
+            // own TLS handshake over Tailscale. HTTP/1.1 clients still get it.
+            createServer: http2.createSecureServer,
+            serverOptions: { cert: certPem, key: keyPem, allowHTTP1: true }
           },
           () => {
             server = starting

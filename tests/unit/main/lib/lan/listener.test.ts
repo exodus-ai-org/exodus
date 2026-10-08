@@ -1,3 +1,5 @@
+import http2 from 'http2'
+
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@main/lib/logger', () => ({
@@ -38,7 +40,7 @@ describe('LAN listener', () => {
     expect(listener.isRunning()).toBe(false)
   })
 
-  it('comes up over HTTPS on every interface when wanted, once', async () => {
+  it('comes up over HTTPS (HTTP/2, HTTP/1.1 still served) on every interface when wanted, once', async () => {
     const { listener, serve } = setup({ wanted: true })
     await listener.sync()
     await listener.sync()
@@ -47,7 +49,8 @@ describe('LAN listener', () => {
     expect(serve.mock.calls[0][0]).toMatchObject({
       port: 63129,
       hostname: '0.0.0.0',
-      serverOptions: { cert: 'CERT', key: 'KEY' }
+      createServer: http2.createSecureServer,
+      serverOptions: { cert: 'CERT', key: 'KEY', allowHTTP1: true }
     })
     expect(listener.isRunning()).toBe(true)
   })
