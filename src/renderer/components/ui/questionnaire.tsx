@@ -108,7 +108,7 @@ function QuestionnaireChoice({
     <QuestionnairePrimitive.Choice
       data-slot="questionnaire-choice"
       className={cn(
-        'group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start gap-2.5 rounded-xl border border-input px-3 py-2.5 text-start text-xs/relaxed transition-colors outline-none select-none hover:bg-input/40 has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-2 has-[>input:focus-visible]:ring-ring/30 data-invalid:border-destructive data-checked:border-primary/40 data-checked:bg-primary/10',
+        'group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start gap-2.5 rounded-xl border border-input px-3 py-2.5 text-start text-xs/snug transition-colors outline-none select-none hover:bg-input/40 has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-2 has-[>input:focus-visible]:ring-ring/30 data-invalid:border-destructive data-checked:border-primary/40 data-checked:bg-primary/10',
         'data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50',
         className
       )}
@@ -118,10 +118,16 @@ function QuestionnaireChoice({
         data-slot="questionnaire-choice-input"
         className="absolute inset-0 z-10 size-full cursor-pointer opacity-0"
       />
+      {/*
+        Centred on the label's first line whatever its size: the row and the
+        label share one line height, and the box sits half of what that line
+        has over 1rem below the top. A fixed nudge tuned for one line height
+        left it low beside the label's tighter one.
+      */}
       <span
         aria-hidden="true"
         data-slot="questionnaire-choice-indicator"
-        className="border-input group-data-checked/questionnaire-choice:border-primary group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground dark:bg-input/30 dark:group-data-checked/questionnaire-choice:bg-primary pointer-events-none relative flex size-4 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-[4px] border group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[type=radio]/questionnaire-choice:rounded-full"
+        className="border-input group-data-checked/questionnaire-choice:border-primary group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground dark:bg-input/30 dark:group-data-checked/questionnaire-choice:bg-primary pointer-events-none relative mt-[calc((1lh-1rem)/2)] flex size-4 shrink-0 items-center justify-center rounded-[4px] border group-data-[type=radio]/questionnaire-choice:rounded-full"
       >
         <span
           data-slot="questionnaire-choice-indicator-dot"
@@ -142,7 +148,7 @@ function QuestionnaireChoice({
       </QuestionnairePrimitive.ChoiceLabel>
       <QuestionnairePrimitive.ChoiceShortcut
         data-slot="questionnaire-choice-shortcut"
-        className="border-input bg-background/80 text-muted-foreground pointer-events-none ms-auto hidden size-4 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-sm border text-[0.5625rem] leading-none font-medium group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[shortcut]/questionnaire-choice:inline-flex"
+        className="border-input bg-background/80 text-muted-foreground pointer-events-none ms-auto mt-[calc((1lh-1rem)/2)] hidden size-4 shrink-0 items-center justify-center rounded-sm border text-[0.5625rem] leading-[calc(var(--text-xs)*var(--leading-snug))] font-medium group-data-[shortcut]/questionnaire-choice:inline-flex"
       />
     </QuestionnairePrimitive.Choice>
   )
