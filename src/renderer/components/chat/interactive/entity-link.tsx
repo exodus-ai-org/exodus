@@ -1,5 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { entityTitle, wikipediaLang } from '@exodus/shared/utils/entity-link'
+import { ArrowUpRight01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
 import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -116,13 +118,17 @@ export function EntityPanel({ title }: { title: string }) {
               : data.extract}
           </p>
           {data.url && (
+            // A pill with an arrow, not tinted text: in the neutral tone the
+            // ink is the text's own colour, and plain text did not read as a
+            // way out to Wikipedia (owner, 2026-10-08).
             <a
               href={data.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary-ink text-sm hover:underline"
+              className="border-border hover:bg-muted inline-flex w-fit items-center gap-1 self-start rounded-full border px-3 py-1 text-sm font-medium transition-colors"
             >
               {t('richBlocks.readMore')}
+              <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3.5" />
             </a>
           )}
         </>
