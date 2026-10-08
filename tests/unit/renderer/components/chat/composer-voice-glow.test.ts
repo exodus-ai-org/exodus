@@ -61,15 +61,20 @@ class FakeRecorder {
   mimeType = 'audio/webm'
   ondataavailable: ((event: { data: Blob }) => void) | null = null
   onstop: (() => void) | null = null
+  state: 'inactive' | 'recording' = 'inactive'
   static isTypeSupported = () => true
   constructor(readonly stream: MediaStream) {}
-  start() {}
+  start() {
+    this.state = 'recording'
+  }
   stop() {
+    this.state = 'inactive'
     this.onstop?.()
   }
 }
 
 let stream: MediaStream
+let track: { stop: ReturnType<typeof vi.fn> }
 let getUserMedia: ReturnType<typeof vi.fn>
 let host: HTMLDivElement
 let root: ReturnType<typeof createRoot>
@@ -78,7 +83,8 @@ let store: ReturnType<typeof createStore>
 beforeEach(() => {
   glow = {}
   resolvedTheme = 'light'
-  stream = { getTracks: () => [{ stop: vi.fn() }] } as unknown as MediaStream
+  track = { stop: vi.fn() }
+  stream = { getTracks: () => [track] } as unknown as MediaStream
   getUserMedia = vi.fn(() => Promise.resolve(stream))
   vi.stubGlobal('MediaRecorder', FakeRecorder)
   Object.defineProperty(navigator, 'mediaDevices', {
@@ -134,13 +140,29 @@ describe('the composer voice glow', () => {
     expect(glow.stream).toBeNull()
   })
 
-  it('goes out when typing takes the recorder’s place', async () => {
+  it('keeps recording while the user types: the stop stays, and so does the glow', async () => {
     await show()
     await press('recorder.dictate')
 
     await act(async () => store.set(chatInputAtom, 'hello'))
 
+    expect(glow.active).toBe(true)
+    expect(button('recorder.stopRecording')).not.toBeNull()
+    expect(track.stop).not.toHaveBeenCalled()
+
+    await press('recorder.stopRecording')
+    expect(track.stop).toHaveBeenCalled()
     expect(glow.active).toBe(false)
+  })
+
+  it('stops the microphone when the composer goes mid-recording', async () => {
+    await show()
+    await press('recorder.dictate')
+
+    await act(async () => root.unmount())
+
+    expect(track.stop).toHaveBeenCalled()
+    root = createRoot(host)
   })
 
   it('wraps the pill without moving it, and carries its shadow', async () => {

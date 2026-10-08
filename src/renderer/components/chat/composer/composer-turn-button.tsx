@@ -1,6 +1,7 @@
 import type { ChatStatus } from '@exodus/shared/types/chat'
 import { ArrowUpIcon, StopIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '../../ui/button'
@@ -26,6 +27,10 @@ export function ComposerTurnButton({
   onRecordingStream?: (stream: MediaStream | null) => void
 }) {
   const { t } = useTranslation('chat')
+  // While it records or transcribes, the recorder keeps its place whatever is
+  // typed: given way to Send, it took the microphone and the coming text with
+  // it. Its transcript is added after what was typed.
+  const [recorderBusy, setRecorderBusy] = useState(false)
 
   if (status === 'submitted' || status === 'streaming') {
     return (
@@ -46,12 +51,13 @@ export function ComposerTurnButton({
       </Button>
     )
   }
-  if (input.trim() === '') {
+  if (input.trim() === '' || recorderBusy) {
     return (
       <AudioRecorder
         input={input}
         setInput={setInput}
         onStream={onRecordingStream}
+        onBusyChange={setRecorderBusy}
       />
     )
   }

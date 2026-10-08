@@ -35,12 +35,15 @@ function extForMime(mime: string): string {
 export function AudioRecorder({
   input,
   setInput,
-  onStream
+  onStream,
+  onBusyChange
 }: {
   input: string
   setInput: (input: string) => void
   /** The microphone while recording, null otherwise: the voice glow listens. */
   onStream?: (stream: MediaStream | null) => void
+  /** Recording or transcribing: the button must stay this one until done. */
+  onBusyChange?: (busy: boolean) => void
 }) {
   const { t } = useTranslation('audio')
   const [isRecording, setIsRecording] = useState(false)
@@ -96,9 +99,30 @@ export function AudioRecorder({
     onStream?.(null)
   }
 
-  // The button gives way to send as soon as anything is typed; the glow goes
-  // with it rather than outliving the control that would stop it.
-  useEffect(() => () => onStream?.(null), [onStream])
+  useEffect(() => {
+    onBusyChange?.(isRecording || loading)
+  }, [isRecording, loading, onBusyChange])
+
+  // Taken away mid-recording (the chat closed): the microphone stops and the
+  // clip is dropped, since nothing is left to take its text. It used to stay
+  // on, recording, with no control left to stop it.
+  const onStreamRef = useRef(onStream)
+  onStreamRef.current = onStream
+  const onBusyChangeRef = useRef(onBusyChange)
+  onBusyChangeRef.current = onBusyChange
+  useEffect(
+    () => () => {
+      const recorder = mediaRecorderRef.current
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.onstop = null
+        recorder.stop()
+        recorder.stream.getTracks().forEach((track) => track.stop())
+      }
+      onStreamRef.current?.(null)
+      onBusyChangeRef.current?.(false)
+    },
+    []
+  )
 
   // Append each new transcription once. `input` is in the deps so the append
   // uses the current value, and the ref guard stops the re-render from
