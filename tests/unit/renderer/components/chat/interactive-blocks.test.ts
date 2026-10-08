@@ -193,11 +193,21 @@ describe('a questionnaire in a reply', () => {
     })
     expect(block()?.getAttribute('data-state')).toBe('answered')
     expect(host.querySelector('button[type="submit"]')).toBeNull()
+    // The questionnaire as it was asked: every choice, the pick checked, none
+    // taking input.
+    const choices = Array.from(
+      host.querySelectorAll('[data-slot="questionnaire-choice"]')
+    )
+    expect(choices.length).toBeGreaterThan(1)
     expect(
-      Array.from(host.querySelectorAll('[data-picked]')).map(
-        (n) => n.textContent
-      )
+      choices
+        .filter((n) => n.hasAttribute('data-checked'))
+        .map((n) => n.textContent)
     ).toEqual(['Legs'])
+    expect(host.querySelector('input')).toBeNull()
+    expect(
+      choices.every((n) => n.getAttribute('aria-disabled') === 'true')
+    ).toBe(true)
     expect(host.textContent).toContain('interactive.answered')
   })
 
