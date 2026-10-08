@@ -15,9 +15,15 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
 vi.mock('sileo', () => ({
   sileo: { success: vi.fn(), error: vi.fn(), warning: vi.fn() }
 }))
+let beam: Record<string, unknown> = {}
 vi.mock('border-beam', () => ({
-  BorderBeam: ({ children }: { children: ReactNode }) =>
-    createElement('div', null, children)
+  BorderBeam: ({
+    children,
+    ...props
+  }: Record<string, unknown> & { children?: ReactNode }) => {
+    beam = props
+    return createElement('div', null, children)
+  }
 }))
 let resolvedTheme = 'light'
 vi.mock('next-themes', () => ({ useTheme: () => ({ resolvedTheme }) }))
@@ -137,13 +143,40 @@ describe('the composer voice glow', () => {
     expect(glow.active).toBe(false)
   })
 
-  it('wraps the pill without moving it: same radius, nothing clipped', async () => {
+  it('wraps the pill without moving it, and carries its shadow', async () => {
     await show()
 
     expect(glow.borderRadius).toBe(28)
-    expect(glow.style).toEqual({ overflow: 'visible' })
+    // Its own clip stays: left visible, the bloom showed past the pill.
+    expect(glow.style).toBeUndefined()
+    expect(glow.className).toContain('rounded-[28px]')
+    expect(glow.className).toContain('shadow-')
     const pill = host.querySelector('[data-glow] > div')
     expect(pill?.className).toContain('rounded-[28px]')
+    expect(pill?.className).not.toContain('shadow-')
+  })
+
+  it('takes the idle beam’s place while recording, and gives it back', async () => {
+    await show()
+    expect(beam.active).toBe(true)
+
+    await press('recorder.dictate')
+    expect(beam.active).toBe(false)
+
+    await press('recorder.stopRecording')
+    expect(beam.active).toBe(true)
+  })
+
+  it('says it is listening in the field while recording', async () => {
+    await show()
+    const field = () => host.querySelector('textarea')
+    expect(field()?.getAttribute('placeholder')).toBe('composer.placeholder')
+
+    await press('recorder.dictate')
+    expect(field()?.getAttribute('placeholder')).toBe('composer.listening')
+
+    await press('recorder.stopRecording')
+    expect(field()?.getAttribute('placeholder')).toBe('composer.placeholder')
   })
 
   it.each(['light', 'dark'])('takes the %s theme', async (theme) => {

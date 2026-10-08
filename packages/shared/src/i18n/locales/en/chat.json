@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Ask anything",
+    "listening": "Listening…",
     "pleaseWaitTitle": "Please wait",
     "pleaseWaitDescription": "The model is still generating a response.",
     "stop": "Stop",

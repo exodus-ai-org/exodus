@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Fragen Sie mich etwas",
+    "listening": "Ich höre zu …",
     "pleaseWaitTitle": "Bitte warten",
     "pleaseWaitDescription": "Das Modell generiert noch eine Antwort.",
     "stop": "Stopp",

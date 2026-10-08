@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "有什麼想問的？",
+    "listening": "正在聆聽…",
     "pleaseWaitTitle": "請稍候",
     "pleaseWaitDescription": "模型仍在生成回覆中。",
     "stop": "停止",

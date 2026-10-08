@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Posez n'importe quelle question",
+    "listening": "À l’écoute…",
     "pleaseWaitTitle": "Veuillez patienter",
     "pleaseWaitDescription": "Le modèle génère encore une réponse.",
     "stop": "Arrêter",

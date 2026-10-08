@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Chiedi qualsiasi cosa",
+    "listening": "In ascolto…",
     "pleaseWaitTitle": "Attendere prego",
     "pleaseWaitDescription": "Il modello sta ancora generando una risposta.",
     "stop": "Interrompi",

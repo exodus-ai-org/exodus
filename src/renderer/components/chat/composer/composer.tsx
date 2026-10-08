@@ -196,6 +196,10 @@ function InputBox({
     <BorderBeam
       size={resolvedTheme === 'light' ? 'pulse-outside' : 'pulse-inner'}
       borderRadius={PILL_RADIUS}
+      // Steps aside while recording: the voice glow wears the same colours,
+      // and only the change from the idle beam to one that moves with the
+      // voice says Exodus is listening.
+      active={voiceStream === null}
       className={cn(
         'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-3xl',
         !id && 'mb-4'
@@ -204,19 +208,24 @@ function InputBox({
       {/*
         Lit only while recording, from the recorder's own stream, and faded
         out when it stops. Always mounted, so the field inside keeps its focus.
-        Its layers clip themselves to the pill, so the wrapper's own
-        `overflow: hidden` goes: it would cut the pill's shadow. Reduced
-        motion is the library's: no breathing, flow or hue drift, only the
-        level.
+        Its wrapper clips to the pill (left visible, its bloom showed as a
+        square band under it in light), so the pill's shadow is the wrapper's:
+        a box's own shadow is not cut by its overflow. A little more gain and
+        full strength than the defaults: the microphone is the browser's,
+        with echo cancellation and auto gain, quieter than the library's demo.
+        Reduced motion is the library's: no breathing, flow or hue drift, only
+        the level.
       */}
       <VoiceBeam
         stream={voiceStream}
         active={voiceStream !== null}
         theme={resolvedTheme === 'light' ? 'light' : 'dark'}
         borderRadius={PILL_RADIUS}
-        style={{ overflow: 'visible' }}
+        sensitivity={4.5}
+        strength={1}
+        className="rounded-[28px] shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)]"
       >
-        <div className="border-border/60 focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border bg-transparent px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] backdrop-blur-md transition-colors">
+        <div className="border-border/60 focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border bg-transparent px-2.5 py-2 backdrop-blur-md transition-colors">
           {quote !== null && (
             <div
               data-testid={TEST_IDS.composer.quote}
@@ -271,7 +280,11 @@ function InputBox({
             <Textarea
               ref={textareaRef}
               data-testid={TEST_IDS.composer.textarea}
-              placeholder={t('composer.placeholder')}
+              placeholder={
+                voiceStream === null
+                  ? t('composer.placeholder')
+                  : t('composer.listening')
+              }
               value={input}
               onChange={handleInput}
               className={cn(

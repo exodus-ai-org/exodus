@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "무엇이든 물어보세요",
+    "listening": "듣고 있어요…",
     "pleaseWaitTitle": "잠시만 기다려 주세요",
     "pleaseWaitDescription": "모델이 아직 응답을 생성하고 있습니다.",
     "stop": "중지",
