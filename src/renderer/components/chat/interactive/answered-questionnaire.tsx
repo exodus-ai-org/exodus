@@ -51,11 +51,17 @@ export function AnsweredQuestionnaire({
       className={cn(CARD, 'outline-none')}
     >
       <p className="text-sm font-semibold text-pretty">{block.title}</p>
-      <ol className="mt-3 flex flex-col gap-3">
+      {/*
+        The card is drawn inside the answer's Markdown, whose lists are
+        numbered and indented: the question carries its number itself (as the
+        open card and the phone's), so the list's own marker, indent and item
+        margins are switched off, or the number showed twice ("1. 1.").
+      */}
+      <ol className="mt-3 flex list-none! flex-col gap-3 pl-0!">
         {block.questions.map((question, i) => (
-          <li key={question.id}>
+          <li key={question.id} className="my-0!">
             <p className="text-sm font-medium">{`${i + 1}. ${question.text}`}</p>
-            <ul className="mt-1.5 flex flex-wrap gap-1.5">
+            <ul className="mt-1.5! flex list-none! flex-wrap gap-1.5 pl-0!">
               {question.options.map((option) => (
                 <Pick
                   key={option}
@@ -89,7 +95,7 @@ function Pick({ picked, children }: { picked: boolean; children: ReactNode }) {
     <li
       data-picked={picked ? '' : undefined}
       className={cn(
-        'flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs',
+        'my-0! flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs',
         picked ? 'border-primary/40 bg-primary/10' : 'text-muted-foreground'
       )}
     >
