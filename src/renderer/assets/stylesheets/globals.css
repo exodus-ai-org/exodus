@@ -732,124 +732,131 @@ html:lang(ko) {
     @apply mb-0;
   }
 
-  /* Every block-level node: uniform gap below, no gap above (headings
-     override). Tables are excluded — they ship wrapped in a scroll <div>
-     from markdown.tsx that owns their spacing. */
-  .markdown :where(p, ul, ol, blockquote, pre, hr, dl, details) {
-    @apply m-0 mb-(--md-gap);
-  }
+  /* The element rules stop at an interactive block (a questionnaire, a
+     confirmation, steps, a stock card): those cards sit inside the answer's
+     Markdown but are laid out by their own classes, and a rule here won over
+     a utility of the same weight (a card's `mt-3` lost to the paragraphs'
+     `m-0 mb-…`). A Markdown section inside a card is a scope of its own. */
+  @scope (.markdown) to ([data-interactive]) {
+    /* Every block-level node: uniform gap below, no gap above (headings
+       override). Tables are excluded — they ship wrapped in a scroll <div>
+       from markdown.tsx that owns their spacing. */
+    :scope :where(p, ul, ol, blockquote, pre, hr, dl, details) {
+      @apply m-0 mb-(--md-gap);
+    }
 
-  /* Headings — semibold; generous top margin breaks the section, real bottom
-     margin lets the following paragraph breathe. */
-  .markdown :where(h1) {
-    @apply mx-0 mt-[1.6em] mb-[0.6em] text-[1.5em]/[1.3] font-semibold tracking-[-0.01em];
-  }
-  .markdown :where(h2) {
-    @apply mx-0 mt-[1.7em] mb-[0.7em] text-[1.3em]/[1.35] font-semibold tracking-[-0.005em];
-  }
-  .markdown :where(h3) {
-    @apply mx-0 mt-[1.5em] mb-[0.5em] text-[1.15em]/[1.4] font-semibold;
-  }
-  .markdown :where(h4, h5, h6) {
-    @apply mx-0 mt-[1.3em] mb-[0.4em] font-semibold;
-  }
-  .markdown :where(h1, h2, h3, h4, h5, h6):first-child {
-    @apply mt-0;
-  }
+    /* Headings — semibold; generous top margin breaks the section, real bottom
+       margin lets the following paragraph breathe. */
+    :scope :where(h1) {
+      @apply mx-0 mt-[1.6em] mb-[0.6em] text-[1.5em]/[1.3] font-semibold tracking-[-0.01em];
+    }
+    :scope :where(h2) {
+      @apply mx-0 mt-[1.7em] mb-[0.7em] text-[1.3em]/[1.35] font-semibold tracking-[-0.005em];
+    }
+    :scope :where(h3) {
+      @apply mx-0 mt-[1.5em] mb-[0.5em] text-[1.15em]/[1.4] font-semibold;
+    }
+    :scope :where(h4, h5, h6) {
+      @apply mx-0 mt-[1.3em] mb-[0.4em] font-semibold;
+    }
+    :scope :where(h1, h2, h3, h4, h5, h6):first-child {
+      @apply mt-0;
+    }
 
-  /* Lists — comfortable indent, bold markers in the body colour. Items get a
-     small gap so multi-line items don't run together; loose-list `<li><p>`
-     content inherits the same rhythm without doubling it. */
-  .markdown :where(ul) {
-    @apply list-disc pl-[1.5em];
-  }
-  .markdown :where(ol) {
-    @apply list-decimal pl-[1.5em];
-  }
-  .markdown :where(li) {
-    @apply mx-0 my-[0.35em] [line-height:1.7];
-  }
-  .markdown :where(li)::marker {
-    @apply text-muted-foreground font-semibold;
-  }
-  /* Second-level bullets switch to a hollow marker for visible hierarchy. */
-  .markdown :where(ul ul) {
-    @apply list-[circle];
-  }
-  .markdown :where(ul ul ul) {
-    @apply list-[square];
-  }
-  /* Nested lists hug their parent item. */
-  .markdown :where(li > ul, li > ol) {
-    @apply mx-0 mt-[0.35em] mb-0;
-  }
-  /* Loose lists (blank line between items) wrap each item in <p>. */
-  .markdown :where(li > p) {
-    @apply mx-0 my-[0.35em];
-  }
-  .markdown :where(li > p:first-child) {
-    @apply mt-0;
-  }
-  .markdown :where(li > p:last-child) {
-    @apply mb-0;
-  }
+    /* Lists — comfortable indent, bold markers in the body colour. Items get a
+       small gap so multi-line items don't run together; loose-list `<li><p>`
+       content inherits the same rhythm without doubling it. */
+    :scope :where(ul) {
+      @apply list-disc pl-[1.5em];
+    }
+    :scope :where(ol) {
+      @apply list-decimal pl-[1.5em];
+    }
+    :scope :where(li) {
+      @apply mx-0 my-[0.35em] [line-height:1.7];
+    }
+    :scope :where(li)::marker {
+      @apply text-muted-foreground font-semibold;
+    }
+    /* Second-level bullets switch to a hollow marker for visible hierarchy. */
+    :scope :where(ul ul) {
+      @apply list-[circle];
+    }
+    :scope :where(ul ul ul) {
+      @apply list-[square];
+    }
+    /* Nested lists hug their parent item. */
+    :scope :where(li > ul, li > ol) {
+      @apply mx-0 mt-[0.35em] mb-0;
+    }
+    /* Loose lists (blank line between items) wrap each item in <p>. */
+    :scope :where(li > p) {
+      @apply mx-0 my-[0.35em];
+    }
+    :scope :where(li > p:first-child) {
+      @apply mt-0;
+    }
+    :scope :where(li > p:last-child) {
+      @apply mb-0;
+    }
 
-  /* Horizontal rule — a clear section break. */
-  .markdown :where(hr) {
-    border: 0;
-    @apply border-t-border mx-0 my-[2em] border-t;
-  }
+    /* Horizontal rule — a clear section break. */
+    :scope :where(hr) {
+      border: 0;
+      @apply border-t-border mx-0 my-[2em] border-t;
+    }
 
-  /* Strong / bold — semibold, not heavy. */
-  .markdown :where(strong) {
-    @apply font-semibold;
-  }
+    /* Strong / bold — semibold, not heavy. */
+    :scope :where(strong) {
+      @apply font-semibold;
+    }
 
-  /* Links — subtle by default, underline on hover. */
-  .markdown :where(a) {
-    color: var(--primary-ink);
-    @apply wrap-break-word [text-decoration:none];
-  }
-  .markdown :where(a):hover {
-    @apply underline-offset-2 [text-decoration:underline];
-  }
+    /* Links — subtle by default, underline on hover. */
+    :scope :where(a) {
+      color: var(--primary-ink);
+      @apply wrap-break-word [text-decoration:none];
+    }
+    :scope :where(a):hover {
+      @apply underline-offset-2 [text-decoration:underline];
+    }
 
-  /* Inline code — soft chip, sized close to the body so it doesn't shrink
-     mid-sentence. */
-  .markdown :where(code):not(:where(pre *)) {
-    @apply bg-muted text-foreground rounded-[0.3125rem] px-[0.4em] py-[0.12em] text-[0.9em] font-medium;
-  }
+    /* Inline code — soft chip, sized close to the body so it doesn't shrink
+       mid-sentence. */
+    :scope :where(code):not(:where(pre *)) {
+      @apply bg-muted text-foreground rounded-[0.3125rem] px-[0.4em] py-[0.12em] text-[0.9em] font-medium;
+    }
 
-  /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg.
-     Scroll long lines / tall dumps instead of clipping them or letting the
-     block blow out the message column. */
-  /* One panel, one background: the header strip and the highlighted code
-     share it (the highlighter's own is transparent); no border. Neutral in
-     every tone (--code), unlike the inline chips. */
-  .markdown :where(pre) {
-    @apply bg-code max-h-[32rem] max-w-full overflow-auto rounded-2xl p-0 text-inherit;
-  }
+    /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg.
+       Scroll long lines / tall dumps instead of clipping them or letting the
+       block blow out the message column. */
+    /* One panel, one background: the header strip and the highlighted code
+       share it (the highlighter's own is transparent); no border. Neutral in
+       every tone (--code), unlike the inline chips. */
+    :scope :where(pre) {
+      @apply bg-code max-h-[32rem] max-w-full overflow-auto rounded-2xl p-0 text-inherit;
+    }
 
-  /* Paragraphs — normal wrapping (soft newlines collapse to spaces, the way
-     markdown prose should read); only hard breaks / blank lines split them. */
-  .markdown :where(p) {
-    @apply wrap-break-word [word-break:break-word];
-  }
+    /* Paragraphs — normal wrapping (soft newlines collapse to spaces, the way
+       markdown prose should read); only hard breaks / blank lines split them. */
+    :scope :where(p) {
+      @apply wrap-break-word [word-break:break-word];
+    }
 
-  /* Blockquote — a single gradient pill on the inside-start edge. */
-  .markdown :where(blockquote) {
-    @apply relative py-[0.2em] pr-0 pl-[1.15em] not-italic [border:0];
-  }
-  .markdown :where(blockquote)::before {
-    content: '';
-    @apply absolute inset-y-[0.35em] left-0 w-[3px] rounded-[999px];
-    background: linear-gradient(to bottom, var(--primary), var(--ring));
-  }
-  .markdown :where(blockquote > :last-child) {
-    @apply mb-0;
-  }
-  .markdown :where(blockquote > p) {
-    @apply font-normal;
+    /* Blockquote — a single gradient pill on the inside-start edge. */
+    :scope :where(blockquote) {
+      @apply relative py-[0.2em] pr-0 pl-[1.15em] not-italic [border:0];
+    }
+    :scope :where(blockquote)::before {
+      content: '';
+      @apply absolute inset-y-[0.35em] left-0 w-[3px] rounded-[999px];
+      background: linear-gradient(to bottom, var(--primary), var(--ring));
+    }
+    :scope :where(blockquote > :last-child) {
+      @apply mb-0;
+    }
+    :scope :where(blockquote > p) {
+      @apply font-normal;
+    }
   }
 
   .tiptap {

@@ -152,7 +152,7 @@ describe('colour tones', () => {
   })
 
   it('draws links in the ink', () => {
-    const links = css.slice(css.indexOf('.markdown :where(a) {'))
+    const links = css.slice(css.indexOf(':scope :where(a) {'))
     expect(links.slice(0, links.indexOf('}'))).toContain(
       'color: var(--primary-ink)'
     )
@@ -198,7 +198,7 @@ describe('a code block’s panel', () => {
   })
 
   it('and its header strip both use it, never --muted', () => {
-    expect(css).toMatch(/\.markdown :where\(pre\) \{\s*@apply bg-code /u)
+    expect(css).toMatch(/:scope :where\(pre\) \{\s*@apply bg-code /u)
     const markdown = readFileSync(
       join(ROOT, 'src/renderer/components/markdown/markdown.tsx'),
       'utf8'
