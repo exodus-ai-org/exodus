@@ -36,34 +36,51 @@ export function summarizeInput(_tool: string, input: Json): string {
 
 /**
  * The FULL text the owner judges when approving a tool: never cut, and no
- * field left out — what the main rendering does not consume is appended.
+ * key left out — what the main rendering does not consume (a key counts as
+ * consumed only when its value is the string, or for `edits` the array, it
+ * renders) is appended as JSON.
  */
 export function describeInput(tool: string, input: Json): string {
+  const strs = (o: Json, keys: string[]) =>
+    keys.every((k) => str(o[k]) !== null)
+  const without = (o: Json, keys: string[]): Json =>
+    Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k)))
   const edit = (e: Json) =>
-    `--- old\n${str(e.old_string) ?? ''}\n+++ new\n${str(e.new_string) ?? ''}`
+    `--- old\n${str(e.old_string)}\n+++ new\n${str(e.new_string)}`
+  const editOf = (e: unknown): string => {
+    if (!isObj(e) || !strs(e, ['old_string', 'new_string']))
+      return JSON.stringify(e, null, 2)
+    const rest = without(e, ['old_string', 'new_string'])
+    return Object.keys(rest).length
+      ? `${edit(e)}\n  other fields: ${JSON.stringify(rest)}`
+      : edit(e)
+  }
+  const path = (k = 'file_path') => str(input[k]) ?? ''
   let main: string
   let consumed: string[]
-  if (tool === 'Bash' && typeof input.command === 'string') {
-    main = input.command
+  if (tool === 'Bash' && strs(input, ['command'])) {
+    main = str(input.command)!
     consumed = ['command']
   } else if (tool === 'Write') {
-    main = `${str(input.file_path) ?? ''}\n\n${str(input.content) ?? ''}`
-    consumed = ['file_path', 'content']
+    consumed = ['file_path', 'content'].filter((k) => str(input[k]) !== null)
+    main = `${path()}\n\n${str(input.content) ?? ''}`
   } else if (tool === 'Edit') {
-    main = `${str(input.file_path) ?? ''}\n\n${edit(input)}`
-    consumed = ['file_path', 'old_string', 'new_string']
-  } else if (tool === 'MultiEdit' && Array.isArray(input.edits)) {
-    const edits = input.edits.map((e) =>
-      isObj(e) ? edit(e) : JSON.stringify(e)
+    consumed = ['file_path', 'old_string', 'new_string'].filter(
+      (k) => str(input[k]) !== null
     )
-    main = `${str(input.file_path) ?? ''}\n\n${edits.join('\n\n')}`
-    consumed = ['file_path', 'edits']
+    main = `${path()}\n\n${str(input.old_string) !== null && str(input.new_string) !== null ? edit(input) : ''}`
+    if (consumed.includes('old_string') !== consumed.includes('new_string'))
+      consumed = consumed.filter((k) => k === 'file_path')
+  } else if (tool === 'MultiEdit' && Array.isArray(input.edits)) {
+    main = `${path()}\n\n${input.edits.map(editOf).join('\n\n')}`
+    consumed = [
+      'edits',
+      ...(str(input.file_path) !== null ? ['file_path'] : [])
+    ]
   } else {
     return JSON.stringify(input, null, 2)
   }
-  const rest = Object.fromEntries(
-    Object.entries(input).filter(([k]) => !consumed.includes(k))
-  )
+  const rest = without(input, consumed)
   return Object.keys(rest).length
     ? `${main}\n\nOther fields:\n${JSON.stringify(rest, null, 2)}`
     : main

@@ -219,4 +219,56 @@ describe('Claude Code protocol', () => {
   it('shows an unknown tool as pretty JSON', () => {
     expect(describeInput('Mystery', { a: 1 })).toBe('{\n  "a": 1\n}')
   })
+
+  describe('describeInput keeps every key', () => {
+    // every key shows by name (in a JSON block) or, rendered, by its string value
+    const shown = (d: string, o: Record<string, unknown>) => {
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'edits' && Array.isArray(v)) {
+          for (const e of v)
+            if (e && typeof e === 'object')
+              shown(d, e as Record<string, unknown>)
+        } else {
+          expect(
+            d.includes(`"${k}"`) || (typeof v === 'string' && d.includes(v))
+          ).toBe(true)
+        }
+      }
+    }
+    const keysIn = shown
+    const cases: Array<[string, Record<string, unknown>, string]> = [
+      [
+        'MultiEdit',
+        {
+          file_path: '/a',
+          edits: [{ old_string: 'a', new_string: 'b', replace_all: true }]
+        },
+        'replace_all'
+      ],
+      [
+        'MultiEdit',
+        {
+          file_path: '/a',
+          edits: [{ old_string: 'a', new_string: 'b', sneaky: 1 }]
+        },
+        'sneaky'
+      ],
+      ['Write', { file_path: '/a', content: { evil: 1 } }, '"evil": 1'],
+      [
+        'Edit',
+        { file_path: '/a', old_string: 5, new_string: 'b' },
+        '"old_string": 5'
+      ],
+      [
+        'MultiEdit',
+        { file_path: ['/x'], edits: [{ old_string: 'a', new_string: 'b' }] },
+        '"/x"'
+      ]
+    ]
+    it.each(cases)('%s %j', (tool, input, shown) => {
+      const d = describeInput(tool, input)
+      keysIn(d, input)
+      expect(d).toContain(shown)
+    })
+  })
 })
