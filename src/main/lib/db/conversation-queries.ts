@@ -119,3 +119,13 @@ export async function createConversationMessage(
   await touchConversation(data.conversationId)
   return row
 }
+
+export async function updateConversationMessageParts(
+  id: string,
+  parts: Record<string, unknown>[]
+): Promise<void> {
+  await db
+    .update(conversationMessage)
+    .set({ parts })
+    .where(eq(conversationMessage.id, id))
+}

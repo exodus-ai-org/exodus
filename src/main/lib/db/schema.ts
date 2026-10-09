@@ -1,5 +1,6 @@
 import type { Usage } from '@earendil-works/pi-ai'
 import {
+  AgentsSettingsSchema,
   VoiceSchema,
   DeepResearchSchema,
   DiscoverSchema,
@@ -185,6 +186,7 @@ export const settings = pgTable('settings', {
   knowledgeBase:
     jsonb('knowledgeBase').$type<z.infer<typeof KnowledgeBaseSchema>>(),
   computerUse: jsonb('computerUse').$type<z.infer<typeof ComputerUseSchema>>(),
+  agents: jsonb('agents').$type<z.infer<typeof AgentsSettingsSchema>>(),
   discover: jsonb('discover').$type<z.infer<typeof DiscoverSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
@@ -294,6 +296,11 @@ export const team = pgTable('team', {
 
 export type Team = InferSelectModel<typeof team>
 
+export const agentRuntimeEnum = pgEnum('agent_runtime', [
+  'exodus',
+  'claude-code'
+])
+
 export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
@@ -307,6 +314,9 @@ export const agent = pgTable('agent', {
   mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
   model: text('model'),
   provider: text('provider'),
+  runtime: agentRuntimeEnum('runtime').notNull().default('exodus'),
+  /** A CLI employee's permission mode; null = the CLI's `default`. */
+  permissionMode: text('permissionMode'),
   isActive: boolean('isActive').default(true),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
@@ -344,6 +354,18 @@ export type AgentMemory = InferSelectModel<typeof agentMemory>
 
 // ─── Conversations (work groups) ──────────────────────────────────────────────
 
+/** A folder Philharmonic works in (spec §4): `dir` holds `.exodus/` meta; `workDir` is where agents work — `dir` for a new project, the owner's folder for an opened one. */
+export const project = pgTable('project', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  dir: text('dir').notNull().unique(),
+  workDir: text('workDir').notNull(),
+  useWorktrees: boolean('useWorktrees').notNull().default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  lastUsedAt: timestamp('lastUsedAt').defaultNow().notNull()
+})
+export type Project = InferSelectModel<typeof project>
+
 export const conversation = pgTable(
   'conversation',
   {
@@ -352,6 +374,9 @@ export const conversation = pgTable(
     icon: text('icon'), // emoji
     memberAgentIds: jsonb('memberAgentIds').$type<string[]>().default([]),
     archived: boolean('archived').default(false),
+    projectId: uuid('projectId').references(() => project.id, {
+      onDelete: 'set null'
+    }),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
     updatedAt: timestamp('updatedAt').defaultNow().notNull(),
     lastMessageAt: timestamp('lastMessageAt').defaultNow().notNull()
@@ -393,6 +418,47 @@ export const conversationMessage = pgTable(
 )
 
 export type ConversationMessage = InferSelectModel<typeof conversationMessage>
+
+export const agentSessionStateEnum = pgEnum('agent_session_state', [
+  'working',
+  'blocked',
+  'done',
+  'stopped',
+  'error'
+])
+
+/** One CLI session of one employee in one project (spec §8). */
+export const agentSession = pgTable(
+  'agent_session',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('projectId')
+      .notNull()
+      .references(() => project.id, { onDelete: 'cascade' }),
+    agentId: uuid('agentId').references(() => agent.id, {
+      onDelete: 'set null'
+    }),
+    conversationId: uuid('conversationId')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' }),
+    runtime: text('runtime').notNull(),
+    cliSessionId: text('cliSessionId'),
+    cwd: text('cwd').notNull(),
+    branch: text('branch'),
+    state: agentSessionStateEnum('state').notNull().default('working'),
+    /** The employee message whose card this session draws (latest step). */
+    messageId: uuid('messageId'),
+    continuedInTerminal: boolean('continuedInTerminal')
+      .notNull()
+      .default(false),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull()
+  },
+  (table) => [
+    index('agent_session_project_agent_idx').on(table.projectId, table.agentId)
+  ]
+)
+export type AgentSession = InferSelectModel<typeof agentSession>
 
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
