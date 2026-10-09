@@ -2,7 +2,6 @@
 import { execFile } from 'child_process'
 import { existsSync } from 'fs'
 import {
-  appendFile,
   mkdir,
   readFile,
   realpath,
@@ -11,7 +10,7 @@ import {
   writeFile
 } from 'fs/promises'
 import { homedir } from 'os'
-import { basename, join, sep } from 'path'
+import { basename, join, relative, sep } from 'path'
 
 import { ErrorCode, ValidationError } from '@exodus/shared'
 
@@ -28,6 +27,7 @@ import {
 } from '../db/project-queries'
 import type { AgentSession, Project } from '../db/schema'
 import { getExodusHome, getGroupDir } from '../paths'
+import { assertMetaDir, writeMetaFile } from './meta-files'
 import { agentSettings } from './settings'
 
 export function slugify(name: string): string {
@@ -59,11 +59,17 @@ export async function assertWorkableFolder(folder: string): Promise<string> {
   const data = await realpath(getExodusHome()).catch(() => getExodusHome())
   if (real === data || real.startsWith(data + sep))
     fail("Exodus' own data folder cannot be used")
+  const home = await realpath(homedir())
+  if (home.startsWith(real + sep) || data.startsWith(real + sep))
+    fail(
+      "This folder contains your home folder or Exodus' data — choose a folder inside it"
+    )
   return real
 }
 
 export const metaDir = (project: Pick<Project, 'dir'>) =>
   join(project.dir, '.exodus')
+/** Open the log with `openMetaLog`/O_NOFOLLOW after `assertMetaDir(project, 'logs')`; never follow a link. */
 export const sessionLogPath = (
   project: Pick<Project, 'dir'>,
   sessionId: string
@@ -85,8 +91,9 @@ async function writeProjectJson(
   const previous = await readFile(file, 'utf8')
     .then(JSON.parse)
     .catch(() => ({}))
-  await writeFile(
-    file,
+  await writeMetaFile(
+    project,
+    'project.json',
     JSON.stringify(
       {
         id: project.id,
@@ -104,6 +111,8 @@ async function writeProjectJson(
 async function makeMeta(dir: string) {
   await mkdir(join(dir, '.exodus', 'sessions'), { recursive: true })
   await mkdir(join(dir, '.exodus', 'logs'), { recursive: true })
+  // Git ignores the whole meta in any repo, whenever the repo is created.
+  await writeFile(join(dir, '.exodus', '.gitignore'), '*\n')
 }
 
 export async function createNewProject(name: string): Promise<Project> {
@@ -153,9 +162,9 @@ export async function writeSessionMeta(
   project: Pick<Project, 'dir'>,
   session: AgentSession
 ): Promise<void> {
-  await mkdir(join(metaDir(project), 'sessions'), { recursive: true })
-  await writeFile(
-    join(metaDir(project), 'sessions', `${session.id}.json`),
+  await writeMetaFile(
+    project,
+    `sessions/${session.id}.json`,
     JSON.stringify(session, null, 2) + '\n'
   )
 }
@@ -185,55 +194,50 @@ export async function prepareWorkDir(
   sessionId: string,
   othersRunning: boolean
 ): Promise<{ cwd: string; branch: string | null; note: string | null }> {
-  const inside = await git(project.workDir, [
-    'rev-parse',
-    '--is-inside-work-tree'
-  ])
-  if (!inside.ok || inside.out !== 'true')
+  const top = await git(project.workDir, ['rev-parse', '--show-toplevel'])
+  if (!top.ok) return { cwd: project.workDir, branch: null, note: 'not-git' }
+  const toplevel = await realpath(top.out).catch(() => top.out)
+  const workReal = await realpath(project.workDir).catch(() => project.workDir)
+  // A new project is its own repo or nothing: never the outer repo it sits in.
+  if (project.workDir === project.dir && toplevel !== workReal)
     return { cwd: project.workDir, branch: null, note: 'not-git' }
   const current = await gitBranch(project.workDir)
   if (!project.useWorktrees || !othersRunning)
     return { cwd: project.workDir, branch: current, note: null }
 
-  if (project.workDir === project.dir) {
-    const gitDir = await git(project.workDir, ['rev-parse', '--git-dir'])
-    const exclude = join(project.workDir, gitDir.out, 'info', 'exclude')
-    const text = await readFile(exclude, 'utf8').catch(() => '')
-    if (!/^\.exodus\/$/m.test(text)) {
-      await mkdir(join(project.workDir, gitDir.out, 'info'), {
-        recursive: true
-      })
-      await appendFile(
-        exclude,
-        `${text && !text.endsWith('\n') ? '\n' : ''}.exodus/\n`
-      )
+  const branch = `exodus/${sessionId.slice(0, 8)}`
+  let worktree: string
+  try {
+    worktree = join(await assertMetaDir(project, 'worktrees'), sessionId)
+  } catch (error) {
+    return {
+      cwd: project.workDir,
+      branch: current,
+      note: `worktree-failed: ${(error as Error).message}`
     }
   }
-  const branch = `exodus/${sessionId.slice(0, 8)}`
-  const cwd = join(metaDir(project), 'worktrees', sessionId)
-  const added = await git(project.workDir, [
-    'worktree',
-    'add',
-    '-b',
-    branch,
-    cwd
-  ])
+  const added = await git(toplevel, ['worktree', 'add', '-b', branch, worktree])
   if (!added.ok)
     return {
       cwd: project.workDir,
       branch: current,
       note: `worktree-failed: ${added.out}`
     }
-  return { cwd, branch, note: null }
+  return {
+    cwd: join(worktree, relative(toplevel, workReal)),
+    branch,
+    note: null
+  }
 }
 
 /** Where a group's `plan.md` lives: its project's meta (spec §4), else the group dir as before. */
-export async function planDirFor(conversationId: string): Promise<string> {
+export async function planDirFor(
+  conversationId: string
+): Promise<{ dir: string; project?: Project }> {
   const conversation = await getConversationById(conversationId)
   const project = conversation?.projectId
     ? await getProjectById(conversation.projectId)
     : undefined
-  if (!project) return getGroupDir(conversationId)
-  await mkdir(metaDir(project), { recursive: true })
-  return metaDir(project)
+  if (!project) return { dir: getGroupDir(conversationId) }
+  return { dir: await assertMetaDir(project), project }
 }

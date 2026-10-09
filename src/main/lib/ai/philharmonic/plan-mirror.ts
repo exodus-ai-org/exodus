@@ -3,6 +3,7 @@ import { renameSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
+import { writeMetaFile } from '../../agents/meta-files'
 import { planDirFor } from '../../agents/projects'
 import type { ConversationPlan, PlanStep } from '../../db/schema'
 
@@ -61,8 +62,12 @@ export async function writePlanMirror(
   plan: ConversationPlan,
   steps: PlanStep[]
 ): Promise<string> {
-  const dir = await planDirFor(conversationId)
+  const { dir, project } = await planDirFor(conversationId)
   const finalPath = join(dir, 'plan.md')
+  if (project) {
+    await writeMetaFile(project, 'plan.md', formatPlanMarkdown(plan, steps))
+    return finalPath
+  }
   const tmpPath = join(dir, 'plan.md.tmp')
   await writeFile(tmpPath, formatPlanMarkdown(plan, steps), 'utf-8')
   renameSync(tmpPath, finalPath)

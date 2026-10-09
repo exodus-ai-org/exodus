@@ -4,7 +4,7 @@ import type { ConversationPlan, PlanStep } from '@main/lib/db/schema'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@main/lib/agents/projects', () => ({
-  planDirFor: async (id: string) => `/tmp/${id}`
+  planDirFor: async (id: string) => ({ dir: `/tmp/${id}` })
 }))
 
 const PLAN: ConversationPlan = {

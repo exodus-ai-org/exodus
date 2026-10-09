@@ -1,6 +1,6 @@
 // src/main/lib/agents/claude-code/run.ts
 import { spawn } from 'child_process'
-import { createWriteStream } from 'fs'
+import { constants, createWriteStream, openSync } from 'fs'
 import { createInterface } from 'readline'
 
 import type { AgentAnswer } from '@exodus/shared/types/agents'
@@ -33,9 +33,24 @@ export function buildArgs(input: StartInput): string[] {
 export function startClaudeCode(input: StartInput): AgentRun {
   const listeners = new Set<(e: AgentEvent) => void>()
   const pending = new Map<string, Record<string, unknown>>()
-  const log = createWriteStream(input.logPath, { flags: 'a' })
-  // Logging must never break the run.
-  log.on('error', () => {})
+  // Never follow a symlink at the log path (an agent can plant one in its
+  // own cwd); logging is optional, so a failure disables it, not the run.
+  let log: ReturnType<typeof createWriteStream> | null = null
+  try {
+    const fd = openSync(
+      input.logPath,
+      constants.O_WRONLY |
+        constants.O_APPEND |
+        constants.O_CREAT |
+        constants.O_NOFOLLOW,
+      0o600
+    )
+    log = createWriteStream(input.logPath, { fd, autoClose: true })
+    // Logging must never break the run.
+    log.on('error', () => {})
+  } catch {
+    log = null
+  }
   let cliSessionId: string | null = null
   let alive = true
   let busy = false
@@ -76,7 +91,7 @@ export function startClaudeCode(input: StartInput): AgentRun {
   })
   lines.on('line', (line) => {
     if (finished) return
-    log.write(line + '\n')
+    log?.write(line + '\n')
     const { events, control } = parseLine(line)
     if (control) pending.set(control.requestId, control.input)
     for (const e of events) {
@@ -111,7 +126,7 @@ export function startClaudeCode(input: StartInput): AgentRun {
     if (finished) return
     finished = true
     pending.clear()
-    log.end()
+    log?.end()
     emit({
       type: 'exit',
       code: exitCode,

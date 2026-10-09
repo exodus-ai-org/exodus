@@ -11,7 +11,7 @@ import {
   writeFileSync
 } from 'fs'
 import { homedir, tmpdir } from 'os'
-import { join } from 'path'
+import { dirname, join } from 'path'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -19,9 +19,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const tmp = (prefix: string) =>
   realpathSync(mkdtempSync(join(tmpdir(), prefix)))
 const projectsDir = tmp('exodus-projects-')
+const settings = { projectsDir }
 vi.mock('@main/lib/agents/settings', () => ({
   agentSettings: async () => ({
-    projectsDir,
+    projectsDir: settings.projectsDir,
     maxRunning: 2,
     keepAliveMinutes: 10,
     worktrees: true,
@@ -163,7 +164,7 @@ describe('projects', () => {
       JSON.parse(readFileSync(join(p.dir, '.exodus/project.json'), 'utf8'))
         .conversationId
     ).toBe('c1')
-    expect(await P.planDirFor('c1')).toBe(join(p.dir, '.exodus'))
+    expect((await P.planDirFor('c1')).dir).toBe(join(p.dir, '.exodus'))
     await P.bindConversation('c1', null)
     expect(convs.get('c1')!.projectId).toBeNull()
   })
@@ -212,9 +213,7 @@ describe('projects', () => {
       'i'
     )
     await P.prepareWorkDir(p, 'ffffffff-0000', true)
-    expect(readFileSync(join(p.dir, '.git/info/exclude'), 'utf8')).toMatch(
-      /^\.exodus\/$/m
-    )
+    expect(readFileSync(join(p.dir, '.exodus/.gitignore'), 'utf8')).toBe('*\n')
     expect(git(p.dir, 'status', '--porcelain')).toBe('')
   })
 
@@ -225,5 +224,57 @@ describe('projects', () => {
     const w = await P.prepareWorkDir(p, 'deadbeef-0000', true)
     expect(w.cwd).toBe(dir)
     expect(w.note).toMatch(/^worktree-failed/)
+  })
+
+  it('refuses a folder that contains the home folder or the data folder', async () => {
+    await expect(P.assertWorkableFolder(dirname(homedir()))).rejects.toThrow(
+      /contains your home folder/
+    )
+    await expect(
+      P.assertWorkableFolder(dirname(process.env.EXODUS_HOME!))
+    ).rejects.toThrow(/contains your home folder/)
+  })
+
+  it('works in the same subfolder of the worktree for an opened subfolder of a repo', async () => {
+    const dir = repo()
+    mkdirSync(join(dir, 'packages/app'), { recursive: true })
+    writeFileSync(join(dir, 'packages/app/a.txt'), 'x')
+    git(dir, 'add', '.')
+    git(
+      dir,
+      '-c',
+      'user.email=t@t',
+      '-c',
+      'user.name=t',
+      'commit',
+      '-q',
+      '-m',
+      'a'
+    )
+    const p = await P.openFolderAsProject(join(dir, 'packages/app'))
+    const w = await P.prepareWorkDir(p, 'abcdef99-0000', true)
+    expect(w.cwd).toBe(
+      join(p.dir, '.exodus/worktrees/abcdef99-0000', 'packages/app')
+    )
+    expect(existsSync(join(w.cwd, 'a.txt'))).toBe(true)
+  })
+
+  it('does not treat a new project nested in an outer repo as a repo', async () => {
+    const outer = repo()
+    const saved = projectsDir
+    const nested = join(outer, 'projects')
+    mkdirSync(nested)
+    settings.projectsDir = nested
+    try {
+      const p = await P.createNewProject('inner')
+      expect(await P.prepareWorkDir(p, 'abcdef00-0000', true)).toEqual({
+        cwd: p.dir,
+        branch: null,
+        note: 'not-git'
+      })
+      expect(existsSync(join(p.dir, '.exodus/worktrees'))).toBe(false)
+    } finally {
+      settings.projectsDir = saved
+    }
   })
 })

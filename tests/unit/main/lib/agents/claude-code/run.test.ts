@@ -1,5 +1,11 @@
 // tests/unit/main/lib/agents/claude-code/run.test.ts
-import { chmodSync, mkdtempSync, readFileSync } from 'fs'
+import {
+  chmodSync,
+  mkdtempSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync
+} from 'fs'
 import { tmpdir } from 'os'
 import { join, resolve } from 'path'
 
@@ -300,6 +306,18 @@ describe('Claude Code run', () => {
     } finally {
       process.off('uncaughtException', spy)
     }
+  })
+
+  it('does not follow a symlink at the log path', async () => {
+    const outside = join(mkdtempSync(join(tmpdir(), 'out-')), 'rc')
+    writeFileSync(outside, 'keep\n')
+    const link = join(mkdtempSync(join(tmpdir(), 'lnk-')), 'raw.jsonl')
+    symlinkSync(outside, link)
+    const { run } = start('resume.jsonl', {}, { logPath: link })
+    run.send('hello')
+    await next(run, (e) => e.type === 'turn_end')
+    await run.stop()
+    expect(readFileSync(outside, 'utf8')).toBe('keep\n')
   })
 
   it('runs a turn though the log cannot be written', async () => {
