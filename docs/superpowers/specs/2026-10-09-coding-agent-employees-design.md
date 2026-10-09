@@ -1,6 +1,6 @@
 # Coding-agent employees — Philharmonic hands work to the user's own Claude Code (and later Codex) and watches it through
 
-Date: 2026-10-09 · Status: draft v2 for the owner's review (v1's five questions answered by the owner, 2026-10-09; new questions in §11)
+Date: 2026-10-09 · Status: design approved in chat (owner, 2026-10-09: v1's five questions and v2's four answered); ready for an implementation plan
 Repo: `exodus` (desktop; the phone waits for Philharmonic on iOS, §9)
 Reference: the probes of 2026-10-09 (`claude` 2.1.294, scratchpad `cc-probe/`): stream-json in and out, permission prompts answered by the host, deny, interrupt, resume, partial messages — all verified against the real CLI. Claude's desktop app for the folder picker (owner's screenshot, 2026-10-09): a folder chip — No folder · Recent · Open folder… — beside a branch chip and a worktree toggle.
 
@@ -224,14 +224,23 @@ The agent is the owner's own tool with its own permission system, and Exodus giv
 
 Data: the `agent` table gains `runtime`, `cliModel`, `permissionMode`; `conversation` gains `projectId`; a `project` table (id, name, dir, workDir, lastUsedAt) backs Recent; an `agent_session` table (id, projectId, agentId, conversationId, runtime, cliSessionId, cwd, branch, state, timestamps) is the index, and `sessions/<id>.json` its copy in the project for the owner. The card's content is the `conversation_message`'s `parts`, written as the run goes.
 
+### 8.1 Every employee's own model
+
+Today `runEmployeeLoop` calls `getModelFromProvider(setting)` and every Exodus employee runs on the global model; `agent.model` / `agent.provider` are stored and never read. In this pass:
+
+- The employee editor gets a **Model** picker: "Default (the app's model)" or a model of a provider that is configured with a key. For a CLI runtime the same picker lists the CLI's names instead (§3).
+- `runEmployeeLoop` resolves `agent.provider` + `agent.model` through the same provider table `getModelFromProvider` uses (a settings copy whose `providerConfig` is the employee's), falling back to the global model when unset — and, when the employee's provider has lost its key or the model is gone, failing the step with that reason instead of silently running on another model.
+- The PM keeps the global model.
+- The group's member list shows each employee's model beside its name.
+
 ## 9. Phases
 
-| Phase | What                                                                                                                                                                                                                                                             |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Settings › Agents (CLIs + checks, Claude Code employees); projects and the folder chip; the driver for Claude Code; the card with steps / text / permission / question / Stop / Open folder / Continue in Terminal; notifications; parallel agents and worktrees |
-| 2     | Codex: its adapter behind `AgentDriver`, its check, its employees                                                                                                                                                                                                |
-| 3     | iOS: when Philharmonic comes to the phone (a placeholder today), the card and its answers — "waiting for you" answered from the sofa                                                                                                                             |
-| later | The CLIs' other abilities: switching mode mid-session, skills, `/commands`; a terminal view (PTY + OSC 7501) for any program that speaks it                                                                                                                      |
+| Phase | What                                                                                                                                                                                                                                                                                                |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Settings › Agents (CLIs + checks, Claude Code employees); every employee's own model (§8.1); projects and the folder chip; the driver for Claude Code; the card with steps / text / permission / question / Stop / Open folder / Continue in Terminal; notifications; parallel agents and worktrees |
+| 2     | Codex: its adapter behind `AgentDriver`, its check, its employees                                                                                                                                                                                                                                   |
+| 3     | iOS: when Philharmonic comes to the phone (a placeholder today), the card and its answers — "waiting for you" answered from the sofa                                                                                                                                                                |
+| later | The CLIs' other abilities: switching mode mid-session, skills, `/commands`; a terminal view (PTY + OSC 7501) for any program that speaks it                                                                                                                                                         |
 
 ## 10. Edge cases
 
@@ -244,17 +253,18 @@ Data: the `agent` table gains `runtime`, `cliModel`, `permissionMode`; `conversa
 - An opened folder that is moved or deleted: the project shows "folder missing — locate…".
 - Worktree creation fails (dirty index, detached HEAD): fall back to the shared folder and tell the PM.
 
-## 11. Open questions for the owner
+## 11. Resolved questions (owner, 2026-10-09)
 
-1. **Meta in `.exodus/`, hidden**: fine, or visible (`exodus/` or `_exodus/`) so the owner sees the logs and plan without ⌘⇧.?
-2. **An opened folder's alias** in its project folder: wanted, or does the project folder hold only the meta?
-3. **Parallel by default** with a limit of 2, or one agent at a time until the owner raises it?
-4. **Today's employees' `model` / `provider` columns** are stored but never read (every Exodus employee runs on the global model). Make them work in the same pass, since CLI employees get a per-employee model?
+1. Meta in `.exodus/`, hidden — yes.
+2. An opened folder's Finder alias in its project folder — yes.
+3. Parallel by default, limit 2 — yes.
+4. Today's employees' `model` / `provider` — fixed in the same pass (§8.1).
 
 ## 12. Testing
 
 - `protocol.ts`, the run's state machine: Vitest against the probe fixtures, including the unprompted turn, the interrupt and the deny.
 - The driver end to end against a **fake CLI** (a Node script given as the path, replaying fixture lines and reading stdin), so CI never needs a real CLI or an account. The checks against fake CLIs that are missing, broken (a launcher whose binary is gone), old, logged out.
-- Projects: create / open / Recent / worktree add and fallback, in a temp home.
+- Projects: create / open / Recent / the alias / worktree add and fallback, in a temp home.
+- Employee models: an employee with its own provider/model runs on it; unset falls back to the global; a provider without a key fails the step with the reason.
 - The card: renderer tests with recorded `parts`.
 - Manual, real CLI: a new project from an idea; an opened repo with two agents in worktrees; an opened PDF folder; deny with a reason; a question; Stop one agent, then the whole group; quit Exodus mid-run and resume; Continue in Terminal.
