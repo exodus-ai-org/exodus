@@ -9,11 +9,13 @@ vi.mock('@main/lib/db/queries', () => ({
   getSettings: async () => ({ id: 's' })
 }))
 vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
-  getModelFromProvider: () => ({
+  bindCallingTools: () => []
+}))
+vi.mock('@main/lib/ai/utils/employee-model', () => ({
+  resolveEmployeeModel: () => ({
     chatModel: { cost: { input: 1, output: 2 } },
     apiKey: 'k'
-  }),
-  bindCallingTools: () => []
+  })
 }))
 vi.mock('@main/lib/ai/mcp', () => ({
   getMcpTools: async () => [],

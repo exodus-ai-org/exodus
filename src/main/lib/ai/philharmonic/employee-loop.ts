@@ -19,11 +19,9 @@ import {
   getActiveSkillsContent,
   getSkillsContentBySlugs
 } from '../skills/skills-manager'
-import {
-  bindCallingTools,
-  getModelFromProvider
-} from '../utils/chat-message-util'
+import { bindCallingTools } from '../utils/chat-message-util'
 import { calculateCost } from '../utils/cost'
+import { resolveEmployeeModel } from '../utils/employee-model'
 import { groupBeforeToolCall } from './sensitive-guard'
 
 export type SseEmitter = (event: PhilharmonicSseEvent) => void
@@ -64,7 +62,7 @@ export async function runEmployeeLoop(
   const { agent, instructions, executionId, conversationId, emit, signal } =
     args
   const setting = await getSettings()
-  const { model, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = resolveEmployeeModel(agent, setting)
 
   const mcpNames = (agent.mcpServerNames as string[] | null) ?? []
   const mcpTools =
