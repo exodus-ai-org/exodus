@@ -12,6 +12,7 @@
     "./i18n/namespaces": "./src/i18n/namespaces.ts",
     "./i18n/catalog-audit": "./src/i18n/catalog-audit.ts",
     "./schemas/settings-schema": "./src/schemas/settings-schema.ts",
+    "./types/agents": "./src/types/agents.ts",
     "./types/discover": "./src/types/discover.ts",
     "./types/web-search": "./src/types/web-search.ts",
     "./types/lock": "./src/types/lock.ts",
