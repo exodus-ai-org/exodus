@@ -66,7 +66,16 @@ export function startClaudeCode(input: StartInput): AgentRun {
   child.stderr.on('error', () => {})
 
   const lines = createInterface({ input: child.stdout })
+  let childExited = false
+  let finished = false
+  let stdoutClosed = false
+  let finishNow = () => {}
+  lines.on('close', () => {
+    stdoutClosed = true
+    finishNow()
+  })
   lines.on('line', (line) => {
+    if (finished) return
     log.write(line + '\n')
     const { events, control } = parseLine(line)
     if (control) pending.set(control.requestId, control.input)
@@ -92,8 +101,6 @@ export function startClaudeCode(input: StartInput): AgentRun {
     stderr = (stderr + d.toString()).slice(-STDERR_KEEP)
   })
 
-  let childExited = false
-  let finished = false
   let exitCode: number | null = null
   let exitMessage: string | undefined
   let settle: () => void = () => {}
@@ -121,11 +128,12 @@ export function startClaudeCode(input: StartInput): AgentRun {
     exitCode = code
     exitMessage = message
     if (message !== undefined) return finish()
+    if (stdoutClosed) return finish()
     const timer = setTimeout(finish, 1500)
-    lines.once('close', () => {
+    finishNow = () => {
       clearTimeout(timer)
       finish()
-    })
+    }
   }
   child.on('error', (err) => onChildGone(null, err.message))
   child.on('exit', (code) => onChildGone(code))

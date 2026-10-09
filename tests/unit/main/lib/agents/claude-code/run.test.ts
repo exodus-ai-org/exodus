@@ -327,4 +327,12 @@ describe('Claude Code run', () => {
         .filter(Boolean).length
     )
   })
+  it('reports exit as soon as the output closes, not after the drain cap', async () => {
+    const { run } = start('resume.jsonl')
+    run.send('hello')
+    await next(run, (e) => e.type === 'turn_end')
+    const t0 = Date.now()
+    await run.stop()
+    expect(Date.now() - t0).toBeLessThan(1000)
+  })
 })
