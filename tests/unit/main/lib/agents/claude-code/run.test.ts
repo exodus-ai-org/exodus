@@ -282,4 +282,49 @@ describe('Claude Code run', () => {
     await run.stop()
     expect(await exited).toMatchObject({ expected: true })
   })
+  it('survives writes to a dying child: an exit event, no uncaught error', async () => {
+    const uncaught: unknown[] = []
+    const spy = (e: unknown) => uncaught.push(e)
+    process.on('uncaughtException', spy)
+    try {
+      const { run } = start('allow-write-bash-question.jsonl', {
+        FAKE_CLAUDE_DIE_AFTER: '2'
+      })
+      const exited = next(run, (e) => e.type === 'exit')
+      const timer = setInterval(() => run.send('again'), 1)
+      await exited
+      clearInterval(timer)
+      for (let i = 0; i < 20; i++) run.send('after')
+      await new Promise((r) => setTimeout(r, 100))
+      expect(uncaught).toEqual([])
+    } finally {
+      process.off('uncaughtException', spy)
+    }
+  })
+
+  it('runs a turn though the log cannot be written', async () => {
+    const { run } = start(
+      'resume.jsonl',
+      {},
+      { logPath: '/nonexistent-dir-for-exodus-test/raw.jsonl' }
+    )
+    run.send('hello')
+    await next(run, (e) => e.type === 'turn_end')
+    await run.stop()
+  })
+
+  it('logs every line and emits nothing after exit', async () => {
+    const { run, events, logPath } = start('resume.jsonl')
+    run.send('hello')
+    await next(run, (e) => e.type === 'turn_end')
+    await run.stop()
+    expect(events.at(-1)?.type).toBe('exit')
+    expect(events.filter((e) => e.type === 'exit')).toHaveLength(1)
+    const logged = readFileSync(logPath, 'utf8').split('\n').filter(Boolean)
+    expect(logged.length).toBe(
+      readFileSync(join(FIX, 'resume.jsonl'), 'utf8')
+        .split('\n')
+        .filter(Boolean).length
+    )
+  })
 })

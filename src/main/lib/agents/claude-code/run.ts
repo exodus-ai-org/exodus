@@ -34,6 +34,8 @@ export function startClaudeCode(input: StartInput): AgentRun {
   const listeners = new Set<(e: AgentEvent) => void>()
   const pending = new Map<string, Record<string, unknown>>()
   const log = createWriteStream(input.logPath, { flags: 'a' })
+  // Logging must never break the run.
+  log.on('error', () => {})
   let cliSessionId: string | null = null
   let alive = true
   let busy = false
@@ -43,7 +45,7 @@ export function startClaudeCode(input: StartInput): AgentRun {
   let stderr = ''
 
   const emit = (e: AgentEvent) => {
-    for (const l of listeners) l(e)
+    for (const l of Array.from(listeners)) l(e)
   }
 
   const child = spawn(input.binPath, buildArgs(input), {
@@ -58,7 +60,13 @@ export function startClaudeCode(input: StartInput): AgentRun {
     return true
   }
 
-  createInterface({ input: child.stdout }).on('line', (line) => {
+  // A dead child surfaces as `exit`; a write to it must not throw.
+  child.stdin.on('error', () => {})
+  child.stdout.on('error', () => {})
+  child.stderr.on('error', () => {})
+
+  const lines = createInterface({ input: child.stdout })
+  lines.on('line', (line) => {
     log.write(line + '\n')
     const { events, control } = parseLine(line)
     if (control) pending.set(control.requestId, control.input)
@@ -84,23 +92,43 @@ export function startClaudeCode(input: StartInput): AgentRun {
     stderr = (stderr + d.toString()).slice(-STDERR_KEEP)
   })
 
-  let exited = false
-  const onExit = (code: number | null, message?: string) => {
-    if (exited) return
-    exited = true
-    alive = false
-    busy = false
+  let childExited = false
+  let finished = false
+  let exitCode: number | null = null
+  let exitMessage: string | undefined
+  let settle: () => void = () => {}
+  const settled = new Promise<void>((r) => (settle = r))
+  // `exit` is the last event: it waits for stdout to drain (so no line is lost
+  // and no event follows it), but not for a grandchild holding the pipe open.
+  const finish = () => {
+    if (finished) return
+    finished = true
     pending.clear()
     log.end()
     emit({
       type: 'exit',
-      code,
-      stderrTail: (message ?? stderr).trim(),
+      code: exitCode,
+      stderrTail: (exitMessage ?? stderr).trim(),
       expected: stopping
     })
+    settle()
   }
-  child.on('error', (err) => onExit(null, err.message))
-  child.on('exit', (code) => onExit(code))
+  const onChildGone = (code: number | null, message?: string) => {
+    if (childExited) return
+    childExited = true
+    alive = false
+    busy = false
+    exitCode = code
+    exitMessage = message
+    if (message !== undefined) return finish()
+    const timer = setTimeout(finish, 1500)
+    lines.once('close', () => {
+      clearTimeout(timer)
+      finish()
+    })
+  }
+  child.on('error', (err) => onChildGone(null, err.message))
+  child.on('exit', (code) => onChildGone(code))
 
   return {
     get cliSessionId() {
@@ -160,19 +188,16 @@ export function startClaudeCode(input: StartInput): AgentRun {
       })
     },
     stop() {
-      if (!alive) return Promise.resolve()
+      if (childExited) return settled
       stopping = true
-      return new Promise<void>((done) => {
-        child.once('exit', () => done())
-        child.once('error', () => done())
-        child.stdin.end()
-        const term = setTimeout(() => alive && child.kill('SIGTERM'), 1500)
-        const kill = setTimeout(() => alive && child.kill('SIGKILL'), 3000)
-        child.once('exit', () => {
-          clearTimeout(term)
-          clearTimeout(kill)
-        })
+      child.stdin.end()
+      const term = setTimeout(() => !childExited && child.kill('SIGTERM'), 1500)
+      const kill = setTimeout(() => !childExited && child.kill('SIGKILL'), 3000)
+      void settled.then(() => {
+        clearTimeout(term)
+        clearTimeout(kill)
       })
+      return settled
     }
   }
 }
