@@ -1,7 +1,11 @@
 import { formatPlanMarkdown } from '@main/lib/ai/philharmonic/plan-mirror'
 import type { ConversationPlan, PlanStep } from '@main/lib/db/schema'
 // src/main/lib/ai/philharmonic/plan-mirror.test.ts
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@main/lib/agents/projects', () => ({
+  planDirFor: async (id: string) => `/tmp/${id}`
+}))
 
 const PLAN: ConversationPlan = {
   id: 'p1',

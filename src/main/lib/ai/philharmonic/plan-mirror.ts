@@ -3,8 +3,8 @@ import { renameSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
+import { planDirFor } from '../../agents/projects'
 import type { ConversationPlan, PlanStep } from '../../db/schema'
-import { getGroupDir } from '../../paths'
 
 const STATUS_GLYPH: Record<PlanStep['status'], string> = {
   pending: '[ ]',
@@ -61,7 +61,7 @@ export async function writePlanMirror(
   plan: ConversationPlan,
   steps: PlanStep[]
 ): Promise<string> {
-  const dir = getGroupDir(conversationId)
+  const dir = await planDirFor(conversationId)
   const finalPath = join(dir, 'plan.md')
   const tmpPath = join(dir, 'plan.md.tmp')
   await writeFile(tmpPath, formatPlanMarkdown(plan, steps), 'utf-8')
