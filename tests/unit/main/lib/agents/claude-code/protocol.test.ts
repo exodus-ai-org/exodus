@@ -3,6 +3,7 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
 import {
+  describeInput,
   parseLine,
   summarizeInput
 } from '@main/lib/agents/claude-code/protocol'
@@ -47,7 +48,8 @@ describe('Claude Code protocol', () => {
           kind: 'permission',
           requestId: parsed.control!.requestId,
           tool: 'Write',
-          summary: '/tmp/exodus-project/hello.txt'
+          summary: '/tmp/exodus-project/hello.txt',
+          detail: '/tmp/exodus-project/hello.txt\n\nhi from exodus'
         }
       }
     ])
@@ -140,5 +142,52 @@ describe('Claude Code protocol', () => {
     ).toBe('npm install')
     expect(summarizeInput('Grep', { pattern: 'TODO' })).toBe('TODO')
     expect(summarizeInput('Unknown', {})).toBe('')
+  })
+
+  const permissionLine = (tool: string, input: unknown) =>
+    JSON.stringify({
+      type: 'control_request',
+      request_id: 'r1',
+      request: { subtype: 'can_use_tool', tool_name: tool, input }
+    })
+
+  it('shows the whole command while the summary stays one line', () => {
+    const [e] = parseLine(
+      permissionLine('Bash', { command: 'ls\nrm -rf ~' })
+    ).events
+    expect(e).toMatchObject({
+      prompt: { summary: 'ls', detail: 'ls\nrm -rf ~' }
+    })
+  })
+
+  it('shows old and new strings of an edit', () => {
+    const d = describeInput('Edit', {
+      file_path: '/a.ts',
+      old_string: 'foo',
+      new_string: 'bar'
+    })
+    expect(d).toBe('/a.ts\n\n--- old\nfoo\n+++ new\nbar')
+    expect(
+      describeInput('MultiEdit', {
+        file_path: '/a.ts',
+        edits: [
+          { old_string: 'a', new_string: 'b' },
+          { old_string: 'c', new_string: 'd' }
+        ]
+      })
+    ).toContain('--- old\nc\n+++ new\nd')
+  })
+
+  it('cuts a very long detail with a note, never silently', () => {
+    const command = 'x'.repeat(25_000)
+    const d = describeInput('Bash', { command })
+    expect(d.startsWith('x'.repeat(20_000))).toBe(true)
+    expect(d.slice(20_000)).toBe(
+      '\n… (25000 characters in all, shortened here)'
+    )
+  })
+
+  it('shows an unknown tool as pretty JSON', () => {
+    expect(describeInput('Mystery', { a: 1 })).toBe('{\n  "a": 1\n}')
   })
 })

@@ -56,7 +56,15 @@ export interface AgentQuestion {
 }
 
 export type AgentPrompt =
-  | { kind: 'permission'; requestId: string; tool: string; summary: string }
+  | {
+      kind: 'permission'
+      requestId: string
+      tool: string
+      /** One line, for step rows. */
+      summary: string
+      /** The full command or content the owner is approving. */
+      detail: string
+    }
   | { kind: 'question'; requestId: string; questions: AgentQuestion[] }
 
 export type AgentAnswer =

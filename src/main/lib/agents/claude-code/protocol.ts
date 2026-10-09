@@ -34,6 +34,30 @@ export function summarizeInput(_tool: string, input: Json): string {
   return (pick ?? '').split('\n')[0].slice(0, 160)
 }
 
+const DETAIL_LIMIT = 20_000
+
+/** The FULL text the owner judges when approving a tool: never a summary. */
+export function describeInput(tool: string, input: Json): string {
+  let text: string
+  const edit = (e: Json) =>
+    `--- old\n${str(e.old_string) ?? ''}\n+++ new\n${str(e.new_string) ?? ''}`
+  if (typeof input.command === 'string') {
+    text = input.command
+  } else if (tool === 'Write') {
+    text = `${str(input.file_path) ?? ''}\n\n${str(input.content) ?? ''}`
+  } else if (tool === 'Edit') {
+    text = `${str(input.file_path) ?? ''}\n\n${edit(input)}`
+  } else if (tool === 'MultiEdit') {
+    const edits = Array.isArray(input.edits) ? input.edits.filter(isObj) : []
+    text = `${str(input.file_path) ?? ''}\n\n${edits.map(edit).join('\n\n')}`
+  } else {
+    text = JSON.stringify(input, null, 2)
+  }
+  return text.length > DETAIL_LIMIT
+    ? `${text.slice(0, DETAIL_LIMIT)}\n… (${text.length} characters in all, shortened here)`
+    : text
+}
+
 function questions(input: Json): AgentQuestion[] {
   const qs = Array.isArray(input.questions) ? input.questions : []
   return qs.filter(isObj).map((q) => ({
@@ -152,7 +176,8 @@ export function parseLine(line: string): ParsedLine {
               kind: 'permission' as const,
               requestId,
               tool: toolName,
-              summary: summarizeInput(toolName, input)
+              summary: summarizeInput(toolName, input),
+              detail: describeInput(toolName, input)
             }
       return {
         events: [{ type: 'blocked', prompt }],
