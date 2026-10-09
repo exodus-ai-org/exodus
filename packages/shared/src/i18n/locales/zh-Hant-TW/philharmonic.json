@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "排程",
       "upcomingTrigger": "即將執行",
       "recurringTrigger": "定期執行"
     },
@@ -215,11 +214,6 @@
   "costAnalysis": {
     "header": {
       "title": "儀表板"
-    },
-    "period": {
-      "last7Days": "過去 7 天",
-      "last30Days": "過去 30 天",
-      "allTime": "所有時間"
     },
     "periodToggle": {
       "sevenDays": "7 天",

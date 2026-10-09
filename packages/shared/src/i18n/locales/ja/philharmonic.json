@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "スケジュール",
       "upcomingTrigger": "予定",
       "recurringTrigger": "定期実行"
     },
@@ -215,11 +214,6 @@
   "costAnalysis": {
     "header": {
       "title": "ダッシュボード"
-    },
-    "period": {
-      "last7Days": "過去7日間",
-      "last30Days": "過去30日間",
-      "allTime": "全期間"
     },
     "periodToggle": {
       "sevenDays": "7日",

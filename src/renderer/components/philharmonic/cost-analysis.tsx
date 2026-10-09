@@ -9,6 +9,7 @@ import {
   type ChartConfig
 } from '@/components/ui/chart'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { PhilharmonicHeaderSlot } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { getAgents } from '@/services/philharmonic'
 import {
   getPhilharmonicCosts,
@@ -212,23 +213,13 @@ export function CostAnalysis() {
   }
 
   const agentCount = data.byAgent.length
-  const periodLabel =
-    period === '7d'
-      ? t('costAnalysis.period.last7Days')
-      : period === '30d'
-        ? t('costAnalysis.period.last30Days')
-        : t('costAnalysis.period.allTime')
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
-        <div>
-          <h1 className="text-foreground text-sm font-semibold">
-            {t('costAnalysis.header.title')}
-          </h1>
-          <p className="text-muted-foreground text-[11.5px]">{periodLabel}</p>
-        </div>
+      {/* The period toggle at the content bar's right end; the bar already
+          names the page, and the toggle shows the period. */}
+      <PhilharmonicHeaderSlot>
         <ToggleGroup
+          className="no-drag"
           value={[period]}
           onValueChange={(v) => {
             const next = (v as string[])[0]
@@ -247,7 +238,7 @@ export function CostAnalysis() {
             {t('costAnalysis.periodToggle.all')}
           </ToggleGroupItem>
         </ToggleGroup>
-      </header>
+      </PhilharmonicHeaderSlot>
 
       <div className="flex-1 overflow-y-auto p-5">
         {/* KPI grid */}

@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "Zeitplan",
       "upcomingTrigger": "Bevorstehend",
       "recurringTrigger": "Wiederkehrend"
     },
@@ -216,11 +215,6 @@
   "costAnalysis": {
     "header": {
       "title": "Dashboard"
-    },
-    "period": {
-      "last7Days": "Letzte 7 Tage",
-      "last30Days": "Letzte 30 Tage",
-      "allTime": "Gesamter Zeitraum"
     },
     "periodToggle": {
       "sevenDays": "7 T.",

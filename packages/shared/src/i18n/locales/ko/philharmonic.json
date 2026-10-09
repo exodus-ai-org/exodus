@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "일정",
       "upcomingTrigger": "예정된 작업",
       "recurringTrigger": "반복 작업"
     },
@@ -215,11 +214,6 @@
   "costAnalysis": {
     "header": {
       "title": "대시보드"
-    },
-    "period": {
-      "last7Days": "최근 7일",
-      "last30Days": "최근 30일",
-      "allTime": "전체 기간"
     },
     "periodToggle": {
       "sevenDays": "7일",

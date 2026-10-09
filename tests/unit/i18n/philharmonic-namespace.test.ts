@@ -52,7 +52,6 @@ describe('philharmonic namespace (en)', () => {
 
   it('has the schedule tab and shared keys', () => {
     expect(philharmonic.schedule.tab).toMatchObject({
-      heading: 'Schedule',
       upcomingTrigger: 'Upcoming',
       recurringTrigger: 'Recurring'
     })
@@ -222,13 +221,8 @@ describe('philharmonic namespace (en)', () => {
     )
   })
 
-  it('has the cost analysis header, period, and kpi keys', () => {
+  it('has the cost analysis header, period toggle, and kpi keys', () => {
     expect(philharmonic.costAnalysis.header.title).toBe('Dashboard')
-    expect(philharmonic.costAnalysis.period).toMatchObject({
-      last7Days: 'Last 7 days',
-      last30Days: 'Last 30 days',
-      allTime: 'All time'
-    })
     expect(philharmonic.costAnalysis.periodToggle).toMatchObject({
       sevenDays: '7d',
       thirtyDays: '30d',

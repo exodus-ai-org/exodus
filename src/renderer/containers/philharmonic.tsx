@@ -25,7 +25,10 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
-import { PhilharmonicSlottedHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
+import {
+  PhilharmonicHeaderSlot,
+  PhilharmonicSlottedHeader
+} from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
@@ -143,13 +146,31 @@ export function PhilharmonicContainer({
     if (activePage === 'workforce') return <WorkforcePage />
     if (activePage === 'dashboard')
       return (
-        <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">
-          <TabsList className="mx-4 mt-3 w-fit shrink-0">
-            <TabsTrigger value="costs">{t('container.tabs.costs')}</TabsTrigger>
-            <TabsTrigger value="schedule" data-testid={TEST_IDS.schedule.tab}>
-              {t('container.tabs.schedule')}
-            </TabsTrigger>
-          </TabsList>
+        <Tabs
+          defaultValue="costs"
+          className="flex h-full min-h-0 flex-col gap-0"
+        >
+          {/* The page's title and its tabs in the content bar, as Workforce's;
+              each tab adds its own controls at the bar's right end. */}
+          <PhilharmonicHeaderSlot>
+            <div className="no-drag flex min-w-0 items-center gap-3 pl-2">
+              <h1 className="truncate text-sm font-medium">
+                {t('costAnalysis.header.title')}
+              </h1>
+              <TabsList className="w-fit shrink-0">
+                <TabsTrigger value="costs">
+                  {t('container.tabs.costs')}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="schedule"
+                  data-testid={TEST_IDS.schedule.tab}
+                >
+                  {t('container.tabs.schedule')}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            <div className="min-w-0 flex-1" />
+          </PhilharmonicHeaderSlot>
           <TabsContent value="costs" className="min-h-0 flex-1">
             <Suspense fallback={null}>
               <CostAnalysis />

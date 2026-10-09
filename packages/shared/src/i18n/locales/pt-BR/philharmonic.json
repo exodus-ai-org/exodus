@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "Agenda",
       "upcomingTrigger": "Próximas",
       "recurringTrigger": "Recorrentes"
     },
@@ -216,11 +215,6 @@
   "costAnalysis": {
     "header": {
       "title": "Painel"
-    },
-    "period": {
-      "last7Days": "Últimos 7 dias",
-      "last30Days": "Últimos 30 dias",
-      "allTime": "Todo o período"
     },
     "periodToggle": {
       "sevenDays": "7d",
