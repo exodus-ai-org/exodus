@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
 import { AppToaster } from '@/components/app/app-toaster'
 import { SidebarProvider } from '@/components/ui/sidebar'
@@ -7,16 +8,44 @@ import { useRouteHistoryRecorder } from '@/hooks/use-route-history'
 
 export type PhilharmonicPage = 'chat' | 'workforce' | 'dashboard'
 
+/** The page and the group a Philharmonic path names (`/philharmonic/groups/:id`, `/philharmonic/workforce`…). */
+export function parsePhilharmonicPath(pathname: string): {
+  page: PhilharmonicPage
+  groupId: string | null
+} {
+  const [, , section, id] = pathname.split('/')
+  if (section === 'workforce' || section === 'dashboard') {
+    return { page: section, groupId: null }
+  }
+  return { page: 'chat', groupId: section === 'groups' && id ? id : null }
+}
+
 export function PhilharmonicLayout() {
-  const [activePage, setActivePage] = useState<PhilharmonicPage>('chat')
   // Philharmonic is a page of the arrows' history too, now that its bars
-  // carry them as Chat's do: back from here returns to the chat you left.
+  // carry them as Chat's do: each page and group is its own entry.
   useRouteHistoryRecorder()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { page, groupId } = parsePhilharmonicPath(pathname)
+
+  const openPage = useCallback(
+    (next: Exclude<PhilharmonicPage, 'chat'>) =>
+      navigate(`/philharmonic/${next}`),
+    [navigate]
+  )
+  const openGroup = useCallback(
+    (id: string | null, options?: { replace?: boolean }) =>
+      navigate(id ? `/philharmonic/groups/${id}` : '/philharmonic', options),
+    [navigate]
+  )
+
   return (
     <SidebarProvider className="h-screen overflow-hidden">
       <PhilharmonicContainer
-        activePage={activePage}
-        onNavigate={setActivePage}
+        activePage={page}
+        groupId={groupId}
+        onOpenPage={openPage}
+        onOpenGroup={openGroup}
       />
       <AppToaster />
     </SidebarProvider>

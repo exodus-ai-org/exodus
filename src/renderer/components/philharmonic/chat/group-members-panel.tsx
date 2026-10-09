@@ -96,7 +96,9 @@ export function GroupMembersPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-border flex h-13 shrink-0 items-center justify-between border-b px-3.5">
+      {/* Chat's side panel header (`chat-panel.tsx`): 48 px, and room on the
+          right for the panel's own close button, which sits over this row. */}
+      <div className="border-border flex h-12 shrink-0 items-center justify-between border-b pr-12 pl-3.5">
         <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
           {t('chat.membersPanel.heading')}
           <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] font-normal">

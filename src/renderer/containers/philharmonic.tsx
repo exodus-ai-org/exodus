@@ -57,22 +57,25 @@ const ScheduleTab = lazy(() =>
 
 export function PhilharmonicContainer({
   activePage,
-  onNavigate
+  groupId,
+  onOpenPage,
+  onOpenGroup
 }: {
   activePage: PhilharmonicPage
-  onNavigate: (p: PhilharmonicPage) => void
+  /** The group the path names; on a bare `/philharmonic`, the first group shows. */
+  groupId: string | null
+  onOpenPage: (p: Exclude<PhilharmonicPage, 'chat'>) => void
+  onOpenGroup: (id: string | null, options?: { replace?: boolean }) => void
 }) {
   const { t } = useTranslation('philharmonic')
   const [conversations, setConversations] = useState<ConversationData[]>([])
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
-  const [activeId, setActiveId] = useState<string | null>(null)
   const [membersOpen, setMembersOpen] = useState(false)
 
   useEffect(() => {
     getConversations().then((cs) => {
       setConversations(cs)
-      setActiveId((cur) => cur ?? cs[0]?.id ?? null)
     })
     getAgents().then(setEmployees)
     getTeams().then(setTeams)
@@ -87,21 +90,23 @@ export function PhilharmonicContainer({
     [teams]
   )
 
+  // The group on screen: the one the path names, else the first (a bare
+  // `/philharmonic` is not redirected, so it never enters the history twice).
+  const activeId = groupId ?? conversations[0]?.id ?? null
+
   const handleCreate = useCallback(async () => {
     const conv = await createConversation({
       title: t('container.newGroupDefaultTitle')
     })
     setConversations((p) => [{ ...conv, latestMessage: null }, ...p])
-    setActiveId(conv.id)
-    onNavigate('chat')
-  }, [onNavigate, t])
+    onOpenGroup(conv.id)
+  }, [onOpenGroup, t])
 
   const handleSelect = useCallback(
     (id: string) => {
-      setActiveId(id)
-      onNavigate('chat')
+      onOpenGroup(id)
     },
-    [onNavigate]
+    [onOpenGroup]
   )
 
   const handleDelete = useCallback(
@@ -109,7 +114,7 @@ export function PhilharmonicContainer({
       try {
         await deleteConversation(id)
         setConversations((p) => p.filter((c) => c.id !== id))
-        setActiveId((cur) => (cur === id ? null : cur))
+        if (id === activeId) onOpenGroup(null, { replace: true })
         sileo.success({ title: t('container.toast.groupDeleted') })
       } catch (err) {
         sileo.error({
@@ -118,7 +123,7 @@ export function PhilharmonicContainer({
         })
       }
     },
-    [t]
+    [activeId, onOpenGroup, t]
   )
 
   const handleRename = useCallback(async (id: string, title: string) => {
@@ -127,8 +132,8 @@ export function PhilharmonicContainer({
   }, [])
 
   const handleNavigateConfig = useCallback(
-    (page: ConfigPage) => onNavigate(page),
-    [onNavigate]
+    (page: ConfigPage) => onOpenPage(page),
+    [onOpenPage]
   )
 
   const activeConv = conversations.find((c) => c.id === activeId)
