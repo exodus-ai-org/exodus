@@ -346,33 +346,6 @@ describe('philharmonic namespace workforce delete-dialog descriptions render cor
   })
 })
 
-describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {
-  it('hint — two <kbd> elements at indices 1 and 4, correct positions', async () => {
-    const { createElement } = await import('react')
-    const { renderToStaticMarkup } = await import('react-dom/server')
-    const { I18nextProvider, initReactI18next } = await import('react-i18next')
-    const i18next = (await import('i18next')).default
-    const { ComposerHint } =
-      await import('@/components/philharmonic/chat/composer')
-
-    const i18n = i18next.createInstance()
-    await i18n.use(initReactI18next).init({
-      lng: 'en',
-      resources: { en: { philharmonic } },
-      ns: ['philharmonic'],
-      defaultNS: 'philharmonic',
-      interpolation: { escapeValue: false }
-    })
-
-    const html = renderToStaticMarkup(
-      createElement(I18nextProvider, { i18n }, createElement(ComposerHint))
-    )
-    expect(html).toBe(
-      '<p class="text-muted-foreground mt-1.5 px-1 text-[10px]">Press <kbd class="bg-background rounded px-1 py-px">Enter</kbd> to send, <kbd class="bg-background ml-1 rounded px-1 py-px">Shift + Enter</kbd> for a new line. Paste or attach images.</p>'
-    )
-  })
-})
-
 describe('philharmonic namespace chat.conversationList.deleteDialog.description renders correctly via Trans', () => {
   it('description — dynamic title in a styled <span> at index 0', async () => {
     const { createElement } = await import('react')

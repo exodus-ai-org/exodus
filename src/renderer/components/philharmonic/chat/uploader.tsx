@@ -24,20 +24,16 @@ export function ComposerUploader() {
       size="icon-sm"
       aria-label={t('chat.uploader.attachAria')}
       disabled={uploading}
-      className="text-muted-foreground hover:bg-background hover:text-foreground relative shrink-0 rounded-lg"
+      className="text-muted-foreground hover:bg-muted hover:text-foreground relative size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
     >
       {uploading ? (
         <HugeiconsIcon
           icon={Loading03Icon}
 
-          className="h-4 w-4 animate-spin"
+          className="animate-spin"
         />
       ) : (
-        <HugeiconsIcon
-          icon={AttachmentIcon}
-
-          className="h-4 w-4"
-        />
+        <HugeiconsIcon icon={AttachmentIcon} />
       )}
       <input
         ref={inputRef}

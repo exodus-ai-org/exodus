@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "Scrivi al tuo team…",
       "stopAria": "Interrompi",
-      "sendAria": "Invia",
-      "hint": "Premi <1>Invio</1> per inviare, <4>Shift + Invio</4> per andare a capo. Incolla o allega immagini."
+      "sendAria": "Invia"
     },
     "planCard": {
       "elapsed": {

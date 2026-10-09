@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "チームにメッセージを送る…",
       "stopAria": "停止",
-      "sendAria": "送信",
-      "hint": "<1>Enter</1>で送信、<4>Shift + Enter</4>で改行。画像の貼り付けや添付もできます。"
+      "sendAria": "送信"
     },
     "planCard": {
       "elapsed": {

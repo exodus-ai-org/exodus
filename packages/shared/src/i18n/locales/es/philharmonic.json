@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "Envíe un mensaje a su equipo…",
       "stopAria": "Detener",
-      "sendAria": "Enviar",
-      "hint": "Presione <1>Intro</1> para enviar, <4>Shift + Intro</4> para una nueva línea. Pegue o adjunte imágenes."
+      "sendAria": "Enviar"
     },
     "planCard": {
       "elapsed": {

@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "Envoyer un message à votre équipe…",
       "stopAria": "Arrêter",
-      "sendAria": "Envoyer",
-      "hint": "Appuyez sur <1>Entrée</1> pour envoyer, <4>Maj + Entrée</4> pour un saut de ligne. Collez ou joignez des images."
+      "sendAria": "Envoyer"
     },
     "planCard": {
       "elapsed": {

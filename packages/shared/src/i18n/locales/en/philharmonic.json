@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "Message your team…",
       "stopAria": "Stop",
-      "sendAria": "Send",
-      "hint": "Press <1>Enter</1> to send, <4>Shift + Enter</4> for a new line. Paste or attach images."
+      "sendAria": "Send"
     },
     "planCard": {
       "elapsed": {

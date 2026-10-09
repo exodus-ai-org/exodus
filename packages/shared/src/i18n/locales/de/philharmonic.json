@@ -86,8 +86,7 @@
     "composer": {
       "placeholder": "Nachricht an Ihr Team…",
       "stopAria": "Stopp",
-      "sendAria": "Senden",
-      "hint": "Drücken Sie <1>Enter</1> zum Senden, <4>Umschalt + Enter</4> für eine neue Zeile. Bilder einfügen oder anhängen."
+      "sendAria": "Senden"
     },
     "planCard": {
       "elapsed": {
