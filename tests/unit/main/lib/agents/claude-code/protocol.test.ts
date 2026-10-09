@@ -178,13 +178,42 @@ describe('Claude Code protocol', () => {
     ).toContain('--- old\nc\n+++ new\nd')
   })
 
-  it('cuts a very long detail with a note, never silently', () => {
+  it('never cuts a long command', () => {
     const command = 'x'.repeat(25_000)
-    const d = describeInput('Bash', { command })
-    expect(d.startsWith('x'.repeat(20_000))).toBe(true)
-    expect(d.slice(20_000)).toBe(
-      '\n… (25000 characters in all, shortened here)'
+    expect(describeInput('Bash', { command })).toBe(command)
+  })
+
+  it('shows every field the main rendering leaves out', () => {
+    expect(
+      describeInput('Edit', {
+        file_path: '/a.ts',
+        old_string: 'a',
+        new_string: 'b',
+        replace_all: true
+      })
+    ).toBe(
+      '/a.ts\n\n--- old\na\n+++ new\nb\n\nOther fields:\n{\n  "replace_all": true\n}'
     )
+    const bash = describeInput('Bash', {
+      command: 'ls',
+      description: 'list',
+      run_in_background: true
+    })
+    expect(bash).toContain('Other fields:')
+    expect(bash).toContain('"description": "list"')
+    expect(bash).toContain('"run_in_background": true')
+  })
+
+  it('renders a non-Bash tool with a command field as full JSON', () => {
+    expect(describeInput('Mystery', { command: 'ls', force: true })).toBe(
+      JSON.stringify({ command: 'ls', force: true }, null, 2)
+    )
+  })
+
+  it('shows a non-object MultiEdit entry', () => {
+    expect(
+      describeInput('MultiEdit', { file_path: '/a', edits: ['sneaky', 7] })
+    ).toContain('"sneaky"')
   })
 
   it('shows an unknown tool as pretty JSON', () => {

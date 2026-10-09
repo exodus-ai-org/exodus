@@ -34,28 +34,39 @@ export function summarizeInput(_tool: string, input: Json): string {
   return (pick ?? '').split('\n')[0].slice(0, 160)
 }
 
-const DETAIL_LIMIT = 20_000
-
-/** The FULL text the owner judges when approving a tool: never a summary. */
+/**
+ * The FULL text the owner judges when approving a tool: never cut, and no
+ * field left out — what the main rendering does not consume is appended.
+ */
 export function describeInput(tool: string, input: Json): string {
-  let text: string
   const edit = (e: Json) =>
     `--- old\n${str(e.old_string) ?? ''}\n+++ new\n${str(e.new_string) ?? ''}`
-  if (typeof input.command === 'string') {
-    text = input.command
+  let main: string
+  let consumed: string[]
+  if (tool === 'Bash' && typeof input.command === 'string') {
+    main = input.command
+    consumed = ['command']
   } else if (tool === 'Write') {
-    text = `${str(input.file_path) ?? ''}\n\n${str(input.content) ?? ''}`
+    main = `${str(input.file_path) ?? ''}\n\n${str(input.content) ?? ''}`
+    consumed = ['file_path', 'content']
   } else if (tool === 'Edit') {
-    text = `${str(input.file_path) ?? ''}\n\n${edit(input)}`
-  } else if (tool === 'MultiEdit') {
-    const edits = Array.isArray(input.edits) ? input.edits.filter(isObj) : []
-    text = `${str(input.file_path) ?? ''}\n\n${edits.map(edit).join('\n\n')}`
+    main = `${str(input.file_path) ?? ''}\n\n${edit(input)}`
+    consumed = ['file_path', 'old_string', 'new_string']
+  } else if (tool === 'MultiEdit' && Array.isArray(input.edits)) {
+    const edits = input.edits.map((e) =>
+      isObj(e) ? edit(e) : JSON.stringify(e)
+    )
+    main = `${str(input.file_path) ?? ''}\n\n${edits.join('\n\n')}`
+    consumed = ['file_path', 'edits']
   } else {
-    text = JSON.stringify(input, null, 2)
+    return JSON.stringify(input, null, 2)
   }
-  return text.length > DETAIL_LIMIT
-    ? `${text.slice(0, DETAIL_LIMIT)}\n… (${text.length} characters in all, shortened here)`
-    : text
+  const rest = Object.fromEntries(
+    Object.entries(input).filter(([k]) => !consumed.includes(k))
+  )
+  return Object.keys(rest).length
+    ? `${main}\n\nOther fields:\n${JSON.stringify(rest, null, 2)}`
+    : main
 }
 
 function questions(input: Json): AgentQuestion[] {
