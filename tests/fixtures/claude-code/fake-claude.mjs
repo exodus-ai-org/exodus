@@ -61,6 +61,7 @@ async function write(line) {
 
 let played = 0
 let playing = false
+const isPlaying = () => playing
 let waitingFor = null // request_id we wait an answer for
 let resumeWait = null
 let interrupted = null // request_id of an interrupt
@@ -142,6 +143,6 @@ createInterface({ input: process.stdin })
     }
   })
   .on('close', async () => {
-    while (playing) await sleep(5)
+    while (isPlaying()) await sleep(5)
     process.exit(0)
   })
