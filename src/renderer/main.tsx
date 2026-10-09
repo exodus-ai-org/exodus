@@ -53,8 +53,11 @@ void i18nReady.finally(() => {
           </I18nProvider>
         </ThemeProvider>
       </Provider>
+      {/* Dev only. Bottom-right: the bottom-left is both sidebars' footer
+          (Chat's profile, Philharmonic's Workforce / Dashboard), which its
+          palm-tree button sat on. */}
       {import.meta.env.DEV && (
-        <ReactQueryDevtools buttonPosition="bottom-left" />
+        <ReactQueryDevtools buttonPosition="bottom-right" />
       )}
     </QueryClientProvider>
   )
