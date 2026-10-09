@@ -3,7 +3,6 @@ import { isSameDay, isToday, isYesterday, format } from 'date-fns'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
@@ -27,6 +26,7 @@ import { EmployeeAvatar } from '../employees/employee-avatar'
 import { PhilharmonicEmptyState } from '../empty-state'
 import { Composer } from './composer'
 import { GroupMessageBubble, type BubbleModel } from './group-message-bubble'
+import { NewGroupButton } from './new-group-button'
 import { PlanCard } from './plan-card'
 
 type BubbleWithDate = BubbleModel & { createdAt?: string }
@@ -54,7 +54,8 @@ export function GroupChat({
   stream,
   onRename,
   membersOpen,
-  onToggleMembers
+  onToggleMembers,
+  onCreateGroup
 }: {
   conversation: ConversationData
   agentsById: Record<string, AgentData>
@@ -66,6 +67,7 @@ export function GroupChat({
   onRename: (id: string, title: string) => void | Promise<void>
   membersOpen: boolean
   onToggleMembers: () => void
+  onCreateGroup: () => void
 }) {
   const { t } = useTranslation('philharmonic')
   const conversationId = conversation.id
@@ -234,7 +236,7 @@ export function GroupChat({
     <div className="flex h-full flex-col">
       {/* Chat's bar (the content header of `chat-layout`): 44 px, no rule —
           the transcript fades into the bar's colour under it — and the sidebar
-          toggle with the history arrows only once the sidebar is away. */}
+          toggle with New group only once the sidebar is away. */}
       <header
         className={cn(
           'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
@@ -245,7 +247,7 @@ export function GroupChat({
         {!sidebarOpen && (
           <>
             <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
-            <HistoryArrows />
+            <NewGroupButton onCreate={onCreateGroup} />
           </>
         )}
         <div className="no-drag flex min-w-0 flex-1 items-center gap-3 pl-2">

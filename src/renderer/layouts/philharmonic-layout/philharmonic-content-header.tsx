@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-import { HistoryArrows } from '@/components/chat/header/history-arrows'
+import { NewGroupButton } from '@/components/philharmonic/chat/new-group-button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 /**
  * The content pane's bar, Chat's own (`chat-layout`'s ContentHeader): 44 px,
  * no rule under it — the page dissolves into the bar's colour as it scrolls
- * under — and the sidebar toggle with the history arrows only once the
+ * under — and the sidebar toggle and New group only once the
  * sidebar is away (while it is open they sit in its top row). `children` is
  * the page's title and actions, laid out as Chat's title group: on the
  * left, actions pushed right by the page itself. The bar is the window's drag
@@ -17,10 +17,13 @@ import { cn } from '@/lib/utils'
  */
 export function PhilharmonicContentHeader({
   children,
-  className
+  className,
+  onCreateGroup
 }: {
   children?: ReactNode
   className?: string
+  /** New group, beside the toggle while the sidebar is away (as its top row has it). */
+  onCreateGroup: () => void
 }) {
   const { open } = useSidebar()
   const isFullscreen = useIsFullscreen()
@@ -37,7 +40,7 @@ export function PhilharmonicContentHeader({
       {!open && (
         <>
           <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
-          <HistoryArrows />
+          <NewGroupButton onCreate={onCreateGroup} />
         </>
       )}
       {children}
@@ -54,14 +57,16 @@ const HeaderSlotContext = createContext<HTMLElement | null>(null)
  * header under it.
  */
 export function PhilharmonicSlottedHeader({
-  children
+  children,
+  onCreateGroup
 }: {
   children: ReactNode
+  onCreateGroup: () => void
 }) {
   const [slot, setSlot] = useState<HTMLElement | null>(null)
   return (
     <HeaderSlotContext.Provider value={slot}>
-      <PhilharmonicContentHeader>
+      <PhilharmonicContentHeader onCreateGroup={onCreateGroup}>
         <div
           ref={setSlot}
           className="flex min-w-0 flex-1 items-center gap-2 self-stretch"

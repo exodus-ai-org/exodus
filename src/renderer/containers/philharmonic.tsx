@@ -200,6 +200,7 @@ export function PhilharmonicContainer({
           onRename={handleRename}
           membersOpen={membersOpen}
           onToggleMembers={() => setMembersOpen((v) => !v)}
+          onCreateGroup={handleCreate}
         />
       )
     }
@@ -251,7 +252,7 @@ export function PhilharmonicContainer({
           {groupChatOwnsHeader ? (
             <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
           ) : (
-            <PhilharmonicSlottedHeader>
+            <PhilharmonicSlottedHeader onCreateGroup={handleCreate}>
               <div className="min-h-0 flex-1 overflow-hidden">
                 {mainContent}
               </div>

@@ -1,9 +1,7 @@
-import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   SearchIcon,
   Delete02Icon,
   DashboardSquare01Icon,
-  PencilEdit02Icon,
   UserGroupIcon
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -17,7 +15,6 @@ import { useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { WorkspaceSwitcher } from '@/components/app/workspace-switcher'
-import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
   AlertDialog,
@@ -56,6 +53,7 @@ import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/philharmonic'
 
 import { hueStyle, pickHue } from '../lib/hue'
+import { NewGroupButton } from './new-group-button'
 
 export type ConfigPage = 'workforce' | 'dashboard'
 
@@ -165,10 +163,10 @@ export function ConversationList({
     >
       <SidebarHeader className="draggable gap-2 pt-2.25">
         {/* The title bar's row, as Chat's sidebar has it: the sidebar toggle
-            to the right of the traffic lights and the history arrows beside
-            it — the spot they take in the content header once the sidebar is
-            away, so nothing jumps; in fullscreen the lights are gone and they
-            move to the edge. */}
+            to the right of the traffic lights and, where Chat has its history
+            arrows, New group — the spot they take in the content header once
+            the sidebar is away, so nothing jumps; in fullscreen the lights
+            are gone and they move to the edge. */}
         <div
           className={cn(
             'flex h-7 items-center gap-1 transition-[padding] duration-200 ease-out',
@@ -176,7 +174,7 @@ export function ConversationList({
           )}
         >
           <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
-          <HistoryArrows />
+          <NewGroupButton onCreate={onCreate} />
         </div>
         <div className="flex items-center px-1">
           <WorkspaceSwitcher />
@@ -196,17 +194,6 @@ export function ConversationList({
             </InputGroupAddon>
           </InputGroup>
         </div>
-
-        <SidebarMenu className="gap-1">
-          <SidebarMenuItem
-            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150"
-            onClick={onCreate}
-            data-testid={TEST_IDS.philharmonic.newGroup}
-          >
-            <HugeiconsIcon icon={PencilEdit02Icon} size={16} />
-            {t('philharmonic:chat.conversationList.newGroupMenuItem')}
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent className="no-scrollbar px-1">
