@@ -25,7 +25,7 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
-import { PhilharmonicContentHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
+import { PhilharmonicSlottedHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
@@ -222,8 +222,15 @@ export function PhilharmonicContainer({
         }
       >
         <SidebarInset className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
-          {!groupChatOwnsHeader && <PhilharmonicContentHeader />}
-          <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
+          {groupChatOwnsHeader ? (
+            <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
+          ) : (
+            <PhilharmonicSlottedHeader>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {mainContent}
+              </div>
+            </PhilharmonicSlottedHeader>
+          )}
         </SidebarInset>
       </ResizableSidebarShell>
 

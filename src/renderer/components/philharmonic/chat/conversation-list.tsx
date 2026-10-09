@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { WorkspaceSwitcher } from '@/components/app/workspace-switcher'
+import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
   AlertDialog,
@@ -46,7 +47,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
+  SidebarTrigger
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { i18n } from '@/lib/i18n'
@@ -161,15 +163,22 @@ export function ConversationList({
         '[--sidebar-accent:rgb(0_0_0/0.05)] dark:[--sidebar-accent:rgb(255_255_255/0.07)]'
       )}
     >
-      <SidebarHeader
-        className={cn(
-          'draggable gap-1 pt-11 transition-[padding] duration-200 ease-out',
-          {
-            ['pt-2']: isFullscreen
-          }
-        )}
-      >
-        <div className="flex items-center px-1 pb-1">
+      <SidebarHeader className="draggable gap-2 pt-2.25">
+        {/* The title bar's row, as Chat's sidebar has it: the sidebar toggle
+            to the right of the traffic lights and the history arrows beside
+            it — the spot they take in the content header once the sidebar is
+            away, so nothing jumps; in fullscreen the lights are gone and they
+            move to the edge. */}
+        <div
+          className={cn(
+            'flex h-7 items-center gap-1 transition-[padding] duration-200 ease-out',
+            isFullscreen ? 'pl-2' : 'pl-21'
+          )}
+        >
+          <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+          <HistoryArrows />
+        </div>
+        <div className="flex items-center px-1">
           <WorkspaceSwitcher />
         </div>
 

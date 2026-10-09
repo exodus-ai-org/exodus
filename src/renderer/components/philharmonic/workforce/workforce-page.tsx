@@ -40,6 +40,7 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { PhilharmonicHeaderSlot } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
@@ -456,12 +457,14 @@ export function WorkforcePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
-        <div>
-          <h1 className="text-foreground text-sm font-semibold">
+      {/* The page's title and actions sit in the content header's bar, as a
+          chat's title does — one bar, not a second header under it. */}
+      <PhilharmonicHeaderSlot>
+        <div className="no-drag flex min-w-0 items-baseline gap-2 pl-2">
+          <h1 className="truncate text-sm font-medium">
             {t('philharmonic:workforce.header.title')}
           </h1>
-          <p className="text-muted-foreground text-[11.5px]">
+          <p className="text-muted-foreground truncate text-xs">
             {t('philharmonic:workforce.header.employeeCount', {
               count: employees.length
             })}{' '}
@@ -471,7 +474,8 @@ export function WorkforcePage() {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="min-w-0 flex-1" />
+        <div className="no-drag flex items-center gap-1.5">
           <Button variant="ghost" size="sm" onClick={openNewTeam}>
             <HugeiconsIcon
               icon={Add01Icon}
@@ -498,7 +502,7 @@ export function WorkforcePage() {
             {t('philharmonic:workforce.header.addEmployeeButton')}
           </Button>
         </div>
-      </header>
+      </PhilharmonicHeaderSlot>
 
       <div className="flex-1 overflow-y-auto px-5 py-5">
         {totalEmpty ? (

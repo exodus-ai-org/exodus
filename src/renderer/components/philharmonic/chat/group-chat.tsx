@@ -3,6 +3,7 @@ import { isSameDay, isToday, isYesterday, format } from 'date-fns'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { HistoryArrows } from '@/components/chat/header/history-arrows'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
@@ -231,14 +232,23 @@ export function GroupChat({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Chat's bar (the content header of `chat-layout`): 44 px, no rule —
+          the transcript fades into the bar's colour under it — and the sidebar
+          toggle with the history arrows only once the sidebar is away. */}
       <header
         className={cn(
-          'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-2 border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
-          sidebarOpen ? 'pl-2' : isFullscreen ? 'pl-4' : 'pl-21'
+          'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+          'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-linear-to-b after:from-card after:to-transparent',
+          sidebarOpen ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >
-        <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
-        <div className="no-drag flex min-w-0 flex-1 items-center gap-3">
+        {!sidebarOpen && (
+          <>
+            <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
+            <HistoryArrows />
+          </>
+        )}
+        <div className="no-drag flex min-w-0 flex-1 items-center gap-3 pl-2">
           {visibleMembers.length > 0 ? (
             <div className="flex">
               {visibleMembers.map((m, i) => (

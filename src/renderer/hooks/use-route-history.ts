@@ -14,11 +14,11 @@ import {
 import { historyAtom } from '@/stores/history'
 
 /**
- * Records every page the router shows into the history stack. Mounted once,
- * in the chat layout. A location change an arrow made (`skipNext`) has moved
- * the index already and is not pushed again. Settings and Philharmonic are
- * routes outside the layout: they are not recorded (Settings has its own
- * "Back to app"), and the stack resumes on return.
+ * Records every page the router shows into the history stack. Mounted in the
+ * chat layout and in Philharmonic's (both bars carry the arrows). A location
+ * change an arrow made (`skipNext`) has moved the index already and is not
+ * pushed again. Settings is not recorded (it has its own "Back to app"), and
+ * the stack resumes on return.
  */
 export function useRouteHistoryRecorder() {
   const { pathname, key } = useLocation()
