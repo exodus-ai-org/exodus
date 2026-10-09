@@ -1,3 +1,5 @@
+import type { AgentCard } from './agents'
+
 export enum TaskStatus {
   Pending = 'pending',
   Running = 'running',
@@ -109,6 +111,12 @@ export type PhilharmonicSseEvent =
       toolName: string
       phase: 'start' | 'end'
       result?: unknown
+    }
+  | {
+      type: 'agent_card'
+      conversationId: string
+      messageId: string
+      card: AgentCard
     }
   | { type: 'member_joined'; conversationId: string; agentId: string }
   | { type: 'round_start'; conversationId: string; label: string }

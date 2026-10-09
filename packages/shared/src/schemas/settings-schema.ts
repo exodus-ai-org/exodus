@@ -158,6 +158,21 @@ export const ComputerUseSchema = z.object({
   askHumanTimeoutMs: formNumber(z.number().gte(10_000).lte(1_800_000)).nullish()
 })
 
+/**
+ * Coding-agent employees (spec 2026-10-09). Unset numbers take their
+ * defaults where they are used (`src/main/lib/agents/settings.ts`): the
+ * projects folder `~/Exodus Projects`, 2 running at once, 10 minutes kept.
+ */
+export const AgentsSettingsSchema = z.object({
+  projectsDir: z.string().nullish(),
+  maxRunning: formNumber(z.number().int().gte(1).lte(8)).nullish(),
+  keepAliveMinutes: formNumber(z.number().int().gte(0).lte(120)).nullish(),
+  worktrees: z.boolean().default(true),
+  /** A path the owner set by hand, per CLI id; empty = look it up. */
+  cliPaths: z.record(z.string(), z.string()).default({})
+})
+export type AgentsSettings = z.infer<typeof AgentsSettingsSchema>
+
 export const DiscoverSchema = z.object({
   enabled: z.boolean().default(false),
   topicCount: formNumber(z.number().gte(1).lte(8)).nullish(), // default 4
@@ -287,6 +302,7 @@ export const SettingsSchema = z.object({
   fullTextSearch: FullTextSearchSchema.nullish(),
   knowledgeBase: KnowledgeBaseSchema.nullish(),
   computerUse: ComputerUseSchema.nullish(),
+  agents: AgentsSettingsSchema.nullish(),
   discover: DiscoverSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),
