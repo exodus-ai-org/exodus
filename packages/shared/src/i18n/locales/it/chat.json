@@ -113,7 +113,12 @@
     "exitFullscreen": "Esci da schermo intero",
     "enterFullscreen": "Passa a schermo intero",
     "exitFullscreenEsc": "Esci da schermo intero (Esc)",
-    "fullscreen": "Schermo intero"
+    "fullscreen": "Schermo intero",
+    "draft": {
+      "untitled": "Artefatto senza titolo",
+      "writing_one": "Scrittura · {{count}} riga",
+      "writing_other": "Scrittura · {{count}} righe"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",

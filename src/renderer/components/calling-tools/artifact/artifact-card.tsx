@@ -127,7 +127,7 @@ function UrlPill({
       aria-label={t('artifactCard.revealAriaLabel', { title })}
       title={t('artifactCard.revealTitle')}
       className={cn(
-        'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left text-[11.5px] leading-none',
+        'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left text-xs leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
         'hover:bg-muted cursor-pointer'
       )}
@@ -224,6 +224,62 @@ function FullscreenChromeBar({
         <UrlPill title={title} artifactId={artifactId} chatId={chatId} />
       </div>
       <FullscreenButton isFullscreen={true} onClick={onExitFullscreen} />
+    </div>
+  )
+}
+
+/** How many of the newest lines the draft keeps on screen. */
+const DRAFT_TAIL_LINES = 40
+
+/**
+ * The card's place while `create_artifact`'s arguments are still streaming:
+ * the same frame and height as the card it turns into, with the code being
+ * written in it, newest line at the bottom. The sandbox only runs a whole
+ * component, so this is what there is to see until then.
+ */
+export function ArtifactDraft({
+  title,
+  code
+}: {
+  title: string
+  code: string
+}) {
+  const { t } = useTranslation('chat')
+  const lines = code ? code.split('\n') : []
+  return (
+    <div
+      data-artifact-draft
+      className="border-border/70 bg-card overflow-hidden rounded-lg border shadow-sm"
+    >
+      <div className="bg-muted/70 flex h-10 items-center gap-3 border-b px-3">
+        <DecorativeTrafficLights />
+        <div className="flex min-w-0 flex-1 justify-center">
+          <div className="border-border/60 bg-background text-muted-foreground flex max-w-160 min-w-0 flex-1 items-center gap-2 rounded-md border px-2.5 py-1 text-xs leading-none">
+            <span className="text-foreground/70 truncate">
+              {title || t('artifactCard.draft.untitled')}
+            </span>
+            <span className="ml-auto shrink-0 tabular-nums">
+              {t('artifactCard.draft.writing', { count: lines.length })}
+            </span>
+          </div>
+        </div>
+        {/* Where the fullscreen button will be, so the pill does not move. */}
+        <span className="h-7 w-7" aria-hidden="true" />
+      </div>
+      {/* Bottom-anchored: the newest line sits at the foot and older lines
+          leave through the faded top, with no scrolling to drive. */}
+      <div
+        className="flex flex-col justify-end overflow-hidden px-4 pb-3"
+        style={{
+          height: '400px',
+          maskImage: 'linear-gradient(to bottom, transparent, black 35%)'
+        }}
+      >
+        <pre className="text-muted-foreground text-2xs font-mono leading-relaxed break-all whitespace-pre-wrap">
+          {lines.slice(-DRAFT_TAIL_LINES).join('\n')}
+          <span className="bg-foreground/60 ml-px inline-block h-3 w-1.5 animate-pulse align-middle" />
+        </pre>
+      </div>
     </div>
   )
 }

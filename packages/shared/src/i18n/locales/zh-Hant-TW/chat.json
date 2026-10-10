@@ -107,7 +107,11 @@
     "exitFullscreen": "結束全螢幕",
     "enterFullscreen": "進入全螢幕",
     "exitFullscreenEsc": "結束全螢幕（Esc）",
-    "fullscreen": "全螢幕"
+    "fullscreen": "全螢幕",
+    "draft": {
+      "untitled": "未命名的 Artifact",
+      "writing_other": "撰寫中 · {{count}} 行"
+    }
   },
   "computerUseCard": {
     "title": "電腦操作",

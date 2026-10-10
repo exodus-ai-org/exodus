@@ -113,7 +113,12 @@
     "exitFullscreen": "Sair da tela cheia",
     "enterFullscreen": "Entrar em tela cheia",
     "exitFullscreenEsc": "Sair da tela cheia (Esc)",
-    "fullscreen": "Tela cheia"
+    "fullscreen": "Tela cheia",
+    "draft": {
+      "untitled": "Artefato sem título",
+      "writing_one": "Escrevendo · {{count}} linha",
+      "writing_other": "Escrevendo · {{count}} linhas"
+    }
   },
   "computerUseCard": {
     "title": "Uso do Computador",

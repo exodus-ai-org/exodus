@@ -107,7 +107,11 @@
     "exitFullscreen": "전체 화면 종료",
     "enterFullscreen": "전체 화면으로 보기",
     "exitFullscreenEsc": "전체 화면 종료 (Esc)",
-    "fullscreen": "전체 화면"
+    "fullscreen": "전체 화면",
+    "draft": {
+      "untitled": "제목 없는 아티팩트",
+      "writing_other": "작성 중 · {{count}}줄"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",

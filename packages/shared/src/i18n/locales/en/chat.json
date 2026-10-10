@@ -113,7 +113,12 @@
     "exitFullscreen": "Exit fullscreen",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreenEsc": "Exit fullscreen (Esc)",
-    "fullscreen": "Fullscreen"
+    "fullscreen": "Fullscreen",
+    "draft": {
+      "untitled": "Untitled artifact",
+      "writing_one": "Writing · {{count}} line",
+      "writing_other": "Writing · {{count}} lines"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",

@@ -113,7 +113,12 @@
     "exitFullscreen": "Salir de pantalla completa",
     "enterFullscreen": "Entrar en pantalla completa",
     "exitFullscreenEsc": "Salir de pantalla completa (Esc)",
-    "fullscreen": "Pantalla completa"
+    "fullscreen": "Pantalla completa",
+    "draft": {
+      "untitled": "Artefacto sin título",
+      "writing_one": "Escribiendo · {{count}} línea",
+      "writing_other": "Escribiendo · {{count}} líneas"
+    }
   },
   "computerUseCard": {
     "title": "Uso del equipo",

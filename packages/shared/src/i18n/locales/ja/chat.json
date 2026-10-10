@@ -107,7 +107,11 @@
     "exitFullscreen": "全画面表示を終了",
     "enterFullscreen": "全画面表示にする",
     "exitFullscreenEsc": "全画面表示を終了 (Esc)",
-    "fullscreen": "全画面表示"
+    "fullscreen": "全画面表示",
+    "draft": {
+      "untitled": "無題のアーティファクト",
+      "writing_other": "作成中 · {{count}} 行"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",

@@ -113,7 +113,12 @@
     "exitFullscreen": "Quitter le plein écran",
     "enterFullscreen": "Passer en plein écran",
     "exitFullscreenEsc": "Quitter le plein écran (Échap)",
-    "fullscreen": "Plein écran"
+    "fullscreen": "Plein écran",
+    "draft": {
+      "untitled": "Artefact sans titre",
+      "writing_one": "Écriture · {{count}} ligne",
+      "writing_other": "Écriture · {{count}} lignes"
+    }
   },
   "computerUseCard": {
     "title": "Utilisation de l'ordinateur",

@@ -113,7 +113,12 @@
     "exitFullscreen": "Vollbild beenden",
     "enterFullscreen": "Vollbild",
     "exitFullscreenEsc": "Vollbild beenden (Esc)",
-    "fullscreen": "Vollbild"
+    "fullscreen": "Vollbild",
+    "draft": {
+      "untitled": "Unbenanntes Artefakt",
+      "writing_one": "Wird geschrieben · {{count}} Zeile",
+      "writing_other": "Wird geschrieben · {{count}} Zeilen"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",

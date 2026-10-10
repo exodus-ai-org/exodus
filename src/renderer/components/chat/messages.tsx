@@ -270,6 +270,17 @@ function createBlocks() {
       if (name === TOOL_NAMES.imageGeneration) {
         const prompt = typeof args?.prompt === 'string' ? args.prompt : ''
         card({ kind: 'image', key: id, prompt })
+      } else if (name === TOOL_NAMES.createArtifact) {
+        // The code is written into the call's arguments token by token: the
+        // card's place shows it being written until the result lands.
+        const pick = (key: string) =>
+          typeof args?.[key] === 'string' ? (args[key] as string) : ''
+        card({
+          kind: 'tool',
+          key: id,
+          toolName: name,
+          draft: { title: pick('title'), code: pick('code') }
+        })
       } else if (hasToolCard(name) && !foldsIntoTimeline(name)) {
         // A folded tool's card (a command run, a file written) hangs under
         // its timeline row, not here.

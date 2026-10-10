@@ -231,6 +231,12 @@ export type TurnBlock =
       toolName: string
       /** Absent until the tool has answered. */
       result?: ChatToolResultMessage
+      /**
+       * `create_artifact` only: its arguments as they stream (pi keeps a
+       * partial call's arguments parsed), drawn as a draft card until the
+       * result replaces it.
+       */
+      draft?: { title: string; code: string }
     }
   | {
       kind: 'image'
