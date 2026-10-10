@@ -51,9 +51,9 @@ progress card, members panel, conversation sidebar, chat header). Sub-plan
   literally `"+ New group"` with a plus-sign prefix — NOT the same string
   as the menu item), and the preview fallback
   (`chat.conversationList.noMessagesYetPreview`, `"New group · no
-messages yet"`) all get separate keys, matching the review's own
+  messages yet"`) all get separate keys, matching the review's own
   prediction from sub-plan 1. None of these reuse `container.
-newGroupDefaultTitle` either — that key is a persisted DATA default, a
+  newGroupDefaultTitle` either — that key is a persisted DATA default, a
   different semantic slot.
 - **Plain functions/module-level helpers** (not components/hooks) use
   the established `import { i18n } from '@/lib/i18n'` →

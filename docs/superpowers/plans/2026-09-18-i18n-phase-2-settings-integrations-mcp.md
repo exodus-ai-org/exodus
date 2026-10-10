@@ -44,7 +44,7 @@ passed.
     servers** active.") only wraps interpolated NUMBERS in `<strong>`
     (allowlisted, position-independent) — it does NOT need extraction or
     a numbered placeholder, matching the `dataControls.delete.
-confirmPrompt` precedent (allowlisted-only children stay inline). It
+    confirmPrompt` precedent (allowlisted-only children stay inline). It
     stays inline in `McpServers`'s own JSX, using `<Trans>` with a
     `values` object for the two interpolated counts. Note: use plain
     `{totalToolCount}`/`{activeCount}` expressions in the JSX fallback
@@ -68,7 +68,7 @@ confirmPrompt` precedent (allowlisted-only children stay inline). It
     always-plural English text for now; revisit if this becomes visibly
     wrong in a shipped locale.
 - `ServerCard`'s tool-count badge (`{tools.length} tool{tools.length > 1
-? 's' : ''}`) DOES get real i18next pluralization (`_one`/`_other` +
+  ? 's' : ''}`) DOES get real i18next pluralization (`_one`/`_other` +
   `{{count}}`), matching the established convention — this one has
   exactly one count, no compound-noun problem.
 - Every technical/identifier value stays hardcoded: transport-type enum
@@ -77,11 +77,11 @@ confirmPrompt` precedent (allowlisted-only children stay inline). It
   translated), all "e.g. ..." example placeholders (`e.g. filesystem`,
   `e.g. npx -y @modelcontextprotocol/server-filesystem`, `e.g. -y`,
   `e.g. @modelcontextprotocol/server-filesystem`, `e.g.
-https://mcp.example.com/sse`, `{"Authorization": "Bearer token"}`),
+  https://mcp.example.com/sse`, `{"Authorization": "Bearer token"}`),
   and the `SSE`/`HTTP` protocol-name tokens interpolated into the URL
   field's description.
 - Toast titles/descriptions that interpolate a server name (`"${data.
-name}" updated — reconnecting…`, etc.) become `{{name}}`-interpolated
+  name}" updated — reconnecting…`, etc.) become `{{name}}`-interpolated
   catalog strings — the surrounding quote marks stay part of the
   catalog string (not stripped out), matching how the original template
   literals already worked.
@@ -116,7 +116,7 @@ name}" updated — reconnecting…`, etc.) become `{{name}}`-interpolated
   Architecture above.
 - Never `git commit --amend`. `git add` scoped to the exact files this
   plan names — never `-A`/`.`. Before starting Task 1, re-run `git
-status --porcelain` and confirm `mcp-servers.tsx` is still clean and
+  status --porcelain` and confirm `mcp-servers.tsx` is still clean and
   `memory.tsx` is still the only file among this pairing under
   concurrent edit (if `memory.tsx` has settled, that's fine — it's
   simply out of scope for THIS plan either way, since this plan never

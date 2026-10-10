@@ -172,7 +172,7 @@ candidates)`.
   with the font family already expanded to a CSS stack (a custom family is
   quoted and followed by the system stack).
 - `exportScheme(colors, name) → string` and `parseSchemeImport(text) →
-SchemeColors | { error }` — the JSON shape is
+  SchemeColors | { error }` — the JSON shape is
   `{ "name": "GitHub", "accent": "#1F6FEB", "background": "#0D1117", "foreground": "#E6EDF3" }`.
 
 ## Applying a theme (renderer)

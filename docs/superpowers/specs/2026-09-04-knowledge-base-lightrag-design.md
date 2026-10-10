@@ -26,7 +26,7 @@ HKUDS) is in `docs/lightrag-research.md`. Summary of what matters here:
 - `GET /documents` returns **metadata + an auto-summary only**, never the
   original text.
 - Retrieval: `POST /query` with `only_need_context: true, include_references:
-true` → `{ response: "<assembled context>", references: [...] }`. Query modes
+  true` → `{ response: "<assembled context>", references: [...] }`. Query modes
   `naive | local | global | hybrid | mix`; `mix` is the default and best.
 - Multi-tenancy is **per-instance** (`WORKSPACE` env, set at server start), not
   per-request. There is no reliable per-request scope filter.
@@ -223,7 +223,8 @@ Payloads (`src/main/lib/jobs/types.ts`):
 
 ```ts
 export type KbSyncPayload =
-  { op: 'upsert'; docId: string } | { op: 'delete'; lightragDocId: string }
+  | { op: 'upsert'; docId: string }
+  | { op: 'delete'; lightragDocId: string }
 ```
 
 `src/main/lib/jobs/handlers.ts` — `'kb-sync'` handler. First step for both ops:
@@ -237,7 +238,7 @@ Elasticsearch is unconfigured.
   3. If `lightragDocId` is set → `kb.deleteDoc(lightragDocId)` (ignore 404).
   4. `{ trackId } = kb.insertText(text, docId)`.
   5. `setIndexStatus(docId, { lightragTrackId: trackId, syncedHash: hash,
-indexStatus: 'processing', indexError: null, lightragDocId: null })`.
+     indexStatus: 'processing', indexError: null, lightragDocId: null })`.
   6. Return. Status settlement is the reconciler's job (below) — the handler
      does not poll inline, so it stays fast and a process restart mid-wait
      loses nothing.
@@ -246,7 +247,7 @@ indexStatus: 'processing', indexError: null, lightragDocId: null })`.
   harmless; on error, **log and swallow** (do not throw — nothing to retry
   toward, and `Reindex all` never recreates it).
 - **`upsert` error handling:** on any error from step 3–4, `setIndexStatus(docId,
-{ indexStatus: 'failed', indexError: String(err) })` **and re-throw**. The
+  { indexStatus: 'failed', indexError: String(err) })` **and re-throw**. The
   status write commits before the throw (separate statement), so the UI shows
   "Failed" immediately; the throw lets pgmq redeliver (visibility timeout 300s,
   `MAX_READ_COUNT` 5 ≈ 25 min of retries) so a transient LightRAG outage
@@ -258,12 +259,12 @@ indexStatus: 'processing', indexError: null, lightragDocId: null })`.
 (`initJobQueue()` in `worker.ts`) on a slower cadence (e.g. every 30s). It:
 
 - selects `knowledge_doc WHERE indexStatus = 'processing' AND lightragTrackId
-IS NOT NULL`;
+  IS NOT NULL`;
 - for each, `kb.trackStatus(trackId)` → `processed` (also stores the returned
   `lightragDocId`) / `failed` (+ `indexError`);
 - if a row has been `processing` longer than ~10 min with no terminal status,
   sets `stale` (something is wrong on the LightRAG side; user can `Reindex
-all`).
+  all`).
   This is the only status-settlement path — it covers the normal case (badge
   flips within one cron interval), the bounded-wait-would-have-timed-out case,
   and the process-restart-mid-ingest case with one mechanism.
@@ -304,9 +305,9 @@ export function searchKnowledgeBase(
   before answering questions that may be covered by the user's own notes,
   documents, or company facts."
 - execute: `client.retrieve(query, { mode: cfg?.queryMode ?? 'mix', topK:
-cfg?.topK ?? 60, chunkTopK: cfg?.chunkTopK ?? 10 })`.
+  cfg?.topK ?? 60, chunkTopK: cfg?.chunkTopK ?? 10 })`.
   - success → `content: [{ type: 'text', text: context }]`, `details: { query,
-references }`.
+    references }`.
   - empty context → `"No knowledge base documents matched \"<query>\"."`.
   - `LightRagError` → `"The knowledge base is currently unavailable."` (logged
     at `warn`, `knowledge-base` scope). Never throws out of `execute`.
@@ -431,7 +432,7 @@ State handling:
   `getAllKnowledgeDocs`, `createKnowledgeDoc`, `updateKnowledgeDoc`,
   `deleteKnowledgeDoc`; add `getKnowledgeDocById(id)`,
   `setIndexStatus(id, Partial<{indexStatus, indexError, lightragDocId,
-lightragTrackId, syncedHash}>)`, and `getProcessingDocs()` (for the
+  lightragTrackId, syncedHash}>)`, and `getProcessingDocs()` (for the
   reconciler).
 - `KnowledgeDocData` type: move from `src/renderer/stores/philharmonic` to
   `src/shared/types/` (shared between the new service and any store), renamed

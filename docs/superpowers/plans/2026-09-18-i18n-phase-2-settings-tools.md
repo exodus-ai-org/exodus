@@ -49,7 +49,7 @@ S3 tab.
   recording: **`<Trans>`'s numbered placeholders (`<N>`) index the full,
   raw children array by position — including plain-text string children,
   not just element children.** A block with `[text, <code>, text, <code>,
-text]` numbers those two `<code>` children `<1>` and `<3>` (not `<1>`
+  text]` numbers those two `<code>` children `<1>` and `<3>` (not `<1>`
   and `<2>`) — the intervening text child still occupies its own array
   slot. `<strong>` stays a literal tag per the existing convention
   (allowlisted); `<code>`/`<em>` are NOT allowlisted and must use the
@@ -67,7 +67,7 @@ text]` numbers those two `<code>` children `<1>` and `<3>` (not `<1>`
   — none of them currently import `useTranslation` (fresh additions).
 - `ParseKeys<'settings'>`-typed fields (`ToolMeta.labelKey`/
   `descriptionKey`, `GROUP_TITLE_KEYS`) follow the `as const satisfies
-Record<...>` pattern established in `settings-core` — never a plain
+  Record<...>` pattern established in `settings-core` — never a plain
   `Record<X, string>` annotation, which would widen values to `string`
   and defeat the compile-time catalog-key check.
 - For every `<Trans>` block in this plan: transcribe the JSX children and
@@ -109,7 +109,7 @@ Record<...>` pattern established in `settings-core` — never a plain
 
 - Produces: `GROUP_TITLE_KEYS: Record<ToolGroup, ParseKeys<'settings'>>`
   (from `tools.ts`) and `ToolMeta.labelKey`/`descriptionKey:
-ParseKeys<'settings'>` (replacing `label`/`description: string`) —
+  ParseKeys<'settings'>` (replacing `label`/`description: string`) —
   consumed only by `tools.tsx` in this plan, but these are the same
   stable `key`-based identifiers other future tool-related UI could reuse.
 

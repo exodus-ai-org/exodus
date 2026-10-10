@@ -1055,7 +1055,8 @@ export function exportScheme(colors: SchemeColors, name: string): string {
 }
 
 export type SchemeImportResult =
-  { ok: true; colors: SchemeColors; name: string | null } | { ok: false }
+  | { ok: true; colors: SchemeColors; name: string | null }
+  | { ok: false }
 
 export function parseSchemeImport(text: string): SchemeImportResult {
   let doc: unknown

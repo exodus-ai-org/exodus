@@ -53,7 +53,7 @@ this sub-plan — every string is plain prose, no embedded rich-text markup.
   considering this sub-plan done.
 - **Stray `node_modules/node_modules` symlink**: if any test run reports
   "Invalid hook call" or a `null` `useMemo` crash, run `ls -la
-node_modules/node_modules` first — a stray symlink into an unrelated
+  node_modules/node_modules` first — a stray symlink into an unrelated
   sibling project has caused this exact spurious failure multiple times
   this rollout (see the `stray-node-modules-symlink-incident` memory).
   Fix with `rm node_modules/node_modules` (safe — it only removes the
@@ -68,7 +68,7 @@ node_modules/node_modules` first — a stray symlink into an unrelated
   gate, re-check `git status --porcelain` and `git checkout --` any
   file outside this plan's intended scope before staging.
 - **Shared, concurrently-edited working tree**: re-run `git status
---porcelain` for this plan's 4 target files immediately before
+  --porcelain` for this plan's 4 target files immediately before
   starting — confirmed clean as of survey time, but another session has
   repeatedly touched unrelated files throughout this rollout.
 

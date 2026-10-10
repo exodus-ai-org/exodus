@@ -345,10 +345,9 @@ git commit -m "feat(discover): discover-queries singleton cache row"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
+import { searchBraveNews } from '@main/lib/discover/brave-news-client'
 // tests/unit/main/lib/discover/brave-news-client.test.ts
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-import { searchBraveNews } from '@main/lib/discover/brave-news-client'
 
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
@@ -809,11 +808,11 @@ import {
   parseJsonFromLlmResponse
 } from '../ai/utils/llm-response-util'
 import { getModelFromProvider } from '../ai/utils/model-util'
-import { searchBraveNews } from './brave-news-client'
 import { getDiscoverFeed, setDiscoverFeed } from '../db/discover-queries'
 import { getActiveMemories, type MemoryRow } from '../db/memory-queries'
 import { getSettings } from '../db/queries'
 import { logger } from '../logger'
+import { searchBraveNews } from './brave-news-client'
 
 const STALE_AFTER_MS = 20 * 60 * 60 * 1000 // ~20h
 
@@ -1754,7 +1753,7 @@ export function DiscoverFeed() {
 
   return (
     <div
-      className="py-10 flex flex-col gap-6"
+      className="flex flex-col gap-6 py-10"
       data-testid={TEST_IDS.discover.section}
     >
       <div className="flex items-center justify-between">

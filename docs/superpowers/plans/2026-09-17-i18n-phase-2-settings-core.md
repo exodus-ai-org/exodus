@@ -63,7 +63,7 @@ in `computer-use-card.tsx`).
   rewrite. If any anchor in Task 5's brief doesn't match byte-for-byte
   when the implementer opens the file, that's NEEDS_CONTEXT — stop and
   report, don't guess or paper over it. Re-run `git status --porcelain --
-src/renderer/hooks/use-keyboard-shortcuts.ts` immediately before
+  src/renderer/hooks/use-keyboard-shortcuts.ts` immediately before
   dispatching Task 5 to catch any further drift.
 - Never `git commit --amend`. Every task is its own commit(s) scoped to
   its own file list (`git add <exact files>`, never `-A`/`.`).
@@ -107,6 +107,7 @@ src/renderer/hooks/use-keyboard-shortcuts.ts` immediately before
 Replace the entire file with:
 
 ```ts
+import type { ParseKeys } from 'i18next'
 import {
   CloudIcon,
   CogIcon,
@@ -128,7 +129,6 @@ import {
   MicIcon,
   CompassIcon
 } from 'lucide-react'
-import type { ParseKeys } from 'i18next'
 
 export enum SettingsLabel {
   Profile = 'Profile',
@@ -962,7 +962,7 @@ git commit -m "feat(i18n): translate the General settings tab"
 
 - Produces: `CATEGORY_TITLE_KEYS: Record<ShortcutDef['category'], ParseKeys<'settings'>>`
   and `ShortcutDef.labelKey: ParseKeys<'settings'>` (replaces `label:
-string`) — consumed by `keyboard-shortcuts.tsx` only, nothing later in
+  string`) — consumed by `keyboard-shortcuts.tsx` only, nothing later in
   this plan.
 
 **Before starting:** run

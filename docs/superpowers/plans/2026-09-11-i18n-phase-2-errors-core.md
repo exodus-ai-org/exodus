@@ -339,10 +339,11 @@ git commit -m "feat(i18n): AppError gains code+params payload alongside raw mess
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// tests/unit/i18n/errors-namespace.test.ts
-import { ErrorCode } from '@shared/constants/error-codes'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+
+// tests/unit/i18n/errors-namespace.test.ts
+import { ErrorCode } from '@shared/constants/error-codes'
 import { describe, expect, it } from 'vitest'
 
 const errors = JSON.parse(
@@ -813,10 +814,11 @@ if (updated === 0) {
 Add `NotFoundError` and `ErrorCode` to the imports at the top of `src/main/lib/server/routes/logs.ts`:
 
 ```ts
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs'
 import { join } from 'path'
+
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError } from '@shared/errors/app-error'
 ```
 
 Replace:

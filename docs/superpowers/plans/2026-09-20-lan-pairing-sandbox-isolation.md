@@ -225,6 +225,7 @@ Add the imports, register the scheme at module top level (next to the `declare c
 
 ```ts
 import { join } from 'path'
+
 import {
   registerArtifactScheme,
   serveArtifactProtocol
@@ -642,9 +643,6 @@ export function lanHosts(
 - [ ] **Step 1: Failing tests**
 
 ```ts
-// tests/unit/main/lib/lan/pairing.test.ts
-import { describe, expect, it } from 'vitest'
-
 import {
   buildPairingLink,
   createPairing,
@@ -652,6 +650,8 @@ import {
   MAX_PAIRING_ATTEMPTS,
   PAIRING_TTL_MS
 } from '@main/lib/lan/pairing'
+// tests/unit/main/lib/lan/pairing.test.ts
+import { describe, expect, it } from 'vitest'
 
 function setup() {
   let now = 1_000_000

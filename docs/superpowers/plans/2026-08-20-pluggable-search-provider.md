@@ -971,8 +971,8 @@ Create `src/main/lib/search/index-messages-in-background.ts`:
 
 ```ts
 import type { Settings } from '../db/schema'
-import { logger } from '../logger'
 import type { Message } from '../db/schema'
+import { logger } from '../logger'
 import { resolveSearchProvider } from './resolve-search-provider'
 
 /**
@@ -1450,8 +1450,8 @@ git commit -m "feat(search): add Elasticsearch test-connection and reindex route
 
 - Consumes: `search.elasticsearch.{url,username,password,indexName}` form
   fields (from Task 1's `SettingsSchema`); `POST
-/api/settings/search/test-connection` and `POST
-/api/settings/search/reindex` (Task 6).
+  /api/settings/search/test-connection` and `POST
+  /api/settings/search/reindex` (Task 6).
 - Produces: `TEST_IDS.search.testConnectionButton`,
   `TEST_IDS.search.reindexButton`.
 
@@ -1490,9 +1490,9 @@ In `src/shared/constants/test-ids.ts`, add a new top-level key (alongside
 Create `src/renderer/components/settings/settings-form/search.tsx`:
 
 ```tsx
-import { fetcher } from '@shared/utils/http'
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { fetcher } from '@shared/utils/http'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'

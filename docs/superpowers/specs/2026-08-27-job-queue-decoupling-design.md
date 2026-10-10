@@ -58,7 +58,7 @@ Follows the exact pattern already used for `pgvector` in this codebase:
 
 - `src/main/lib/db/db.ts` — import `pgmq` from `@electric-sql/pglite-pgmq`
   and add it to the existing `extensions: { vector }` object → `{ vector,
-pgmq }`.
+  pgmq }`.
 - `src/main/lib/db/migrate.ts` — add
   `await pglite.exec('CREATE EXTENSION IF NOT EXISTS pgmq;')` immediately
   after the existing `vector` extension line, before `migrate(db, {...})`
@@ -96,14 +96,14 @@ reconstruct everything it needs from serializable data alone.
   the payload, since Elasticsearch configuration can change between
   enqueue and process time.
 - `lcm-post-turn`: `{ chatId, chatModel, apiKey, memoryConfig, newMessages:
-[{ id, content }] }`. Handler constructs `new LcmManager(chatId,
-chatModel, apiKey, memoryConfig)` fresh, then runs the same
+  [{ id, content }] }`. Handler constructs `new LcmManager(chatId,
+  chatModel, apiKey, memoryConfig)` fresh, then runs the same
   `trackNewMessages(...)` → `compactAfterTurn()` sequence used today, in
   the same order.
 - `memory-write-judge`: `{ messages: [{ role, content }], chatModel,
-apiKey }`.
+  apiKey }`.
 - `session-summary`: `{ chatId, messages: [{ role, content }], chatModel,
-apiKey }`.
+  apiKey }`.
 
 (`apiKey` traveling in the payload is not a new exposure — it already
 flows in-memory through this exact call chain today; PGlite is local-only,
@@ -116,7 +116,10 @@ wrapper around the existing, otherwise-unmodified function:
 
 ```ts
 type QueueName =
-  'index-message' | 'lcm-post-turn' | 'memory-write-judge' | 'session-summary'
+  | 'index-message'
+  | 'lcm-post-turn'
+  | 'memory-write-judge'
+  | 'session-summary'
 
 export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
   {
@@ -140,7 +143,7 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 New `src/main/lib/jobs/worker.ts`:
 
 - `processQueue(queueName)`: reads a batch via pgmq's `read(queueName, vt,
-qty)` (visibility timeout ~30s, batch size ~5). For each message, runs
+  qty)` (visibility timeout ~30s, batch size ~5). For each message, runs
   `handlers[queueName](msg.message)`. On success, `archive`s the message
   (not `delete` — archiving keeps a durable record in pgmq's own archive
   table, useful for debugging what the LLM-backed jobs actually did). On
@@ -186,9 +189,9 @@ so it cannot meaningfully slow down the chat response.
 - Unit test for `processQueue`'s retry/give-up logic — mock the pgmq
   read/archive calls at whatever boundary they're invoked through (likely
   `db.execute(sql\`...\`)`via Drizzle, following this codebase's existing
-raw-SQL-via-Drizzle convention — confirm the exact call shape during
-implementation) and assert: a handler throwing leaves the message
-un-archived (available for retry), and a message whose`read_ct` exceeds
+  raw-SQL-via-Drizzle convention — confirm the exact call shape during
+  implementation) and assert: a handler throwing leaves the message
+  un-archived (available for retry), and a message whose`read_ct` exceeds
   the cap gets archived with a "giving up" log regardless of handler
   outcome.
 - Integration test: enqueue via `pgmq.send`, run `processQueue` once

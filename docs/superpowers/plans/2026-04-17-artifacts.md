@@ -181,7 +181,7 @@ export function ArtifactSandbox() {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center p-4 text-sm text-destructive">
+      <div className="text-destructive flex h-full items-center justify-center p-4 text-sm">
         {error}
       </div>
     )
@@ -189,7 +189,7 @@ export function ArtifactSandbox() {
 
   if (!Component) {
     return (
-      <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex h-full items-center justify-center p-4 text-sm">
         Waiting for artifact...
       </div>
     )
@@ -653,6 +653,7 @@ In `src/main/lib/ai/calling-tools/create-artifact.ts`, update the execute to sav
 
 ```ts
 import { v4 as uuidV4 } from 'uuid'
+
 import { saveArtifact } from '../artifacts'
 ```
 

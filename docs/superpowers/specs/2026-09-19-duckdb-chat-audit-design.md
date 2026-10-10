@@ -46,16 +46,16 @@ main      routes/analytics.ts ──▶ lib/analytics/snapshot.ts ──▶ PGli
 - `lib/analytics/duckdb.ts` — `loadDuckDB()` (one dynamic import, cached),
   `withReadOnly` / `withReadWrite` (open the file in that mode, closing any
   instance in the other), `runQuery(sql)` → `{ columns, rows, rowCount,
-truncated, durationMs }` via `runAndReadUntil(sql, 501)` +
+  truncated, durationMs }` via `runAndReadUntil(sql, 501)` +
   `getRowObjectsJson()` (BigInt-safe), `closeDuckDB()` on quit.
 - `lib/analytics/snapshot.ts` — pure row mappers (`toChatRow`,
   `toMessageRow`, `toProjectRow`, unit-tested), NDJSON staging under
   `analytics/tmp`, `CREATE OR REPLACE TABLE … AS SELECT * FROM
-read_json(…, columns = {…})` with explicit types, the `logs` view
+  read_json(…, columns = {…})` with explicit types, the `logs` view
   (`read_json_auto(glob, union_by_name = true)`, skipped when the glob is
   empty), `snapshot.json` meta.
 - `routes/analytics.ts` (`/api/v1/analytics`): `GET /status`, `POST
-/snapshot`, `POST /query { sql }`. DuckDB errors surface as
+  /snapshot`, `POST /query { sql }`. DuckDB errors surface as
   `VALIDATION_FAILED` with DuckDB's own message (it names the column or
   syntax problem); a missing snapshot is `ANALYTICS_SNAPSHOT_MISSING`
   (404); a DuckDB that fails to load is `ANALYTICS_UNAVAILABLE` (503).

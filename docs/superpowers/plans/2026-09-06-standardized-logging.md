@@ -192,13 +192,12 @@ git commit -m "feat(logger): OTel Resource module"
 `tests/unit/main/lib/logger/record.test.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import {
   normalizeToLogRecord,
   severityOf,
   toAttributes
 } from '@main/lib/logger/record'
+import { describe, expect, it } from 'vitest'
 
 describe('severityOf', () => {
   it('maps levels to OTel bands', () => {
@@ -434,14 +433,13 @@ git commit -m "feat(logger): LogRecord shape + severity/exception/legacy mapping
 `tests/unit/main/lib/logger/trace-context.test.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import {
   bindTraceAttributes,
   currentTrace,
   newTraceId,
   withTrace
 } from '@main/lib/logger/trace-context'
+import { describe, expect, it } from 'vitest'
 
 describe('trace-context', () => {
   it('newTraceId is 32 lowercase hex', () => {
@@ -858,11 +856,10 @@ git commit -m "feat(logger): OTel-shaped records + trace ids; logger.ts -> logge
 `tests/unit/main/lib/server/middlewares/trace.test.ts`:
 
 ```ts
-import { Hono } from 'hono'
-import { describe, expect, it } from 'vitest'
-
 import { currentTrace } from '@main/lib/logger/trace-context'
 import { traceMiddleware } from '@main/lib/server/middlewares/trace'
+import { Hono } from 'hono'
+import { describe, expect, it } from 'vitest'
 
 describe('traceMiddleware', () => {
   it('runs the handler inside a trace and sets x-trace-id', async () => {
@@ -1098,12 +1095,11 @@ git commit -m "feat(logger): trace jobs + scheduler; thread origin trace id thro
 Extract the filtering into a pure helper `filterRecords(records: LogRecord[], opts: { minSeverity?: number; scope?: string; keyword?: string; traceId?: string }): LogRecord[]` and test it directly:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import {
   filterRecords,
   minSeverityFromLevel
 } from '@main/lib/server/routes/logs-filter'
+import { describe, expect, it } from 'vitest'
 
 const rec = (over: Partial<any> = {}) => ({
   timestamp: '2026-09-06T00:00:00.000Z',

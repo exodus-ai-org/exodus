@@ -97,16 +97,14 @@ Expected: `package.json` gains both deps; `bun.lock` regenerated. The `@mariozec
 `tests/unit/main/lib/ai/kernel/models.test.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import { fauxAssistantMessage, fauxText } from '@earendil-works/pi-ai'
-
 import { registerFauxProvider } from '@main/lib/ai/kernel/faux'
 import {
   OLLAMA_PROVIDER_ID,
   getKernelModels,
   streamFn
 } from '@main/lib/ai/kernel/models'
+import { describe, expect, it } from 'vitest'
 
 describe('kernel models collection', () => {
   it('registers the five built-in providers and ollama', () => {
@@ -158,6 +156,7 @@ Expected: FAIL — `Cannot find module '@main/lib/ai/kernel/models'`.
 - [ ] **Step 4: Write `kernel/models.ts`**
 
 ```ts
+import type { StreamFn } from '@earendil-works/pi-agent-core'
 import {
   createModels,
   createProvider,
@@ -170,7 +169,6 @@ import { azureOpenAIResponsesProvider } from '@earendil-works/pi-ai/providers/az
 import { googleProvider } from '@earendil-works/pi-ai/providers/google'
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai'
 import { xaiProvider } from '@earendil-works/pi-ai/providers/xai'
-import type { StreamFn } from '@earendil-works/pi-agent-core'
 
 /**
  * The process's one `Models` collection. pi 0.85 routes every request by
@@ -399,13 +397,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 `tests/unit/shared/constants/tool-names.test.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import {
   LEGACY_TOOL_NAMES,
   TOOL_NAMES,
   toToolName
 } from '@exodus/shared/constants/tool-names'
+import { describe, expect, it } from 'vitest'
 
 describe('tool names', () => {
   it('are snake_case and unique', () => {
@@ -962,9 +959,8 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 ```ts
 import type { Message } from '@earendil-works/pi-ai'
-import { describe, expect, it } from 'vitest'
-
 import { dropBrokenRuns } from '@main/lib/ai/kernel/invariant'
+import { describe, expect, it } from 'vitest'
 
 const user = (t: string): Message => ({
   role: 'user',
@@ -1427,18 +1423,17 @@ export class RunRecorder {
 `tests/unit/main/lib/ai/kernel/run.test.ts`:
 
 ```ts
+import type { AgentTool } from '@earendil-works/pi-agent-core'
 import {
   fauxAssistantMessage,
   fauxText,
   fauxToolCall,
   Type
 } from '@earendil-works/pi-ai'
-import type { AgentTool } from '@earendil-works/pi-agent-core'
-import { describe, expect, it } from 'vitest'
-
+import type { KernelEvent } from '@main/lib/ai/kernel/events'
 import { registerFauxProvider } from '@main/lib/ai/kernel/faux'
 import { runAgent, type RunInput } from '@main/lib/ai/kernel/run'
-import type { KernelEvent } from '@main/lib/ai/kernel/events'
+import { describe, expect, it } from 'vitest'
 
 const weather: AgentTool = {
   name: 'weather',
@@ -1642,24 +1637,24 @@ Run: `bun run test tests/unit/main/lib/ai/kernel/run.test.ts` → FAIL, module n
 `run.ts`:
 
 ```ts
-import type {
-  ChatAssistantMessage,
-  ChatMessage,
-  ChatToolResultMessage,
-  ChatUserMessage
-} from '@exodus/shared/types/chat'
-import type {
-  AssistantMessage,
-  Message,
-  Model,
-  ThinkingLevel
-} from '@earendil-works/pi-ai'
 import {
   Agent,
   type AgentEvent,
   type AgentMessage,
   type AgentTool
 } from '@earendil-works/pi-agent-core'
+import type {
+  AssistantMessage,
+  Message,
+  Model,
+  ThinkingLevel
+} from '@earendil-works/pi-ai'
+import type {
+  ChatAssistantMessage,
+  ChatMessage,
+  ChatToolResultMessage,
+  ChatUserMessage
+} from '@exodus/shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import { logger } from '../../logger'
@@ -2061,11 +2056,11 @@ describe('RunRecorder', () => {
 - [ ] **Step 7: Write `record.ts`**
 
 ```ts
+import type { Model } from '@earendil-works/pi-ai'
 import type {
   ChatAssistantMessage,
   ChatMessage
 } from '@exodus/shared/types/chat'
-import type { Model } from '@earendil-works/pi-ai'
 
 import { saveMessages } from '../../db/queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
@@ -2397,14 +2392,13 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 `tests/unit/main/lib/ai/kernel/mcp-toolbox.test.ts`:
 
 ```ts
-import { Type } from '@earendil-works/pi-ai'
 import type { AgentTool } from '@earendil-works/pi-agent-core'
-import { describe, expect, it, vi } from 'vitest'
-
+import { Type } from '@earendil-works/pi-ai'
 import {
   mcpDirectory,
   mcpToolbox
 } from '@main/lib/ai/calling-tools/mcp-toolbox'
+import { describe, expect, it, vi } from 'vitest'
 
 const issue: AgentTool = {
   name: 'create_issue',
@@ -2502,10 +2496,10 @@ describe('mcp toolbox', () => {
 - [ ] **Step 3: Write `mcp-toolbox.ts`**
 
 ```ts
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { McpTools } from '@exodus/shared/types/ai'
-import { Type } from '@earendil-works/pi-ai'
-import type { AgentTool } from '@earendil-works/pi-agent-core'
 
 /**
  * MCP servers are not bound tool by tool — a single server can expose 100+

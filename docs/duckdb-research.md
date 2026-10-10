@@ -57,7 +57,7 @@ assets resolve relative to the real package) and **unpacked from asar**
    built for the audit console (`src/main/lib/analytics/duckdb.ts`) is
    reusable as-is.
 4. **Future: Parquet export in Data Controls** — `COPY messages TO
-'chats.parquet'` for external analysis; one statement.
+   'chats.parquet'` for external analysis; one statement.
 
 ## What it should not replace
 

@@ -54,7 +54,7 @@ real strings:**
   doesn't require also going back to fix unrelated prior work in the
   same commit.
 - The delete-group error toast's description (`err instanceof Error ?
-err.message : String(err)`) stays untouched — it surfaces the actual
+  err.message : String(err)`) stays untouched — it surfaces the actual
   error object's message, not static UI prose.
 
 **Tech Stack:** i18next + react-i18next (already wired).

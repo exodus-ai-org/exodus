@@ -61,7 +61,7 @@ gaps each provider's own API leaves.
    capability snapshot is unchanged, written into `providerConfig` at
    selection time.
 5. No backward-compat shim for existing `providerConfig.{chatModel,
-reasoningModel}` rows — the field is renamed to `model` and old rows simply
+   reasoningModel}` rows — the field is renamed to `model` and old rows simply
    read as unset; the user re-picks once after updating.
 6. The composer's binary Reasoning toggle becomes a full level picker (off/
    low/medium/high/xhigh/max), populated from the active model's persisted
@@ -146,7 +146,7 @@ handler per provider under `src/main/lib/ai/providers/list-models/`:
   a dropdown, same as the Ollama fallback below.
 - **Ollama**: `GET {ollamaBaseUrl}/api/tags` (no auth). Returns local model
   names only — `snapshot` is always `{ contextWindow: null, maxOutputTokens:
-null, reasoningLevels: [], cost: null }`. Dropdown still allows free-text
+  null, reasoningLevels: [], cost: null }`. Dropdown still allows free-text
   entry for a model not yet pulled.
 - Errors (invalid key, network, rate limit) surface as a normal JSON error the
   renderer turns into a toast — reuse the `toFriendlyChatError`-style mapping,

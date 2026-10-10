@@ -420,11 +420,10 @@ git commit -m "feat(artifact): add revealArtifactFile renderer wrapper"
 Replace the entire contents of `src/renderer/components/calling-tools/artifact/artifact-card.tsx` with:
 
 ```tsx
+import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
 import { MinusIcon, MaximizeIcon, XIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-
-import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
 
 import { revealArtifactFile } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
@@ -488,7 +487,7 @@ function TrafficLight({
         boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.12)'
       }}
     >
-      <span className="pointer-events-none opacity-0 transition-opacity group-hover:opacity-60 flex items-center justify-center">
+      <span className="pointer-events-none flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-60">
         {children}
       </span>
     </button>

@@ -472,7 +472,6 @@ In `src/main/lib/server/app.ts`:
 ```typescript
 // Line 9: import { getSetting } → import { getSettings }
 import { getSettings } from '../db/queries'
-
 // Line 20: import settingsRouter from './routes/setting'
 import settingsRouter from './routes/settings'
 
@@ -1315,6 +1314,7 @@ In `generals.tsx`, add imports:
 
 ```typescript
 import type { ColorTone } from '@shared/schemas/settings-schema'
+
 import { useTone } from '@/hooks/use-tone'
 ```
 
@@ -1352,7 +1352,7 @@ Add this JSX after the Theme `SettingsRow`:
         title={preset.label}
         className={`h-6 w-6 rounded-full transition-all ${
           tone === preset.value
-            ? 'ring-ring ring-2 ring-offset-2 ring-offset-background'
+            ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
             : 'hover:scale-110'
         }`}
         style={{ backgroundColor: preset.color }}

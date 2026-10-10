@@ -19,7 +19,7 @@ the faux provider.
   Commit whole files you own via `$SCRATCH/commit-via-worktree.sh "<msg>" <files…>`; CLAUDE.md only by staging your
   hunk with `git apply --cached` and committing by hand through a temp worktree.
 - Gate per commit: `bun run fmt` (then `git status` for foreign changes) → `bun run lint` → `env
-PWD=/Users/yanceyleo/Code/exodus/exodus bun run typecheck` → `bun run i18n:check` → `bun run test`. Trailer
+  PWD=/Users/yanceyleo/Code/exodus/exodus bun run typecheck` → `bun run i18n:check` → `bun run test`. Trailer
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Never run `bun run package` from a worktree whose node_modules is a symlink; e2e only in the main tree and only if
   nothing answers on localhost:60223.
@@ -178,7 +178,7 @@ written but has not run on a packaged build.
   Assembly and compaction both start from `contextRuns()`. A span a summary replaces takes the context items of an
   excluded run inside it with it.
 - **R3** — the segment is `type: 'compare'` (the union's discriminant is `type`, not `kind`). `useChooseAttempt(chatId,
-setMessages)` returns `{ choose, isPending }`: the chat's messages are `useChat`'s state, not a query's, and the
+  setMessages)` returns `{ choose, isPending }`: the chat's messages are `useChat`'s state, not a query's, and the
   choice is applied on the click rather than in `onMutate`, which runs a tick later.
 - **R4** — `AssistantTurnSegment` moved to `components/chat/assistant-turn-segment.tsx` so the comparison can draw with
   it. Two columns or tabs is decided by measuring (`hooks/use-min-width.ts`, 880 px), not by a container query: it

@@ -58,7 +58,7 @@ times.
   task names — never `-A`/`.` (shared, concurrently-edited working tree).
 - `pnpm i18n:check` / `pnpm typecheck` / `pnpm lint` / `pnpm test` must
   pass before any commit. Once Task 5 closes the orphan-id gap, `pnpm
-test` should pass with ZERO exceptions for the first time in this whole
+  test` should pass with ZERO exceptions for the first time in this whole
   i18n effort — verify that before assuming the standing `--no-verify`
   justification still applies to any later commit in this plan.
 - Commit the plan document itself before considering this plan finished.

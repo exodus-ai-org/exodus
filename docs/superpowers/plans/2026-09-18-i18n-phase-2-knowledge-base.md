@@ -35,7 +35,7 @@ strings — the second of the 8 "the rest" namespaces.
     `label`s built via `t()`, `variant`s stay as literal shadcn Badge
     variant strings (not prose, not translatable).
 - `handleTest`'s composed toast description (`LLM: X`, `Embedding: Y
-(Zd)`, `N docs`, joined by `·`) gets a deliberate, asymmetric
+  (Zd)`, `N docs`, joined by `·`) gets a deliberate, asymmetric
   translation treatment: `LLM` stays a hardcoded acronym (like `API`/
   `URL`/`JSON` elsewhere in this codebase — an acronym conventionally
   left untranslated across languages), `Embedding` becomes a translated
@@ -45,7 +45,7 @@ strings — the second of the 8 "the rest" namespaces.
   pluralization (`_one`/`_other` + `{{count}}`) instead of a hardcoded
   `docs` plural.
 - `Queued ${count} document(s) for reindexing` and `"${title}" will be
-removed from the knowledge base.` follow established patterns: real
+  removed from the knowledge base.` follow established patterns: real
   pluralization for the first (replacing the manual `(s)` suffix), a
   `{{title}}`-interpolated quoted-name template for the second (mirrors
   `mcpServers.toast.updated`'s `"{{name}}" updated…` pattern).

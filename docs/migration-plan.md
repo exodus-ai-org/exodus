@@ -209,7 +209,7 @@ until you actually run the full pipeline, not just `tsc`).
   solved.** `getResourcePath()` (built during the base migration, for
   icons) works unchanged for `resources/drizzle` — no new `asar.unpack`
   config was needed, just `migrate(db, { migrationsFolder:
-getResourcePath('drizzle') })`.
+  getResourcePath('drizzle') })`.
 - **`getSettings()` was deliberately NOT wired into boot.** Auto-updater/
   tray/login-item behavior that reads settings is real integration work,
   better scoped to its own pass once IPC handlers exist. `runMigrate()`
@@ -253,14 +253,14 @@ getResourcePath('drizzle') })`.
   explicit override.
 - **`db.ts` had a latent directory-creation-order bug**, also present
   verbatim in `universal-client`. Its module-level `export const pglite =
-new PGlite({ dataDir })` runs at ES-import time — before
+  new PGlite({ dataDir })` runs at ES-import time — before
   `ensureExodusDirs()` ever executes inside `app.on('ready')` — and
   PGlite's own internal `mkdir` isn't recursive, so it depends on some
   _other_ module having already created the parent directory as a side
   effect. This was silently masked in both repos by `~/.exodus` already
   existing from prior runs; it only surfaced once the `-dev` suffix
   pointed at a genuinely new path. Fixed by having `db.ts` `mkdirSync(dbPath,
-{ recursive: true })` itself before constructing `PGlite`, rather than
+  { recursive: true })` itself before constructing `PGlite`, rather than
   relying on caller/import ordering.
 - **`@electric-sql/pglite` cannot be bundled into the single main.js Vite
   output — this is the biggest real finding of the phase.** PGlite
@@ -282,11 +282,11 @@ new PGlite({ dataDir })` runs at ES-import time — before
   - `forge.config.ts`: `@electron-forge/plugin-vite` auto-injects
     `packagerConfig.ignore` to keep only `.vite/**`, assuming full
     bundling — which would silently drop the now-external `node_modules/
-@electric-sql/*` from the packaged app. Providing an own `ignore`
+    @electric-sql/*` from the packaged app. Providing an own `ignore`
     (which the plugin then leaves alone) keeps `.vite/**` plus
     `/node_modules/@electric-sql/**`. Getting this right required keeping
     every _ancestor_ directory too (`/node_modules` itself, `/node_modules/
-@electric-sql`), not just the deep leaf paths — the packager's walker
+    @electric-sql`), not just the deep leaf paths — the packager's walker
     prunes recursion at the first directory that matches "ignore", so an
     ignore rule that only recognized the full deep path left nothing on
     disk to recurse into (verified empirically: first attempt produced a
@@ -633,7 +633,7 @@ skills-manager's external dependency), not environment compatibility.
   typecheck, lint and unit tests were all green. electron-vite
   (universal-client) never hit it: it leaves main-process deps external. Fix,
   in `vite.main.config.mts`: `define: { 'import.meta.url':
-'process.getBuiltinModule("node:url").pathToFileURL(__filename).href' }`.
+  'process.getBuiltinModule("node:url").pathToFileURL(__filename).href' }`.
   The first attempt, `require("node:url")`, failed differently — Rolldown
   renames free `require` identifiers to avoid collisions and turned it into a
   broken `require$1`. Lesson: after adding a dependency to main, boot the app.
@@ -667,7 +667,7 @@ skills-manager's external dependency), not environment compatibility.
 - **Auto-updater:** `update-electron-app` stays (base decision), but
   `auto-updater.ts` exposes the same state machine and IPC the renderer's
   update panel already speaks (`updater-get-state/check/download/install/
-set-auto-download`, `updater-state-changed`), driven by Electron's built-in
+  set-auto-download`, `updater-state-changed`), driven by Electron's built-in
   `autoUpdater` events. Squirrel downloads by itself and reports no progress,
   so `available` is skipped (`downloading`, indeterminate, then `ready`);
   download is a no-op and set-auto-download only gates manual checks.
@@ -712,7 +712,7 @@ happened, kept for the phases still ahead.
   → `'en'`) is what's in effect for the whole session. `preload.ts`/
   `preload.d.ts` restored `api.locale` (`ipcRenderer.sendSync('get-app-locale')`).
 - `scripts/i18n-check.ts` / `i18n-status.ts` ported (via `bun run
-scripts/*.ts` directly — no `tsx` dependency needed, bun runs TS
+  scripts/*.ts` directly — no `tsx` dependency needed, bun runs TS
   natively), wired into `package.json` scripts and `.husky/pre-commit`.
   `i18n-audit.ts` (the interactive/write-side audit tool) wasn't ported —
   only the two read-only report scripts were needed this pass.
@@ -807,9 +807,9 @@ else here.
   know: `window.ts` (`loadSubApp()`) and `artifact-card.tsx`, whose
   sandbox-iframe URL used electron-vite's `ELECTRON_RENDERER_URL` — it now uses
   `window.location.origin` in dev and `./src/renderer/sub-apps/artifacts/
-index.html` when packaged.
+  index.html` when packaged.
 - **React Compiler is off, and stays off** (the base template had `babel({
-presets: [reactCompilerPreset()] })`). It was trialled on 2026-09-19 and
+  presets: [reactCompilerPreset()] })`). It was trialled on 2026-09-19 and
   dropped; `@rolldown/plugin-babel` and `babel-plugin-react-compiler` are
   uninstalled. What the trial found, for whoever reconsiders it:
   - It builds, and compiles 438 of 482 components/hooks — but only on
@@ -843,7 +843,7 @@ presets: [reactCompilerPreset()] })`). It was trialled on 2026-09-19 and
   `settings-namespace.test.ts` that exercised that container was removed.
 - **A dev-only i18n failure, found by the user right after hand-over
   (`messageList.greetingTitle` on screen instead of text).** In `bun run
-start`, Forge's `resolve.preserveSymlinks: true` keeps the `@exodus/shared`
+  start`, Forge's `resolve.preserveSymlinks: true` keeps the `@exodus/shared`
   workspace package under `node_modules`, so Vite pre-bundled it with esbuild
   — which replaced the i18n loader's `import.meta.glob('./locales/*/*.json')`
   with `Object.assign({})`. No catalog ever loaded. Production builds (Rollup
@@ -947,11 +947,11 @@ start`, Forge's `resolve.preserveSymlinks: true` keeps the `@exodus/shared`
   upstream does. `bun run build:helper` uses **`xcrun swiftc`**, not a bare
   `swiftc`: with a swiftly-installed toolchain first on `PATH`,
   `swiftc -target arm64-apple-macos13` fails with `unknown argument:
-'-target-arch-variant'`; through Xcode's toolchain it compiles cleanly to a
+  '-target-arch-variant'`; through Xcode's toolchain it compiles cleanly to a
   same-size binary (146 608 bytes; not byte-identical — Mach-O UUID/paths).
 - **Verified as far as it goes without granting permissions:** in the built
   app, Settings → Computer Use lists the installed apps (`GET
-/api/computer-use/apps` → the Swift helper) and adding "Chess" to the
+  /api/computer-use/apps` → the Swift helper) and adding "Chess" to the
   allowlist works (an e2e spec covers it). **Not exercised:** an actual
   computer-use session — that needs the macOS Screen Recording and
   Accessibility permissions granted to the app.
@@ -976,7 +976,7 @@ exist upstream). `tests/e2e/` has ~20 Playwright specs (see below).
   Adapted rather than copied: `paths.test.ts` (rewritten and run against a
   scratch `$HOME` — upstream's created directories in the
   real home), the i18n tests (locales moved to `packages/shared/src/i18n/
-locales`), `claude-md-freshness` (exodus's config files), the
+  locales`), `claude-md-freshness` (exodus's config files), the
   `no-hardcoded-strings` allowlist (it pins line numbers), and the skills-market
   block removed. `jobs/worker.test.ts` gained a `db/db` mock like its
   siblings — several upstream tests import the real `db/db` and would open a
@@ -1168,13 +1168,13 @@ the thing listed on the right:
 - **Sandboxed preload (`webPreferences.sandbox: true`) can't
   `require()` arbitrary Node builtins** — confirmed only `process.platform`/
   `arch`/`getSystemVersion()`-style properties work; a plain `import os from
-'os'` throws `module not found: os` _silently_ unless something listens
+  'os'` throws `module not found: os` _silently_ unless something listens
   for the `preload-error` event (exodus's `window.ts` already does). Any
   newly-ported preload code needs the same scrutiny. → _Read full launch
   output, don't just check the process stayed alive._
 - **`"type": "module"` in `package.json` breaks
   `@electron-forge/plugin-vite`'s CJS main/preload output** (`formats:
-['cjs']`, hardcoded in the plugin) — don't re-add it.
+  ['cjs']`, hardcoded in the plugin) — don't re-add it.
 - **`is.dev` (from `@electron-toolkit/utils`) isn't available and shouldn't
   be added** — use `app.isPackaged` everywhere, per the established
   convention.
@@ -1193,7 +1193,7 @@ the thing listed on the right:
   content (a literal string you know should be there), not just "the
   build didn't error."_
 - **Verification bar for "this works"**: `bun run typecheck && bun run
-lint && bun run fmt:check && bun run test`, _then_ `bun run dev` with
+  lint && bun run fmt:check && bun run test`, _then_ `bun run dev` with
   full log output actually read (not just "process is alive"), _then_
   `bun run package` (and ideally `bun run make`) with the real binary
   launched and its console output captured, _and_ for anything involving

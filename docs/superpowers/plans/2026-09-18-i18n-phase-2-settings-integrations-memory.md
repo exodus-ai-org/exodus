@@ -45,7 +45,7 @@ react-hook-form.
      `item.id` (e.g. via the natural-language composer).
   2. `MemorySettings`'s "Compaction threshold" row swapped a plain
      `<Input>` for an `<InputGroup><InputGroupInput/><InputGroupAddon
-align="inline-end">%</InputGroupAddon></InputGroup>` (adds a "%"
+     align="inline-end">%</InputGroupAddon></InputGroup>` (adds a "%"
      suffix affordance), including a new import block for
      `InputGroup`/`InputGroupInput`/`InputGroupAddon` and `useRef` added
      to the `react` import.

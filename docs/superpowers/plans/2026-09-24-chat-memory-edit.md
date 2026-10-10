@@ -217,7 +217,7 @@ turn's foot with a `StatusStrip` shared with the LCM compaction card.
   }
   ```
   In `manager.ts` add `snapshotOf` and make `runMemoryInstruction` build `changes`: `before = snapshotOf(existing
-row)` looked up from `all` by id; `after = snapshotOf(returned row)` from `updateMemory`/`createMemory` (they
+  row)` looked up from `all` by id; `after = snapshotOf(returned row)` from `updateMemory`/`createMemory` (they
   return the row); delete → `after: null`. Return `{ applied, changes }`. `applied === changes.length`.
 - [ ] **Step 4: Run** the test file and the existing memory route tests
       (`bunx vitest run tests/unit/main/lib/server/routes tests/unit/main/lib/ai/memory`) — PASS.
@@ -397,7 +397,7 @@ row)` looked up from `all` by id; `after = snapshotOf(returned row)` from `updat
       `memories_used` event is sent.
 - [ ] **Step 2: Run** — FAIL.
 - [ ] **Step 3: Implement.** Schema columns (nullable), `bun run db:generate`, inspect the SQL (only `ALTER TABLE
-... ADD COLUMN`). In chat.ts: `memoryPromise` resolves to `MemoryRow[]` (still `[]` on failure / when off);
+  ... ADD COLUMN`). In chat.ts: `memoryPromise` resolves to `MemoryRow[]` (still `[]` on failure / when off);
       `memoriesSection = formatMemoriesForSystem(rows)`; inside `start(controller)` right after `createSseWriter`, if
       `rows.length` → `sse.send({ type: 'memories_used', runId: userMessage.id, memories: rows.map(({ id, key, section }) => ({ id, key, section })) })`.
       Pass `userMessage.id` as `runId` into `loadRelevantMemories`.
