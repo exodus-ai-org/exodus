@@ -244,10 +244,10 @@ export function ConversationList({
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate text-[13px] font-medium">
+                            <span className="text-ui truncate font-medium">
                               {c.title}
                             </span>
-                            <span className="text-muted-foreground shrink-0 text-[10px] tabular-nums">
+                            <span className="text-muted-foreground text-2xs shrink-0 tabular-nums">
                               {smartTime(c.lastMessageAt)}
                             </span>
                           </span>

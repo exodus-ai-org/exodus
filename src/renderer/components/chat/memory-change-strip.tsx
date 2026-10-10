@@ -265,7 +265,7 @@ function ChangeRow({ change }: { change: MemoryChange }) {
       <div className="flex items-center gap-2">
         <span className="text-foreground font-medium">{keyOf(change)}</span>
         {badge && (
-          <span className="border-border/60 rounded-full border px-1.5 text-[10px] leading-4">
+          <span className="border-border/60 text-2xs rounded-full border px-1.5 leading-4">
             {badge}
           </span>
         )}

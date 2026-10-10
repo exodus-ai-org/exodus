@@ -263,7 +263,7 @@ export function PlaceDetail({
           <>
             {place.note && (
               <div className="bg-muted/40 rounded-lg p-2.5">
-                <div className="text-muted-foreground mb-1 text-[10px] tracking-widest uppercase">
+                <div className="text-muted-foreground text-2xs mb-1 tracking-widest uppercase">
                   {t('placeDetail.notes')}
                 </div>
                 <p className="text-foreground text-xs leading-relaxed">
@@ -316,7 +316,7 @@ export function PlaceDetail({
                     <div className="text-foreground truncate text-xs font-medium">
                       {r.author ?? t('placeDetail.anonymousReviewer')}
                     </div>
-                    <div className="text-muted-foreground flex items-center gap-1 text-[10px]">
+                    <div className="text-muted-foreground text-2xs flex items-center gap-1">
                       {r.rating !== undefined && (
                         <span className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, j) => (
@@ -390,7 +390,7 @@ export function PlaceDetail({
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
         </button>
-        <span className="text-muted-foreground text-[11px]">
+        <span className="text-muted-foreground text-2xs">
           {t('placeDetail.pagination', { index: index + 1, total })}
         </span>
         <button
@@ -418,7 +418,7 @@ export function PlaceDetail({
  *  still falls back to the initial. */
 function ReviewAvatar({ src, name }: { src?: string; name?: string }) {
   const initial = (
-    <div className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
+    <div className="bg-muted text-muted-foreground text-2xs flex size-6 shrink-0 items-center justify-center rounded-full font-medium">
       {name?.charAt(0)?.toUpperCase() ?? '·'}
     </div>
   )

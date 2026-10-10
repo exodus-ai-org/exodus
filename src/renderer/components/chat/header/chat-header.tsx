@@ -47,7 +47,7 @@ function TitleGroup({ id }: { id: string }) {
   const replying = status === 'submitted' || status === 'streaming'
 
   return (
-    <div className="no-drag flex max-w-lg min-w-0 items-center gap-2 pl-1">
+    <div className="no-drag flex max-w-lg min-w-0 items-center gap-2 pl-2">
       <h1
         className="truncate text-sm font-medium"
         title={title}

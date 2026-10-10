@@ -112,7 +112,7 @@ export const NavItems = memo(function NavItems({
       {/* The row's age sits where the menu button does; the button takes its
           place on hover and while its menu is open (owner, 2026-10-08): the
           title keeps the width, and the right edge is never an empty band. */}
-      <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px] tabular-nums transition-opacity group-focus-within/menu-item:opacity-0 group-hover/menu-item:opacity-0 group-has-[[aria-expanded=true]]/menu-item:opacity-0">
+      <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs tabular-nums transition-opacity group-focus-within/menu-item:opacity-0 group-hover/menu-item:opacity-0 group-has-[[aria-expanded=true]]/menu-item:opacity-0">
         {compactRelativeTime(parseLocalishCreatedAt(chat.createdAt))}
       </span>
       <DropdownMenu>

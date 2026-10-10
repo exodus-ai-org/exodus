@@ -62,7 +62,7 @@ export function PhilharmonicEmptyState({
       </div>
       <div className="text-foreground text-sm font-semibold">{title}</div>
       {description && (
-        <div className="text-muted-foreground mt-1 max-w-[280px] text-[12.5px]">
+        <div className="text-muted-foreground text-ui mt-1 max-w-[280px]">
           {description}
         </div>
       )}

@@ -194,7 +194,7 @@ function FoldedCard({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[11.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-xs transition-colors"
       >
         <HugeiconsIcon
           icon={ArrowDown01Icon}
@@ -418,7 +418,7 @@ export function ThinkingTimeline({
                       <>
                         <p className="wrap-break-word">{step.text}</p>
                         {step.codeArgument && (
-                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap">
                             <code>{step.codeArgument}</code>
                           </pre>
                         )}

@@ -195,7 +195,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         <dl className="border-border grid grid-cols-3 gap-x-4 gap-y-3 border-t px-5 py-4">
           {readings.map(([label, reading], i) => (
             <div key={label} className={ROW_ENTER} style={staggerDelay(i)}>
-              <dt className="text-muted-foreground text-[11px] leading-none">
+              <dt className="text-muted-foreground text-2xs leading-none">
                 {label}
               </dt>
               <dd className="text-foreground mt-1.5 text-sm leading-none font-medium tabular-nums">
@@ -235,7 +235,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
           {hasCurve && (
             <>
               <TemperatureCurve day={day} hover={hover} onHover={setHover} />
-              <div className="text-muted-foreground flex items-center justify-between px-5 pb-2 text-[10px] tabular-nums">
+              <div className="text-muted-foreground text-2xs flex items-center justify-between px-5 pb-2 tabular-nums">
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon
                     icon={SunriseIcon}

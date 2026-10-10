@@ -40,7 +40,13 @@ export function PhilharmonicLayout() {
   )
 
   return (
-    <SidebarProvider className="h-screen overflow-hidden">
+    // The tone is the conversation's (globals.css, "Where the tone stops"):
+    // Philharmonic's pages are neutral, a group's transcript and composer
+    // take it back (group-chat.tsx).
+    <SidebarProvider
+      className="h-screen overflow-hidden"
+      data-tone-scope="neutral"
+    >
       <PhilharmonicContainer
         activePage={page}
         groupId={groupId}

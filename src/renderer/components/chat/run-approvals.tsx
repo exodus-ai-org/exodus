@@ -41,11 +41,11 @@ function ApprovalSummary({ approval }: { approval: RunApproval }) {
   const { t } = useTranslation('chat')
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <code className="bg-muted/60 max-h-40 overflow-y-auto rounded-md px-2 py-1 font-mono text-[11px] break-all whitespace-pre-wrap">
+      <code className="bg-muted/60 text-2xs max-h-40 overflow-y-auto rounded-md px-2 py-1 font-mono break-all whitespace-pre-wrap">
         {approval.summary}
       </code>
       {approval.truncated ? (
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-2xs">
           {t('approval.truncatedNote', { count: approval.hiddenChars ?? 0 })}
         </p>
       ) : null}

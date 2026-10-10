@@ -255,7 +255,7 @@ function ServerCard({
                 >
                   <p className="text-xs font-medium">{tool.name}</p>
                   {tool.description && (
-                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-[11px] [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
+                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-2xs [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
                       <Markdown src={tool.description} />
                     </div>
                   )}

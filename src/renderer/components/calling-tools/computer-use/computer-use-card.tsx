@@ -204,7 +204,7 @@ export function ComputerUseCard({
               <p className="text-destructive">{details.error}</p>
             )}
             {details.sessionId && (
-              <p className="text-muted-foreground/60 text-[10px]">
+              <p className="text-muted-foreground/60 text-2xs">
                 {t('computerUseCard.session', {
                   sessionId: details.sessionId
                 })}

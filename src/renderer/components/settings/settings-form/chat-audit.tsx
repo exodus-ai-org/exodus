@@ -361,7 +361,7 @@ export function ChatAudit() {
                     {result.columns.map((col) => (
                       <TableHead key={col.name} className="whitespace-nowrap">
                         {col.name}
-                        <span className="text-muted-foreground ml-1.5 text-[10px] font-normal">
+                        <span className="text-muted-foreground text-2xs ml-1.5 font-normal">
                           {col.type}
                         </span>
                       </TableHead>

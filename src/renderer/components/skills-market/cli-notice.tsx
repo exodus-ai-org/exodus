@@ -63,7 +63,7 @@ export function CliQuickStart() {
         >
           <TabsList className="group-data-horizontal/tabs:h-6">
             {PACKAGE_MANAGERS.map((name) => (
-              <TabsTrigger key={name} value={name} className="px-2 text-xs">
+              <TabsTrigger key={name} value={name} className="px-2 text-sm">
                 {name}
               </TabsTrigger>
             ))}

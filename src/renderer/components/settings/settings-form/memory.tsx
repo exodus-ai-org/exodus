@@ -101,7 +101,7 @@ function MemoryRow({
       >
         {item.key}
       </span>
-      <span className="text-muted-foreground min-w-0 flex-1 truncate text-[13px]">
+      <span className="text-muted-foreground text-ui min-w-0 flex-1 truncate">
         {item.summary || (
           <span className="italic">
             {t('settings:memory.row.noSummaryYet')}
@@ -178,7 +178,7 @@ function MemoryRow({
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+    <span className="text-muted-foreground text-2xs font-medium tracking-wide uppercase">
       {children}
     </span>
   )
@@ -760,7 +760,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           <Card className="divide-border gap-0 divide-y py-0">
             {activeGroups.map((g) => (
               <div key={g.section}>
-                <p className="text-muted-foreground px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                <p className="text-muted-foreground text-2xs px-3 pt-3 pb-1.5 font-semibold tracking-wide uppercase">
                   {g.label}
                 </p>
                 {g.rows.map((m) => (
@@ -777,7 +777,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
             {inactive.length > 0 && (
               <div>
-                <p className="text-muted-foreground/70 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                <p className="text-muted-foreground/70 text-2xs px-3 pt-3 pb-1.5 font-semibold tracking-wide uppercase">
                   {t('memory.settings.disabledHeading', {
                     count: inactive.length
                   })}

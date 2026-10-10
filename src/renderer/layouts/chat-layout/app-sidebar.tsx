@@ -41,7 +41,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )}
       {...props}
     >
-      <SidebarHeader className="draggable gap-2 pt-2">
+      <SidebarHeader className="draggable gap-2 pt-2.25">
         {/* The title bar's row: the sidebar toggle to the right of the traffic
             lights, where Notes and ChatGPT keep it, and the history arrows
             beside it (as Claude's) — at the same spot they take in the content

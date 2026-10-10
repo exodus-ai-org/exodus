@@ -92,7 +92,7 @@ export function AnsweredQuestionnaire({
           )
         })}
       </div>
-      <p className="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
+      <p className="text-muted-foreground mt-3! mb-0! flex items-center gap-1.5 text-xs">
         <HugeiconsIcon
           icon={Tick02Icon}
 

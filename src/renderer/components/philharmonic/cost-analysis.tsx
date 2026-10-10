@@ -53,7 +53,7 @@ function KpiCard({
   return (
     <div className="bg-muted rounded-xl p-3.5">
       <div className="mb-2 flex items-start justify-between">
-        <span className="text-muted-foreground text-[11.5px]">{label}</span>
+        <span className="text-muted-foreground text-xs">{label}</span>
         <span
           className="flex h-7 w-7 items-center justify-center rounded-lg text-sm"
           style={{ background: iconBg, color: iconColor }}
@@ -61,11 +61,11 @@ function KpiCard({
           {icon}
         </span>
       </div>
-      <div className="text-foreground text-[22px] font-bold tabular-nums">
+      <div className="text-foreground text-2xl font-bold tabular-nums">
         {value}
       </div>
       {hint && (
-        <div className="text-muted-foreground mt-0.5 text-[11px]">{hint}</div>
+        <div className="text-muted-foreground text-2xs mt-0.5">{hint}</div>
       )}
     </div>
   )
@@ -83,7 +83,7 @@ function AgentCostList({
   const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
-      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
+      <div className="text-foreground text-ui mb-2 font-semibold">
         {t('costAnalysis.agentCostList.title')}
       </div>
       {rows.length === 0 ? (
@@ -113,7 +113,7 @@ function AgentCostList({
                   <div className="text-foreground truncate text-xs font-semibold">
                     {label}
                   </div>
-                  <div className="text-muted-foreground text-[10.5px]">
+                  <div className="text-muted-foreground text-2xs">
                     {t('costAnalysis.agentCostList.tokens', {
                       tokens: formatTokens(r.tokens)
                     })}
@@ -139,7 +139,7 @@ function ConversationCostList({
   const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
-      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
+      <div className="text-foreground text-ui mb-2 font-semibold">
         {t('costAnalysis.conversationCostList.title')}
       </div>
       {rows.length === 0 ? (
@@ -153,10 +153,10 @@ function ConversationCostList({
               key={r.conversationId}
               className="bg-card flex items-center gap-2.5 rounded-lg px-2 py-2"
             >
-              <div className="text-muted-foreground min-w-0 flex-1 truncate text-[10.5px]">
+              <div className="text-muted-foreground text-2xs min-w-0 flex-1 truncate">
                 {r.conversationId.slice(0, 12)}…
               </div>
-              <div className="text-muted-foreground text-[10.5px] tabular-nums">
+              <div className="text-muted-foreground text-2xs tabular-nums">
                 {formatTokens(r.tokens)}
               </div>
               <div className="text-foreground text-xs font-semibold tabular-nums">
@@ -281,10 +281,10 @@ export function CostAnalysis() {
         {data.daily.length > 1 && (
           <div className="bg-muted mb-4 rounded-xl p-4">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-foreground text-[12.5px] font-semibold">
+              <div className="text-foreground text-ui font-semibold">
                 {t('costAnalysis.chart.sectionTitle')}
               </div>
-              <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
+              <div className="text-muted-foreground text-2xs flex items-center gap-1">
                 <span className="bg-primary inline-block h-2 w-2 rounded-full" />
                 {t('costAnalysis.chart.costLabel')}
               </div>

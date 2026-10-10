@@ -33,9 +33,13 @@ function ContentHeader() {
         // page dissolves into the header's colour as it scrolls under — a
         // strip of that colour fading to nothing, as Claude's, not a dark
         // shadow (owner, 2026-10-08).
-        'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+        // `pt-0.5` and `pl-23` put the toggle where the sidebar's own row has
+        // it (app-sidebar.tsx: the header's `p-2` with `pt-2.25`, the row's
+        // `pl-21` and `h-7`): 92 px in, centred 23 px down — level with the
+        // traffic lights (window.ts, y 16) and 20 px clear of them.
+        'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pt-0.5 pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
         'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-linear-to-b after:from-card after:to-transparent',
-        open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
+        open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-23'
       )}
     >
       {/* While the sidebar is open its toggle and the history arrows sit in

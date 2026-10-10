@@ -144,7 +144,7 @@ function OpenQuestionnaire({
       {block.questions.length > 1 && (
         <p
           aria-live="polite"
-          className="text-muted-foreground mt-1 text-[0.625rem] font-medium tabular-nums"
+          className="text-muted-foreground text-2xs mt-1 font-medium tabular-nums"
         >
           {t('interactive.progress', {
             current: index + 1,

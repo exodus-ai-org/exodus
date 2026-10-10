@@ -85,27 +85,27 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
               {employee.name}
             </div>
             {employee.description && (
-              <div className="text-muted-foreground line-clamp-2 text-[11.5px]">
+              <div className="text-muted-foreground line-clamp-2 text-xs">
                 {employee.description}
               </div>
             )}
             {(modelChip || tools.length > 0) && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {modelChip && (
-                  <span className="bg-accent text-accent-foreground rounded-md px-1.5 py-0.5 text-[10px]">
+                  <span className="bg-accent text-accent-foreground text-2xs rounded-md px-1.5 py-0.5">
                     {modelChip}
                   </span>
                 )}
                 {tools.slice(0, 2).map((tool) => (
                   <span
                     key={tool}
-                    className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]"
+                    className="bg-background text-muted-foreground text-2xs rounded-md px-1.5 py-0.5"
                   >
                     {tool}
                   </span>
                 ))}
                 {tools.length > 2 && (
-                  <span className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]">
+                  <span className="bg-background text-muted-foreground text-2xs rounded-md px-1.5 py-0.5">
                     +{tools.length - 2}
                   </span>
                 )}
@@ -203,7 +203,7 @@ function TeamSection({
       <span className="text-foreground text-sm font-semibold">
         {team?.name ?? t('workforce.teamSection.unassignedFallback')}
       </span>
-      <span className="bg-background text-muted-foreground ml-1 rounded-full px-2 py-0.5 text-[10px]">
+      <span className="bg-background text-muted-foreground text-2xs ml-1 rounded-full px-2 py-0.5">
         {members.length}
       </span>
       {team?.description && (

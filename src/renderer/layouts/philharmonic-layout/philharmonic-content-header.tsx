@@ -31,9 +31,9 @@ export function PhilharmonicContentHeader({
   return (
     <header
       className={cn(
-        'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+        'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pt-0.5 pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
         'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-linear-to-b after:from-card after:to-transparent',
-        open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21',
+        open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-23',
         className
       )}
     >

@@ -142,6 +142,20 @@
   font-weight: 551 1000;
 }
 
+/* The type scale, set by the 14px body (`text-sm`; the Markdown answer too):
+ * 2xs 11 — the floor: badges, counters, keyboard hints, uppercase labels
+ * xs  12 — captions and meta under the body
+ * ui  13 — dense UI: sidebar rows, code inside prose (the macOS control size)
+ * sm  14 — body and controls; base 16 and up for titles.
+ * Nothing below 11 except the citation chip and a map pin's numeral, which sit
+ * inside a 16px pill. A size off this ladder is a size to put back on it. */
+@theme {
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: calc(1 / 0.6875);
+  --text-ui: 0.8125rem;
+  --text-ui--line-height: calc(1.25 / 0.8125);
+}
+
 @theme {
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
@@ -657,6 +671,71 @@ html:lang(ko) {
   --sidebar-accent-foreground: oklch(0.93 0.006 91);
   --sidebar-border: oklch(1 0.02 91 / 12%);
   --sidebar-ring: #f3d16e;
+}
+
+/* ── Where the tone stops ────────────────────────────────────────────────────
+ * The tone colours a conversation, not the app around it (owner, 2026-10-09:
+ * as Chat, whose chrome has no fill of the tone). `data-tone-scope="neutral"`
+ * puts the accents back to the neutral tone's — a page's buttons, its focus
+ * rings, its charts — and `data-tone-scope="tone"` inside it brings the
+ * chosen tone back, for a transcript and its composer. The greys keep the
+ * tone's hue in both, as Chat's do. `--toned-*` is the chosen tone's value,
+ * computed on <html> (where `[data-tone]` set it) and inherited from there. */
+:root {
+  --toned-primary: var(--primary);
+  --toned-primary-foreground: var(--primary-foreground);
+  --toned-primary-ink: var(--primary-ink);
+  --toned-bubble: var(--bubble);
+  --toned-accent: var(--accent);
+  --toned-accent-foreground: var(--accent-foreground);
+  --toned-ring: var(--ring);
+  --toned-chart-1: var(--chart-1);
+  --toned-sidebar-primary: var(--sidebar-primary);
+  --toned-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --toned-sidebar-ring: var(--sidebar-ring);
+}
+
+/* The neutral tone's values: `:root`'s and `.dark`'s, above. */
+[data-tone-scope='neutral'] {
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-ink: oklch(0.205 0 0);
+  --bubble: oklch(0.97 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark [data-tone-scope='neutral'] {
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --primary-ink: oklch(0.922 0 0);
+  --bubble: oklch(0.269 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+[data-tone-scope='tone'] {
+  --primary: var(--toned-primary);
+  --primary-foreground: var(--toned-primary-foreground);
+  --primary-ink: var(--toned-primary-ink);
+  --bubble: var(--toned-bubble);
+  --accent: var(--toned-accent);
+  --accent-foreground: var(--toned-accent-foreground);
+  --ring: var(--toned-ring);
+  --chart-1: var(--toned-chart-1);
+  --sidebar-primary: var(--toned-sidebar-primary);
+  --sidebar-primary-foreground: var(--toned-sidebar-primary-foreground);
+  --sidebar-ring: var(--toned-sidebar-ring);
 }
 
 @layer base {

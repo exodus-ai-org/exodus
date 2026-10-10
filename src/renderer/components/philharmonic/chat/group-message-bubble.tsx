@@ -84,7 +84,7 @@ export function GroupMessageBubble({
     : ''
 
   const headerLine = (
-    <span className="text-muted-foreground flex items-baseline gap-1.5 px-0.5 text-[11px]">
+    <span className="text-muted-foreground text-2xs flex items-baseline gap-1.5 px-0.5">
       <span className="text-foreground font-medium">{name}</span>
       {team && (
         <span className="text-muted-foreground">

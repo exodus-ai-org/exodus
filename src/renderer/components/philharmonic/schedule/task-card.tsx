@@ -54,12 +54,12 @@ export function TaskCard({
           <span className="text-foreground truncate text-sm font-semibold">
             {task.title}
           </span>
-          <Badge variant="outline" className="shrink-0 text-[10px]">
+          <Badge variant="outline" className="text-2xs shrink-0">
             {priorityLabel[task.priority]}
           </Badge>
           <Badge
             variant={task.status === 'failed' ? 'destructive' : 'secondary'}
-            className="shrink-0 text-[10px]"
+            className="text-2xs shrink-0"
           >
             {statusLabel[task.status]}
           </Badge>

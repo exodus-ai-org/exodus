@@ -13,7 +13,13 @@ import type {
 } from '@exodus/shared/types/chat'
 import type { ChatPageRow } from '@exodus/shared/types/chat-page'
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// The type scale's own sizes (globals.css): unknown to tailwind-merge, which
+// would read `text-ui` as a colour and drop it beside `text-muted-foreground`.
+const twMerge = extendTailwindMerge({
+  extend: { theme: { text: ['2xs', 'ui'] } }
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

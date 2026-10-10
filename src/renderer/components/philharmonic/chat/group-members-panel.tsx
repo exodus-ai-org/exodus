@@ -101,11 +101,11 @@ export function GroupMembersPanel({
       <div className="border-border flex h-12 shrink-0 items-center justify-between border-b pr-12 pl-3.5">
         <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
           {t('chat.membersPanel.heading')}
-          <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] font-normal">
+          <span className="bg-muted text-muted-foreground text-2xs rounded-full px-2 py-0.5 font-normal">
             {members.length + (hasPm ? 1 : 0)}
           </span>
         </div>
-        <div className="text-muted-foreground flex gap-3 text-[10.5px]">
+        <div className="text-muted-foreground text-2xs flex gap-3">
           <span className="flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
             {t('chat.membersPanel.idleCount', { count: summaryIdle })}
@@ -126,7 +126,7 @@ export function GroupMembersPanel({
         ) : (
           groups.map((g) => (
             <section key={g.key} className="pt-3">
-              <div className="text-muted-foreground mb-2 flex items-center gap-1.5 px-1 text-[10.5px] tracking-wider uppercase">
+              <div className="text-muted-foreground text-2xs mb-2 flex items-center gap-1.5 px-1 tracking-wider uppercase">
                 {g.icon && <span>{g.icon}</span>}
                 <span>
                   {g.label} · {g.isCoordinators ? 1 : g.members.length}
@@ -216,7 +216,7 @@ function PmRow({ activity }: { activity: string | undefined }) {
       )}
     >
       <div className="relative">
-        <div className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold">
+        <div className="bg-primary text-primary-foreground text-2xs flex h-9 w-9 items-center justify-center rounded-full font-semibold">
           {t('chat.roles.pm')}
         </div>
         <span

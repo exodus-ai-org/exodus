@@ -302,7 +302,15 @@ They are too light to be text, so a tone is a fill (`--primary`, with
 `--primary-foreground` on it) and an ink (`--primary-ink`: links, tinted
 text, focus rings, thin lines — `text-primary-ink`, never `text-primary`),
 plus `--bubble` for the user's message. `tests/unit/renderer/tone-palette.test.ts`
-holds the colours, their contrast and the class rule.
+holds the colours, their contrast and the class rule. The tone colours a
+conversation, not the page around it (owner, 2026-10-09): a
+`data-tone-scope="neutral"` region is drawn with the neutral tone's accents
+(`--primary`, `--primary-ink`, `--accent`, `--ring`, `--bubble`,
+`--chart-1`, `--sidebar-primary`…; the greys keep the tone's hue, as Chat's
+do) and `data-tone-scope="tone"` inside it takes the chosen tone back
+through `--toned-*`, which `:root` computes from the tone on `<html>`
+(globals.css, "Where the tone stops"). Philharmonic's layout is neutral; a
+group's transcript and composer (`group-chat.tsx`) are toned.
 
 **What leaves the app** (same date): Copy writes an answer's `【N-source】`
 markers as `[n]` with a References list under it (`lib/citation-references.ts`,
@@ -727,6 +735,13 @@ when it is a raster image, the chat's remote-image rule). The card
 made), not something `MessageCallingTools` draws, so the frame that shows
 the dither field while the call runs is the same element the image resolves
 in (with its zoom); a call left without a result by Stop shows nothing.
+A `create_artifact` call holds its place the same way: while its arguments
+stream (pi keeps a partial call's arguments parsed, and every
+`message_update` carries them) the block's `draft` — the title and the code
+so far — is drawn as `ArtifactDraft` (`calling-tools/artifact/artifact-card.tsx`:
+the card's frame and 400 px height, the newest lines of the code at its
+foot), and the result swaps the real card in at the same place. Gemini sends
+a call's arguments whole, so there the draft stays empty until the end.
 
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
@@ -1405,6 +1420,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 ### When Working with Frontend
 
 - Use Jotai atoms for global state (avoid prop drilling)
+- **Type scale** (globals.css, set by the 14px body): `text-2xs` 11 (the
+  floor — badges, counters, uppercase labels) · `text-xs` 12 (captions,
+  meta) · `text-ui` 13 (sidebar rows, dense UI) · `text-sm` 14 (body,
+  controls) · `text-base`+ for titles. No `text-[Npx]`; the only sizes under
+  11 are the citation chip and a map pin's numeral. `cn()` knows `2xs` / `ui`
+  as sizes (`lib/utils.ts`) — tailwind-merge would otherwise drop `text-ui`
+  beside a text colour
 - React Query hooks (`hooks/use-<domain>.ts`) for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
@@ -1802,8 +1824,12 @@ Main process:
   so far — fed by the settings cache fill and each MCP row read — masked in
   each line before it is written). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
-  `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
-  Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
+  `/api/v1/logs` (filters incl. `traceId`; `q` — the search box's words,
+  `-word`, `scope:` and `trace:`, parsed by `parseLogQuery()` in
+  `packages/shared/src/utils/log-query.ts`; `levels=error,warn`; a
+  `from`/`to` window; the response carries a per-level `histogram` drawn
+  without the levels and the window, which the chart sets) +
+  `/api/v1/logs/scopes` and the Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
   error it caught (`lib/report-error.ts`), written under a
   `renderer/<scope>` surface — or, with `source: 'ios'` in the body, a
   paired exodus-ios device reporting its own local errors over the LAN
@@ -1966,11 +1992,20 @@ Renderer:
   or — while a window is open — numbered steps beside the QR code and a
   countdown drawn from the shared `PAIRING_TTL_MS`
   (`packages/shared/src/constants/systems.ts`, enforced by the main process)
-- `src/renderer/components/settings/settings-form/log-attributes.tsx` — an
-  expanded row of Settings → Logger: the stack (`exception.stacktrace`, or a
-  client report's `stack`) and the `componentStack` as blocks of their own —
-  text with real line breaks, mono, scrolling both ways — above the JSON of
-  the other attributes (the `…_raw` stacks stay in there)
+- `src/renderer/components/settings/settings-form/logger.tsx` — Settings →
+  Logger: day + scope pickers, Live (polls today's file every 2 s, paused
+  while a line is open), a search box (`/` focuses it; the query syntax of
+  `log-query.ts`), the level chart (`log-chart.tsx`: stacked bars by level —
+  a bar is a time window, the legend is the level filter), the list, and a
+  line opened in a side sheet (`log-detail.tsx`: ↑/↓ or k/j walk the list
+  across pages — handled on the sheet in the capture phase, since the dialog
+  swallows arrow keys before a global hotkey sees them; Lines around, Copy
+  for AI (`log-copy.ts`), Same trace). `log-levels.ts` holds the four level
+  colours. `log-attributes.tsx` draws the sheet's body: the stack
+  (`exception.stacktrace`, or a client report's `stack`) and the
+  `componentStack` as blocks of their own — text with real line breaks,
+  mono, scrolling both ways — then the other attributes as a key/value
+  table (the `…_raw` stacks stay in there; a `*_ms` value notes its seconds)
 - `src/renderer/components/settings/settings-form/tools.tsx` — Settings →
   Built-in Tools: one hairline row per `TOOL_REGISTRY` entry (name, what it
   does, its switch). A tool with something to set up carries its panel under

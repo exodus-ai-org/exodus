@@ -87,7 +87,7 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
       )}
 
       {/* cwd hint */}
-      <div className="text-muted-foreground/60 border-t px-3 py-1.5 text-[10px]">
+      <div className="text-muted-foreground/60 text-2xs border-t px-3 py-1.5">
         {toolResult.cwd}
       </div>
     </div>

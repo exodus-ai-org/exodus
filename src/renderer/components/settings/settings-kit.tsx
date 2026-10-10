@@ -72,7 +72,7 @@ export function SettingsIntro({
   return (
     <div
       className={cn(
-        'text-muted-foreground [&_strong]:text-foreground -mt-4 flex flex-col gap-2 text-sm leading-relaxed text-pretty [&_a]:underline [&_a]:underline-offset-4 [&_code]:font-mono [&_code]:text-[13px] [&_strong]:font-medium [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1 [&_ul]:pl-4',
+        'text-muted-foreground [&_strong]:text-foreground -mt-4 flex flex-col gap-2 text-sm leading-relaxed text-pretty [&_a]:underline [&_a]:underline-offset-4 [&_code]:font-mono [&_code]:text-ui [&_strong]:font-medium [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1 [&_ul]:pl-4',
         className
       )}
     >

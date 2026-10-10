@@ -87,7 +87,7 @@ const ArticleRow = memo(function ArticleRow({
     >
       <DiscoverThumb article={article} />
       <div className="min-w-0 flex-1">
-        <div className="group-hover:text-foreground/80 line-clamp-2 text-[15px] leading-snug font-medium transition-colors">
+        <div className="group-hover:text-foreground/80 line-clamp-2 text-base leading-snug font-medium transition-colors">
           {article.title}
         </div>
         <div className="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs">
@@ -111,7 +111,7 @@ const TopicSection = memo(function TopicSection({
 }) {
   return (
     <section className="mt-5 first:mt-2">
-      <p className="text-muted-foreground mb-1 text-[11px] font-semibold tracking-wide uppercase">
+      <p className="text-muted-foreground text-2xs mb-1 font-semibold tracking-wide uppercase">
         {group.topic}
       </p>
       <div className="flex flex-col">
