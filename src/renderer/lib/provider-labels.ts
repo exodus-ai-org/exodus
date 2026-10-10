@@ -64,3 +64,21 @@ export function modelLabel(
   const entry = catalog.find((m) => m.id === model)
   return `${PROVIDER_SHORT_LABELS[provider]} · ${entry?.displayName ?? model}`
 }
+
+/**
+ * Whether a model the provider is shutting down is still to go (`retiring`) or
+ * already gone (`retired`), against today in the reader's own time zone; none
+ * when its list gives no day.
+ */
+export function modelRetirement(
+  retiresAt: string | null | undefined,
+  now: Date = new Date()
+): 'retiring' | 'retired' | null {
+  if (!retiresAt) return null
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('-')
+  return retiresAt <= today ? 'retired' : 'retiring'
+}

@@ -335,7 +335,11 @@
       "refresh": "Aggiorna elenco modelli",
       "fetchErrorTitle": "Impossibile recuperare l'elenco dei modelli",
       "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito",
-      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base."
+      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base.",
+      "retiring": "in dismissione",
+      "retired": "dismesso",
+      "retiringOn": "Sarà dismesso il {{date}}",
+      "retiredOn": "Dismesso il {{date}}"
     }
   },
   "tools": {

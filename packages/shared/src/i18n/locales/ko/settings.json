@@ -335,7 +335,11 @@
       "refresh": "모델 목록 새로고침",
       "fetchErrorTitle": "모델 목록을 가져올 수 없습니다",
       "fetchErrorFallback": "모델 목록을 가져오지 못했습니다",
-      "reenterKey": "새 기본 URL에서 사용하려면 API 키를 다시 입력해 주세요."
+      "reenterKey": "새 기본 URL에서 사용하려면 API 키를 다시 입력해 주세요.",
+      "retiring": "지원 종료 예정",
+      "retired": "지원 종료",
+      "retiringOn": "{{date}}에 지원 종료 예정",
+      "retiredOn": "{{date}}에 지원 종료됨"
     }
   },
   "tools": {

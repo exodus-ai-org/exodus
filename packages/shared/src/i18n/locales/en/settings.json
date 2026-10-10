@@ -335,7 +335,11 @@
       "refresh": "Refresh model list",
       "fetchErrorTitle": "Could not fetch model list",
       "fetchErrorFallback": "Failed to fetch model list",
-      "reenterKey": "Re-enter the API key to use it with the new base URL."
+      "reenterKey": "Re-enter the API key to use it with the new base URL.",
+      "retiring": "retiring",
+      "retired": "retired",
+      "retiringOn": "Retires on {{date}}",
+      "retiredOn": "Retired on {{date}}"
     }
   },
   "tools": {

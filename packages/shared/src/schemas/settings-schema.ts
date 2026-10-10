@@ -76,7 +76,10 @@ export const ProviderConfigSchema = z.object({
 export const CachedModelEntrySchema = z.object({
   id: z.string(),
   displayName: z.string(),
-  snapshot: ModelSnapshotSchema
+  snapshot: ModelSnapshotSchema,
+  // The day the provider shuts the model down (`YYYY-MM-DD`), when its list
+  // says so — only OpenAI's does today (`shutdown_date`).
+  retiresAt: z.string().nullish()
 })
 export type CachedModelEntry = z.infer<typeof CachedModelEntrySchema>
 

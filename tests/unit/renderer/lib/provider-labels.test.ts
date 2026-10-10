@@ -6,7 +6,8 @@ import {
   configuredProvider,
   hasProviderKey,
   modelCatalog,
-  modelLabel
+  modelLabel,
+  modelRetirement
 } from '@/lib/provider-labels'
 
 const entry = (id: string, displayName: string) => ({
@@ -71,5 +72,22 @@ describe('provider labels', () => {
         AiProviders.AnthropicClaude
       )
     ).toEqual([])
+  })
+})
+
+describe('modelRetirement', () => {
+  // Local 2026-10-10, late evening.
+  const now = new Date(2026, 9, 10, 23, 30)
+
+  it('is retiring before the day, retired on and after it', () => {
+    expect(modelRetirement('2026-10-11', now)).toBe('retiring')
+    expect(modelRetirement('2026-10-10', now)).toBe('retired')
+    expect(modelRetirement('2025-01-01', now)).toBe('retired')
+  })
+
+  it('is nothing without a day', () => {
+    expect(modelRetirement(undefined, now)).toBeNull()
+    expect(modelRetirement(null, now)).toBeNull()
+    expect(modelRetirement('', now)).toBeNull()
   })
 })

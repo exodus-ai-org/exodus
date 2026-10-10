@@ -335,7 +335,11 @@
       "refresh": "Actualizar lista de modelos",
       "fetchErrorTitle": "No se pudo obtener la lista de modelos",
       "fetchErrorFallback": "Error al obtener la lista de modelos",
-      "reenterKey": "Vuelva a introducir la clave de API para usarla con la nueva URL base."
+      "reenterKey": "Vuelva a introducir la clave de API para usarla con la nueva URL base.",
+      "retiring": "se retira",
+      "retired": "retirado",
+      "retiringOn": "Se retira el {{date}}",
+      "retiredOn": "Retirado el {{date}}"
     }
   },
   "tools": {

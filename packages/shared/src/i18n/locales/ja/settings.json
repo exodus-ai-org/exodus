@@ -335,7 +335,11 @@
       "refresh": "モデル一覧を更新",
       "fetchErrorTitle": "モデル一覧を取得できませんでした",
       "fetchErrorFallback": "モデル一覧の取得に失敗しました",
-      "reenterKey": "新しいベース URL で使うには、API キーをもう一度入力してください。"
+      "reenterKey": "新しいベース URL で使うには、API キーをもう一度入力してください。",
+      "retiring": "提供終了予定",
+      "retired": "提供終了",
+      "retiringOn": "{{date}} に提供終了予定",
+      "retiredOn": "{{date}} に提供終了"
     }
   },
   "tools": {

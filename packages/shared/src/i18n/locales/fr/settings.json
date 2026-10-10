@@ -335,7 +335,11 @@
       "refresh": "Actualiser la liste des modèles",
       "fetchErrorTitle": "Impossible de récupérer la liste des modèles",
       "fetchErrorFallback": "Échec de la récupération de la liste des modèles",
-      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base."
+      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base.",
+      "retiring": "bientôt retiré",
+      "retired": "retiré",
+      "retiringOn": "Sera retiré le {{date}}",
+      "retiredOn": "Retiré le {{date}}"
     }
   },
   "tools": {
