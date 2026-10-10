@@ -165,7 +165,7 @@ describe('useLogs', () => {
     expect(queryClient.getQueryData(logsKeys.entries(PARAMS))).toEqual(logs)
   })
 
-  it('a changed params string is a new key and reads as not loaded until it lands', async () => {
+  it('a changed params string is a new key; the old lines stay, marked as placeholder, until it lands', async () => {
     const second = deferred<typeof logs>()
     getLogsService.mockResolvedValueOnce(logs)
     getLogsService.mockReturnValueOnce(second.promise)
@@ -182,14 +182,17 @@ describe('useLogs', () => {
     })
 
     expect(getLogsService).toHaveBeenLastCalledWith(OTHER_PARAMS)
-    expect(api().data).toBeUndefined()
-    expect(api().isLoading).toBe(true)
+    // A new filter keeps the old lines on screen instead of flashing the
+    // empty state; the page dims them while `isPlaceholderData`.
+    expect(api().data).toEqual(logs)
+    expect(api().isPlaceholderData).toBe(true)
 
     const page2 = { ...logs, page: 2 }
     await act(async () => {
       second.resolve(page2)
       await vi.waitFor(() => expect(api().data).toEqual(page2))
     })
+    expect(api().isPlaceholderData).toBe(false)
     expect(queryClient.getQueryData(logsKeys.entries(PARAMS))).toEqual(logs)
   })
 

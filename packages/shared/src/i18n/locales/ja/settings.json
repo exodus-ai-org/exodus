@@ -636,19 +636,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "すべて",
       "allScopes": "すべて",
       "datePlaceholder": "日付",
-      "levelPlaceholder": "レベル",
       "scopePlaceholder": "スコープ",
-      "keywordPlaceholder": "キーワードを検索...",
-      "traceChip": "トレース {{id}}"
+      "traceChip": "トレース {{id}}",
+      "searchPlaceholder": "検索  ·  scope:chat  trace:a1b2  -除外",
+      "clear": "フィルタをクリア"
     },
     "actions": {
       "openDirectory": "ディレクトリを開く",
       "export": "エクスポート",
       "clearAll": "すべて消去",
-      "clearAllConfirm": "すべてのログファイルを削除してもよろしいですか?"
+      "clearAllConfirm": "すべてのログファイルを削除してもよろしいですか?",
+      "more": "その他の操作"
     },
     "toast": {
       "exported": "ログをエクスポートしました",
@@ -661,18 +661,47 @@
       "level": "レベル",
       "scope": "スコープ",
       "message": "メッセージ",
-      "trace": "トレース",
-      "empty": "ログエントリが見つかりません。"
+      "empty": "ログエントリが見つかりません。",
+      "noMatch": "このフィルタに一致する行はありません。"
     },
     "pagination": {
-      "total_other": "全{{count}}件",
       "pageOf": "{{page}} / {{totalPages}}ページ",
       "prev": "前へ",
-      "next": "次へ"
+      "next": "次へ",
+      "range": "{{total}} 件中 {{from}}–{{to}}"
     },
     "details": {
       "stack": "スタックトレース",
-      "componentStack": "コンポーネントスタック"
+      "componentStack": "コンポーネントスタック",
+      "attributes": "属性"
+    },
+    "live": {
+      "label": "ライブ",
+      "onlyToday": "ライブは今日のログを追跡します"
+    },
+    "levels": {
+      "error": "エラー",
+      "warn": "警告",
+      "info": "情報",
+      "debug": "デバッグ"
+    },
+    "chart": {
+      "lines_other": "行",
+      "newestFirst": "新しい順",
+      "label": "時間ごとの行数",
+      "noLines": "行なし"
+    },
+    "detail": {
+      "previous": "前の行",
+      "next": "次の行",
+      "close": "閉じる",
+      "linesAround": "前後の行",
+      "copyForAi": "AI 用にコピー",
+      "sameTrace": "同じトレース",
+      "message": "メッセージ",
+      "fields": "フィールド",
+      "resource": "リソース",
+      "copied": "AI 用にコピーしました"
     }
   },
   "mcpServers": {

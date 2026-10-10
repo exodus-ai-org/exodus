@@ -638,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "Todos",
       "allScopes": "Todos",
       "datePlaceholder": "Data",
-      "levelPlaceholder": "Nível",
       "scopePlaceholder": "Escopo",
-      "keywordPlaceholder": "Pesquisar palavra-chave...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "Pesquisar  ·  scope:chat  trace:a1b2  -excluir",
+      "clear": "Limpar filtros"
     },
     "actions": {
       "openDirectory": "Abrir Diretório",
       "export": "Exportar",
       "clearAll": "Limpar Tudo",
-      "clearAllConfirm": "Tem certeza de que deseja excluir todos os arquivos de log?"
+      "clearAllConfirm": "Tem certeza de que deseja excluir todos os arquivos de log?",
+      "more": "Mais ações"
     },
     "toast": {
       "exported": "Logs exportados",
@@ -663,19 +663,48 @@
       "level": "Nível",
       "scope": "Escopo",
       "message": "Mensagem",
-      "trace": "Trace",
-      "empty": "Nenhuma entrada de log encontrada."
+      "empty": "Nenhuma entrada de log encontrada.",
+      "noMatch": "Nenhuma linha corresponde a estes filtros."
     },
     "pagination": {
-      "total_one": "{{count}} entrada no total",
-      "total_other": "{{count}} entradas no total",
       "pageOf": "Página {{page}} de {{totalPages}}",
       "prev": "Anterior",
-      "next": "Próxima"
+      "next": "Próxima",
+      "range": "{{from}}–{{to}} de {{total}}"
     },
     "details": {
       "stack": "Rastreamento de pilha",
-      "componentStack": "Pilha de componentes"
+      "componentStack": "Pilha de componentes",
+      "attributes": "Atributos"
+    },
+    "live": {
+      "label": "Ao vivo",
+      "onlyToday": "Ao vivo acompanha o log de hoje"
+    },
+    "levels": {
+      "error": "Erro",
+      "warn": "Aviso",
+      "info": "Info",
+      "debug": "Depuração"
+    },
+    "chart": {
+      "lines_one": "linha",
+      "lines_other": "linhas",
+      "newestFirst": "mais recentes primeiro",
+      "label": "Linhas ao longo do tempo",
+      "noLines": "Nenhuma linha"
+    },
+    "detail": {
+      "previous": "Linha anterior",
+      "next": "Próxima linha",
+      "close": "Fechar",
+      "linesAround": "Linhas ao redor",
+      "copyForAi": "Copiar para IA",
+      "sameTrace": "Mesmo trace",
+      "message": "Mensagem",
+      "fields": "Campos",
+      "resource": "Recurso",
+      "copied": "Copiado para IA"
     }
   },
   "mcpServers": {

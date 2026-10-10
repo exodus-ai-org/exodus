@@ -32,18 +32,6 @@ export const ALLOWLIST: AllowlistEntry[] = [
     reason: "draw.io is the third-party product's own brand name."
   },
   {
-    file: 'src/renderer/components/settings/settings-form/logger.tsx',
-    text: 'traceId:',
-    line: 379,
-    reason: 'Debug-only technical field label in the raw log inspector.'
-  },
-  {
-    file: 'src/renderer/components/settings/settings-form/logger.tsx',
-    text: 'originTraceId:',
-    line: 381,
-    reason: 'Debug-only technical field label in the raw log inspector.'
-  },
-  {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'Exodus',
     line: 63,

@@ -636,19 +636,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "전체",
       "allScopes": "전체",
       "datePlaceholder": "날짜",
-      "levelPlaceholder": "레벨",
       "scopePlaceholder": "범위",
-      "keywordPlaceholder": "검색어...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "검색  ·  scope:chat  trace:a1b2  -제외",
+      "clear": "필터 지우기"
     },
     "actions": {
       "openDirectory": "디렉터리 열기",
       "export": "내보내기",
       "clearAll": "모두 지우기",
-      "clearAllConfirm": "모든 로그 파일을 삭제하시겠습니까?"
+      "clearAllConfirm": "모든 로그 파일을 삭제하시겠습니까?",
+      "more": "추가 작업"
     },
     "toast": {
       "exported": "로그가 내보내졌습니다",
@@ -661,18 +661,47 @@
       "level": "레벨",
       "scope": "범위",
       "message": "메시지",
-      "trace": "Trace",
-      "empty": "로그 항목이 없습니다."
+      "empty": "로그 항목이 없습니다.",
+      "noMatch": "이 필터와 일치하는 줄이 없습니다."
     },
     "pagination": {
-      "total_other": "총 {{count}}개 항목",
       "pageOf": "{{totalPages}} 중 {{page}} 페이지",
       "prev": "이전",
-      "next": "다음"
+      "next": "다음",
+      "range": "{{total}}개 중 {{from}}–{{to}}"
     },
     "details": {
       "stack": "스택 트레이스",
-      "componentStack": "컴포넌트 스택"
+      "componentStack": "컴포넌트 스택",
+      "attributes": "속성"
+    },
+    "live": {
+      "label": "실시간",
+      "onlyToday": "실시간은 오늘 로그를 따라갑니다"
+    },
+    "levels": {
+      "error": "오류",
+      "warn": "경고",
+      "info": "정보",
+      "debug": "디버그"
+    },
+    "chart": {
+      "lines_other": "줄",
+      "newestFirst": "최신순",
+      "label": "시간별 줄 수",
+      "noLines": "줄 없음"
+    },
+    "detail": {
+      "previous": "이전 줄",
+      "next": "다음 줄",
+      "close": "닫기",
+      "linesAround": "주변 줄",
+      "copyForAi": "AI용으로 복사",
+      "sameTrace": "같은 트레이스",
+      "message": "메시지",
+      "fields": "필드",
+      "resource": "리소스",
+      "copied": "AI용으로 복사했습니다"
     }
   },
   "mcpServers": {

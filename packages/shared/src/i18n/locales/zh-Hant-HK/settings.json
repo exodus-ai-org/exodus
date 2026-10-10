@@ -636,19 +636,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "全部",
       "allScopes": "全部",
       "datePlaceholder": "日期",
-      "levelPlaceholder": "等級",
       "scopePlaceholder": "範圍",
-      "keywordPlaceholder": "搜尋關鍵字...",
-      "traceChip": "追蹤 {{id}}"
+      "traceChip": "追蹤 {{id}}",
+      "searchPlaceholder": "搜尋  ·  scope:chat  trace:a1b2  -排除",
+      "clear": "清除篩選"
     },
     "actions": {
       "openDirectory": "開啟目錄",
       "export": "匯出",
       "clearAll": "全部清除",
-      "clearAllConfirm": "確定要刪除所有日誌檔案嗎？"
+      "clearAllConfirm": "確定要刪除所有日誌檔案嗎？",
+      "more": "更多操作"
     },
     "toast": {
       "exported": "日誌已匯出",
@@ -661,18 +661,47 @@
       "level": "等級",
       "scope": "範圍",
       "message": "訊息",
-      "trace": "追蹤",
-      "empty": "找不到日誌項目。"
+      "empty": "找不到日誌項目。",
+      "noMatch": "沒有符合這些篩選的記錄。"
     },
     "pagination": {
-      "total_other": "共 {{count}} 筆項目",
       "pageOf": "第 {{page}} 頁，共 {{totalPages}} 頁",
       "prev": "上一頁",
-      "next": "下一頁"
+      "next": "下一頁",
+      "range": "第 {{from}}–{{to}} 行，共 {{total}} 行"
     },
     "details": {
       "stack": "堆疊追蹤",
-      "componentStack": "元件堆疊"
+      "componentStack": "元件堆疊",
+      "attributes": "屬性"
+    },
+    "live": {
+      "label": "即時",
+      "onlyToday": "即時只跟隨今天的日誌"
+    },
+    "levels": {
+      "error": "錯誤",
+      "warn": "警告",
+      "info": "資訊",
+      "debug": "除錯"
+    },
+    "chart": {
+      "lines_other": "行",
+      "newestFirst": "最新在前",
+      "label": "按時間的行數",
+      "noLines": "沒有記錄"
+    },
+    "detail": {
+      "previous": "上一行",
+      "next": "下一行",
+      "close": "關閉",
+      "linesAround": "前後記錄",
+      "copyForAi": "複製給 AI",
+      "sameTrace": "同一追蹤",
+      "message": "訊息",
+      "fields": "欄位",
+      "resource": "資源",
+      "copied": "已複製給 AI"
     }
   },
   "mcpServers": {

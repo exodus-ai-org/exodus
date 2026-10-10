@@ -638,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "All",
       "allScopes": "All",
       "datePlaceholder": "Date",
-      "levelPlaceholder": "Level",
       "scopePlaceholder": "Scope",
-      "keywordPlaceholder": "Search keyword...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "Search  ·  scope:chat  trace:a1b2  -exclude",
+      "clear": "Clear filters"
     },
     "actions": {
       "openDirectory": "Open Directory",
       "export": "Export",
       "clearAll": "Clear All",
-      "clearAllConfirm": "Are you sure you want to delete all log files?"
+      "clearAllConfirm": "Are you sure you want to delete all log files?",
+      "more": "More actions"
     },
     "toast": {
       "exported": "Logs exported",
@@ -663,19 +663,48 @@
       "level": "Level",
       "scope": "Scope",
       "message": "Message",
-      "trace": "Trace",
-      "empty": "No log entries found."
+      "empty": "No log entries found.",
+      "noMatch": "No lines match these filters."
     },
     "pagination": {
-      "total_one": "{{count}} entry total",
-      "total_other": "{{count}} entries total",
       "pageOf": "Page {{page}} of {{totalPages}}",
       "prev": "Prev",
-      "next": "Next"
+      "next": "Next",
+      "range": "{{from}}–{{to}} of {{total}}"
     },
     "details": {
       "stack": "Stack trace",
-      "componentStack": "Component stack"
+      "componentStack": "Component stack",
+      "attributes": "Attributes"
+    },
+    "live": {
+      "label": "Live",
+      "onlyToday": "Live follows today's log"
+    },
+    "levels": {
+      "error": "Error",
+      "warn": "Warn",
+      "info": "Info",
+      "debug": "Debug"
+    },
+    "chart": {
+      "lines_one": "line",
+      "lines_other": "lines",
+      "newestFirst": "newest first",
+      "label": "Lines over time",
+      "noLines": "No lines"
+    },
+    "detail": {
+      "previous": "Previous line",
+      "next": "Next line",
+      "close": "Close",
+      "linesAround": "Lines around",
+      "copyForAi": "Copy for AI",
+      "sameTrace": "Same trace",
+      "message": "Message",
+      "fields": "Fields",
+      "resource": "Resource",
+      "copied": "Copied for AI"
     }
   },
   "mcpServers": {

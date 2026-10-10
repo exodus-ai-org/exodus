@@ -1,4 +1,5 @@
 import { fetcher } from '@exodus/shared/utils/http'
+import type { LogHistogram } from '@exodus/shared/utils/log-query'
 
 export interface LogRecord {
   timestamp: string
@@ -16,6 +17,9 @@ export interface LogsResponse {
   entries: LogRecord[]
   total: number
   page: number
+  /** The day's lines over time, by level — drawn without the level and
+   *  time-window filters (the chart sets those). */
+  histogram?: LogHistogram
 }
 
 export interface DatesResponse {

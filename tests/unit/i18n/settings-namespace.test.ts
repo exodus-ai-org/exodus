@@ -561,13 +561,21 @@ describe('settings namespace (en)', () => {
   })
 
   it('has the Logger tab keys', () => {
-    expect(settings.logger.filters.allLevels).toBe('All')
     expect(settings.logger.filters.allScopes).toBe('All')
     expect(settings.logger.pagination).toMatchObject({
-      total_one: '{{count}} entry total',
-      total_other: '{{count}} entries total',
+      range: '{{from}}–{{to}} of {{total}}',
       pageOf: 'Page {{page}} of {{totalPages}}'
     })
+    expect(settings.logger.chart).toMatchObject({
+      lines_one: 'line',
+      lines_other: 'lines'
+    })
+    expect(Object.keys(settings.logger.levels)).toEqual([
+      'error',
+      'warn',
+      'info',
+      'debug'
+    ])
   })
 
   it('has the MCP Servers tab keys', () => {

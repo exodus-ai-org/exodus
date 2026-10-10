@@ -108,7 +108,19 @@ export const TEST_IDS = {
   logger: {
     scopeSelect: 'logger.scope-select',
     traceBadge: 'logger.trace-badge',
-    traceFilterChip: 'logger.trace-filter-chip'
+    traceFilterChip: 'logger.trace-filter-chip',
+    searchInput: 'logger.search-input',
+    liveToggle: 'logger.live-toggle',
+    chart: 'logger.chart',
+    chartBar: 'logger.chart-bar',
+    levelToggle: 'logger.level-toggle',
+    windowChip: 'logger.window-chip',
+    row: 'logger.row',
+    detailSheet: 'logger.detail-sheet',
+    detailPrev: 'logger.detail-prev',
+    detailNext: 'logger.detail-next',
+    linesAround: 'logger.lines-around',
+    copyForAi: 'logger.copy-for-ai'
   },
   chatToc: {
     rail: 'chat-toc.rail',
