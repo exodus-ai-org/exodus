@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query'
 import { sileo } from 'sileo'
 
 import { i18n } from '@/lib/i18n'
@@ -17,13 +22,20 @@ export const logsKeys = {
 // Refetch on focus is off app-wide (settings autosave); a log viewer wants it
 // back, since the log grows while the user is in another app.
 
-export function useLogs(paramsString: string) {
-  const { data, isLoading } = useQuery({
+/** How often a live view re-reads today's log. */
+export const LIVE_INTERVAL_MS = 2000
+
+export function useLogs(paramsString: string, { live = false } = {}) {
+  const { data, isLoading, isPlaceholderData } = useQuery({
     queryKey: logsKeys.entries(paramsString),
     queryFn: () => getLogs(paramsString),
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    // A new filter keeps the old lines on screen until the new ones land,
+    // instead of flashing the empty state between them.
+    placeholderData: keepPreviousData,
+    refetchInterval: live ? LIVE_INTERVAL_MS : false
   })
-  return { data, isLoading }
+  return { data, isLoading, isPlaceholderData }
 }
 
 export function useLogDates() {

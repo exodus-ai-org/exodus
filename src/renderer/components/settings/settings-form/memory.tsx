@@ -101,7 +101,7 @@ function MemoryRow({
       >
         {item.key}
       </span>
-      <span className="text-muted-foreground min-w-0 flex-1 truncate text-[13px]">
+      <span className="text-muted-foreground text-ui min-w-0 flex-1 truncate">
         {item.summary || (
           <span className="italic">
             {t('settings:memory.row.noSummaryYet')}
@@ -114,7 +114,7 @@ function MemoryRow({
       <div className="relative flex h-7 w-16 shrink-0 items-center justify-end">
         <HugeiconsIcon
           icon={ArrowRight01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground/40 size-4 transition-opacity group-hover:opacity-0"
           data-icon
         />
@@ -137,14 +137,14 @@ function MemoryRow({
             {disabled ? (
               <HugeiconsIcon
                 icon={EyeIcon}
-                strokeWidth={2}
+
                 className="size-3.5"
                 data-icon
               />
             ) : (
               <HugeiconsIcon
                 icon={ViewOffIcon}
-                strokeWidth={2}
+
                 className="size-3.5"
                 data-icon
               />
@@ -163,7 +163,7 @@ function MemoryRow({
           >
             <HugeiconsIcon
               icon={Delete02Icon}
-              strokeWidth={2}
+
               className="size-3.5"
               data-icon
             />
@@ -178,7 +178,7 @@ function MemoryRow({
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+    <span className="text-muted-foreground text-2xs font-medium tracking-wide uppercase">
       {children}
     </span>
   )
@@ -289,7 +289,7 @@ function MemoryDetail({
         >
           <HugeiconsIcon
             icon={ArrowLeft02Icon}
-            strokeWidth={2}
+
             className="size-4"
             data-icon
           />
@@ -448,14 +448,14 @@ function MemoryComposer({
         {busy ? (
           <HugeiconsIcon
             icon={Loading03Icon}
-            strokeWidth={2}
+
             className="size-4 animate-spin"
             data-icon
           />
         ) : (
           <HugeiconsIcon
             icon={ArrowUpIcon}
-            strokeWidth={2}
+
             className="size-4"
             data-icon
           />
@@ -716,7 +716,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           <Button type="button" size="sm" variant="outline" onClick={handleNew}>
             <HugeiconsIcon
               icon={Add01Icon}
-              strokeWidth={2}
+
               className="mr-1 size-3.5"
               data-icon
             />
@@ -760,7 +760,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           <Card className="divide-border gap-0 divide-y py-0">
             {activeGroups.map((g) => (
               <div key={g.section}>
-                <p className="text-muted-foreground px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                <p className="text-muted-foreground text-2xs px-3 pt-3 pb-1.5 font-semibold tracking-wide uppercase">
                   {g.label}
                 </p>
                 {g.rows.map((m) => (
@@ -777,7 +777,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
             {inactive.length > 0 && (
               <div>
-                <p className="text-muted-foreground/70 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                <p className="text-muted-foreground/70 text-2xs px-3 pt-3 pb-1.5 font-semibold tracking-wide uppercase">
                   {t('memory.settings.disabledHeading', {
                     count: inactive.length
                   })}

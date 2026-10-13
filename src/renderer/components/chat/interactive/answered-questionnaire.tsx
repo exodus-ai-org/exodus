@@ -5,9 +5,10 @@ import {
 } from '@exodus/shared/utils/interactive-answer'
 import { Tick02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { QuestionnaireStaticChoice } from '@/components/ui/questionnaire'
 import { cn } from '@/lib/utils'
 
 const CARD = 'bg-card text-card-foreground rounded-2xl border p-4'
@@ -51,57 +52,55 @@ export function AnsweredQuestionnaire({
       className={cn(CARD, 'outline-none')}
     >
       <p className="text-sm font-semibold text-pretty">{block.title}</p>
-      <ol className="mt-3 flex flex-col gap-3">
-        {block.questions.map((question, i) => (
-          <li key={question.id}>
-            <p className="text-sm font-medium">{`${i + 1}. ${question.text}`}</p>
-            <ul className="mt-1.5 flex flex-wrap gap-1.5">
-              {question.options.map((option) => (
-                <Pick
-                  key={option}
-                  picked={picks[question.id]?.options.includes(option) ?? false}
-                >
-                  {option}
-                </Pick>
-              ))}
-              {question.other && picks[question.id]?.other && (
-                <Pick picked>{t('interactive.other')}</Pick>
-              )}
-            </ul>
-          </li>
-        ))}
-      </ol>
-      <p className="text-muted-foreground mt-3 flex items-center gap-1.5 text-xs">
+      {/*
+        The questionnaire as it was asked, every question at once with what
+        was picked checked, taking no input: as on the phone, rather than a
+        summary in a shape of its own (owner, 2026-10-08). Plain blocks, not
+        lists: the answer's Markdown numbers and indents every list it holds.
+      */}
+      <div className="mt-3 flex flex-col gap-4">
+        {block.questions.map((question, i) => {
+          const pick = picks[question.id]
+          const type = question.type === 'multi' ? 'checkbox' : 'radio'
+          return (
+            <div key={question.id} role="group" aria-label={question.text}>
+              <p className="mb-3 text-sm font-semibold text-pretty">
+                {block.questions.length > 1
+                  ? `${i + 1}. ${question.text}`
+                  : question.text}
+              </p>
+              <div className="grid min-w-0 gap-1.5">
+                {question.options.map((option) => (
+                  <QuestionnaireStaticChoice
+                    key={option}
+                    type={type}
+                    checked={pick?.options.includes(option) ?? false}
+                  >
+                    {option}
+                  </QuestionnaireStaticChoice>
+                ))}
+                {question.other && (
+                  <QuestionnaireStaticChoice
+                    type={type}
+                    checked={pick?.other ?? false}
+                  >
+                    {t('interactive.other')}
+                  </QuestionnaireStaticChoice>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-muted-foreground mt-3! mb-0! flex items-center gap-1.5 text-xs">
         <HugeiconsIcon
           icon={Tick02Icon}
-          strokeWidth={2}
+
           aria-hidden
           className="size-3.5"
         />
         {t('interactive.answered')}
       </p>
     </div>
-  )
-}
-
-function Pick({ picked, children }: { picked: boolean; children: ReactNode }) {
-  return (
-    <li
-      data-picked={picked ? '' : undefined}
-      className={cn(
-        'flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs',
-        picked ? 'border-primary/40 bg-primary/10' : 'text-muted-foreground'
-      )}
-    >
-      {picked && (
-        <HugeiconsIcon
-          icon={Tick02Icon}
-          strokeWidth={2}
-          aria-hidden
-          className="size-3"
-        />
-      )}
-      {children}
-    </li>
   )
 }

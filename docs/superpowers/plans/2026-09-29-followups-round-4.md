@@ -17,7 +17,7 @@ to build, and how to check it.
   non-GET request to `localhost:60223`; never read or write `~/.exodus`.
 - **TDD.** Test first, watch it fail for the right reason, then the code.
 - **Desktop gates** before calling a desktop item done: `bunx oxfmt <touched
-files>` (never repo-wide `bun run fmt` / `lint:fix`), then
+  files>` (never repo-wide `bun run fmt` / `lint:fix`), then
   `env PWD=/Users/yanceyleo/Code/exodus/exodus bun run typecheck`,
   `bun run lint` (0 errors), `bun run i18n:check`, `bun run fmt:check`,
   `bun run test`. New strings go into all 10 locales in the same change.
@@ -28,7 +28,7 @@ files>` (never repo-wide `bun run fmt` / `lint:fix`), then
   `MarkdownKit`, `SettingsFeature`, `Models`; `python3 scripts/l10n.py audit`
   at `0 error(s)`. Screenshots in light and dark through the DEBUG galleries
   (`-MessageGallery`, `-MarkdownGallery`, `-CardPrototypes
--CardPrototypesSection map`, `-ColorTone <name>`).
+  -CardPrototypesSection map`, `-ColorTone <name>`).
 - **Screenshots go where the owner can find them** (point 5/6): copy every
   screenshot that a report mentions to `~/Desktop/exodus-shots/<item>/` and
   give absolute paths in the report. The session scratchpad is a temp

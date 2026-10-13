@@ -45,7 +45,7 @@ export function AvatarPicker({
         >
           <HugeiconsIcon
             icon={RefreshIcon}
-            strokeWidth={2}
+
             className="h-3.5 w-3.5"
           />
           {t('employees.picker.reroll')}

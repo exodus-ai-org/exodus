@@ -60,7 +60,7 @@ instead of inventing their own).
   earlier sub-plans before becoming a standing step).
 - Run the isolated committed-tree check (`git archive HEAD | tar -x` into
   a scratch dir, symlink `node_modules`, then run `./node_modules/.bin/tsc
---noEmit -p tsconfig.web.json --composite false` and the `tsconfig.node.json`
+  --noEmit -p tsconfig.web.json --composite false` and the `tsconfig.node.json`
   equivalent directly — going through `pnpm exec tsc` from outside the real
   project root fails pnpm's own workspace-root sanity check, use the binary
   directly) before requesting final review.

@@ -54,7 +54,7 @@ export function NavFooter({
                   {initial}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-[13px] leading-tight">
+              <div className="text-ui grid flex-1 text-left leading-tight">
                 <span className="truncate font-medium">{nickname}</span>
                 <span className="truncate text-xs">
                   {t('state.runOnLocal')}
@@ -62,7 +62,7 @@ export function NavFooter({
               </div>
               <HugeiconsIcon
                 icon={UnfoldMoreIcon}
-                strokeWidth={2}
+
                 className="ml-auto size-4"
               />
             </SidebarMenuButton>
@@ -75,7 +75,7 @@ export function NavFooter({
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-[13px]">
+                <div className="text-ui flex items-center gap-2 px-1 py-1.5 text-left">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={settings?.userAvatar ?? undefined}
@@ -85,7 +85,7 @@ export function NavFooter({
                       {initial}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-[13px] leading-tight">
+                  <div className="text-ui grid flex-1 text-left leading-tight">
                     <span className="truncate font-medium">{nickname}</span>
                     <span className="truncate text-xs">
                       {t('state.runOnLocal')}
@@ -100,7 +100,7 @@ export function NavFooter({
                 data-testid={TEST_IDS.chatLayout.accountSettings}
                 onClick={() => navigate('/settings')}
               >
-                <HugeiconsIcon icon={SettingsIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={SettingsIcon} />
                 {t('nav.settings')}
               </DropdownMenuItem>
             </DropdownMenuGroup>

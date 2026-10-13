@@ -28,7 +28,7 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
       <div className="bg-muted/60 flex items-center gap-2 border-b px-3 py-2">
         <HugeiconsIcon
           icon={ComputerTerminal01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground size-3.5 shrink-0"
         />
         <span className="text-foreground/80 flex-1 truncate">
@@ -37,13 +37,13 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
         {success ? (
           <HugeiconsIcon
             icon={CheckmarkCircle02Icon}
-            strokeWidth={2}
+
             className="size-3.5 shrink-0 text-green-500"
           />
         ) : (
           <HugeiconsIcon
             icon={CancelCircleIcon}
-            strokeWidth={2}
+
             className="text-destructive size-3.5 shrink-0"
           />
         )}
@@ -87,7 +87,7 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
       )}
 
       {/* cwd hint */}
-      <div className="text-muted-foreground/60 border-t px-3 py-1.5 text-[10px]">
+      <div className="text-muted-foreground/60 text-2xs border-t px-3 py-1.5">
         {toolResult.cwd}
       </div>
     </div>

@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Einstellungen öffnen"
       },
+      "go-back": {
+        "label": "Zurück"
+      },
+      "go-forward": {
+        "label": "Vorwärts"
+      },
       "lock-now": {
         "label": "Jetzt sperren"
       },
@@ -145,7 +151,7 @@
         "label": "Suchleiste schließen"
       },
       "close-tab": {
-        "label": "Aktuellen Tab schließen"
+        "label": "Chat schließen"
       },
       "focus-chat-input": {
         "label": "Chat-Eingabe fokussieren"
@@ -329,7 +335,11 @@
       "refresh": "Modellliste aktualisieren",
       "fetchErrorTitle": "Modellliste konnte nicht abgerufen werden",
       "fetchErrorFallback": "Abrufen der Modellliste fehlgeschlagen",
-      "reenterKey": "Geben Sie den API-Schlüssel erneut ein, um ihn mit der neuen Basis-URL zu verwenden."
+      "reenterKey": "Geben Sie den API-Schlüssel erneut ein, um ihn mit der neuen Basis-URL zu verwenden.",
+      "retiring": "wird eingestellt",
+      "retired": "eingestellt",
+      "retiringOn": "Wird am {{date}} eingestellt",
+      "retiredOn": "Am {{date}} eingestellt"
     }
   },
   "tools": {
@@ -628,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "Alle",
       "allScopes": "Alle",
       "datePlaceholder": "Datum",
-      "levelPlaceholder": "Stufe",
       "scopePlaceholder": "Bereich",
-      "keywordPlaceholder": "Stichwort suchen...",
-      "traceChip": "Trace {{id}}"
+      "traceChip": "Trace {{id}}",
+      "searchPlaceholder": "Suchen  ·  scope:chat  trace:a1b2  -ausschließen",
+      "clear": "Filter zurücksetzen"
     },
     "actions": {
       "openDirectory": "Verzeichnis öffnen",
       "export": "Exportieren",
       "clearAll": "Alle löschen",
-      "clearAllConfirm": "Möchten Sie wirklich alle Protokolldateien löschen?"
+      "clearAllConfirm": "Möchten Sie wirklich alle Protokolldateien löschen?",
+      "more": "Weitere Aktionen"
     },
     "toast": {
       "exported": "Protokolle exportiert",
@@ -653,19 +663,48 @@
       "level": "Stufe",
       "scope": "Bereich",
       "message": "Nachricht",
-      "trace": "Trace",
-      "empty": "Keine Protokolleinträge gefunden."
+      "empty": "Keine Protokolleinträge gefunden.",
+      "noMatch": "Keine Zeilen entsprechen diesen Filtern."
     },
     "pagination": {
-      "total_one": "{{count}} Eintrag insgesamt",
-      "total_other": "{{count}} Einträge insgesamt",
       "pageOf": "Seite {{page}} von {{totalPages}}",
       "prev": "Zurück",
-      "next": "Weiter"
+      "next": "Weiter",
+      "range": "{{from}}–{{to}} von {{total}}"
     },
     "details": {
       "stack": "Stacktrace",
-      "componentStack": "Komponenten-Stack"
+      "componentStack": "Komponenten-Stack",
+      "attributes": "Attribute"
+    },
+    "live": {
+      "label": "Live",
+      "onlyToday": "Live folgt dem heutigen Protokoll"
+    },
+    "levels": {
+      "error": "Fehler",
+      "warn": "Warnung",
+      "info": "Info",
+      "debug": "Debug"
+    },
+    "chart": {
+      "lines_one": "Zeile",
+      "lines_other": "Zeilen",
+      "newestFirst": "neueste zuerst",
+      "label": "Zeilen im Zeitverlauf",
+      "noLines": "Keine Zeilen"
+    },
+    "detail": {
+      "previous": "Vorherige Zeile",
+      "next": "Nächste Zeile",
+      "close": "Schließen",
+      "linesAround": "Zeilen rundherum",
+      "copyForAi": "Für KI kopieren",
+      "sameTrace": "Gleicher Trace",
+      "message": "Nachricht",
+      "fields": "Felder",
+      "resource": "Ressource",
+      "copied": "Für KI kopiert"
     }
   },
   "mcpServers": {
@@ -1064,7 +1103,6 @@
       "elasticsearchPassword": "Elasticsearch-Passwort",
       "s3AccessKeyId": "Amazon-S3-Zugriffsschlüssel-ID",
       "s3SecretAccessKey": "Geheimer Amazon-S3-Zugriffsschlüssel",
-      "legacyMcpServers": "Alte MCP-Konfiguration",
       "mcp": "MCP-Server „{{server}}“: {{field}}"
     }
   }

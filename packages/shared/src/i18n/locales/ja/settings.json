@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "設定を開く"
       },
+      "go-back": {
+        "label": "戻る"
+      },
+      "go-forward": {
+        "label": "進む"
+      },
       "lock-now": {
         "label": "今すぐロック"
       },
@@ -145,7 +151,7 @@
         "label": "検索バーを閉じる"
       },
       "close-tab": {
-        "label": "現在のタブを閉じる"
+        "label": "チャットを閉じる"
       },
       "focus-chat-input": {
         "label": "チャット入力欄にフォーカス"
@@ -329,7 +335,11 @@
       "refresh": "モデル一覧を更新",
       "fetchErrorTitle": "モデル一覧を取得できませんでした",
       "fetchErrorFallback": "モデル一覧の取得に失敗しました",
-      "reenterKey": "新しいベース URL で使うには、API キーをもう一度入力してください。"
+      "reenterKey": "新しいベース URL で使うには、API キーをもう一度入力してください。",
+      "retiring": "提供終了予定",
+      "retired": "提供終了",
+      "retiringOn": "{{date}} に提供終了予定",
+      "retiredOn": "{{date}} に提供終了"
     }
   },
   "tools": {
@@ -626,19 +636,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "すべて",
       "allScopes": "すべて",
       "datePlaceholder": "日付",
-      "levelPlaceholder": "レベル",
       "scopePlaceholder": "スコープ",
-      "keywordPlaceholder": "キーワードを検索...",
-      "traceChip": "トレース {{id}}"
+      "traceChip": "トレース {{id}}",
+      "searchPlaceholder": "検索  ·  scope:chat  trace:a1b2  -除外",
+      "clear": "フィルタをクリア"
     },
     "actions": {
       "openDirectory": "ディレクトリを開く",
       "export": "エクスポート",
       "clearAll": "すべて消去",
-      "clearAllConfirm": "すべてのログファイルを削除してもよろしいですか?"
+      "clearAllConfirm": "すべてのログファイルを削除してもよろしいですか?",
+      "more": "その他の操作"
     },
     "toast": {
       "exported": "ログをエクスポートしました",
@@ -651,18 +661,47 @@
       "level": "レベル",
       "scope": "スコープ",
       "message": "メッセージ",
-      "trace": "トレース",
-      "empty": "ログエントリが見つかりません。"
+      "empty": "ログエントリが見つかりません。",
+      "noMatch": "このフィルタに一致する行はありません。"
     },
     "pagination": {
-      "total_other": "全{{count}}件",
       "pageOf": "{{page}} / {{totalPages}}ページ",
       "prev": "前へ",
-      "next": "次へ"
+      "next": "次へ",
+      "range": "{{total}} 件中 {{from}}–{{to}}"
     },
     "details": {
       "stack": "スタックトレース",
-      "componentStack": "コンポーネントスタック"
+      "componentStack": "コンポーネントスタック",
+      "attributes": "属性"
+    },
+    "live": {
+      "label": "ライブ",
+      "onlyToday": "ライブは今日のログを追跡します"
+    },
+    "levels": {
+      "error": "エラー",
+      "warn": "警告",
+      "info": "情報",
+      "debug": "デバッグ"
+    },
+    "chart": {
+      "lines_other": "行",
+      "newestFirst": "新しい順",
+      "label": "時間ごとの行数",
+      "noLines": "行なし"
+    },
+    "detail": {
+      "previous": "前の行",
+      "next": "次の行",
+      "close": "閉じる",
+      "linesAround": "前後の行",
+      "copyForAi": "AI 用にコピー",
+      "sameTrace": "同じトレース",
+      "message": "メッセージ",
+      "fields": "フィールド",
+      "resource": "リソース",
+      "copied": "AI 用にコピーしました"
     }
   },
   "mcpServers": {
@@ -1058,7 +1097,6 @@
       "elasticsearchPassword": "Elasticsearch のパスワード",
       "s3AccessKeyId": "Amazon S3 のアクセスキー ID",
       "s3SecretAccessKey": "Amazon S3 のシークレットアクセスキー",
-      "legacyMcpServers": "旧形式の MCP 設定",
       "mcp": "MCP サーバー「{{server}}」: {{field}}"
     }
   }

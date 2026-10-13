@@ -270,6 +270,17 @@ function createBlocks() {
       if (name === TOOL_NAMES.imageGeneration) {
         const prompt = typeof args?.prompt === 'string' ? args.prompt : ''
         card({ kind: 'image', key: id, prompt })
+      } else if (name === TOOL_NAMES.createArtifact) {
+        // The code is written into the call's arguments token by token: the
+        // card's place shows it being written until the result lands.
+        const pick = (key: string) =>
+          typeof args?.[key] === 'string' ? (args[key] as string) : ''
+        card({
+          kind: 'tool',
+          key: id,
+          toolName: name,
+          draft: { title: pick('title'), code: pick('code') }
+        })
       } else if (hasToolCard(name) && !foldsIntoTimeline(name)) {
         // A folded tool's card (a command run, a file written) hangs under
         // its timeline row, not here.
@@ -412,7 +423,7 @@ function buildAssistantTurn(
       ) {
         // A fetched page is a citeable source too — register it so the
         // model's 【N-source】 markers resolve, and still show the card.
-        webSearchResults.push(toolResult.details as WebSearchResult)
+        webSearchResults.push(toolResult.details as unknown as WebSearchResult)
         toolCards.push(toolResult)
       } else if (!toolResult.isError) {
         // Non-webSearch successful tool results → render as cards
@@ -421,10 +432,8 @@ function buildAssistantTurn(
     }
   }
 
-  // Prefer the server-stamped turn duration on the last assistant message —
-  // it's wall-clock accurate and works for single-message turns. Fall back to
-  // the message-timestamp diff for legacy chats persisted before durationMs
-  // was added.
+  // The server-stamped turn duration on the last assistant message; a run
+  // still streaming has none yet, and the header shows none for it.
   let durationMs = 0
   for (let i = turnMessages.length - 1; i >= 0; i--) {
     const m = turnMessages[i]
@@ -436,12 +445,6 @@ function buildAssistantTurn(
       }
     }
   }
-  if (durationMs === 0) {
-    const firstTs = turnMessages[0]?.timestamp ?? 0
-    const lastTs = turnMessages.at(-1)?.timestamp ?? 0
-    durationMs = firstTs && lastTs ? lastTs - firstTs : 0
-  }
-
   const body = texts.join('\n\n')
   return {
     runId,
@@ -880,6 +883,7 @@ function Messages({
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
         )}
+        data-chat-scroll=""
         ref={chatBoxRef}
         onScroll={handleScroll}
       >
@@ -1004,7 +1008,7 @@ function Messages({
           className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border shadow-md"
           aria-label={t('messageList.scrollToBottom')}
         >
-          <HugeiconsIcon icon={ArrowDownIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowDownIcon} />
         </Button>
       )}
     </div>

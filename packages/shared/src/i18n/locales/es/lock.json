@@ -6,6 +6,7 @@
   },
   "privacy": {
     "title": "Bloqueo y privacidad",
+    "thirdParty": "Un gráfico bursátil en un chat es una inserción de TradingView: TradingView ve el símbolo y tu dirección IP, como con cualquier gráfico insertado.",
     "enroll": {
       "description": "Establezca un PIN de 6 dígitos para bloquear Exodus. Mientras esté bloqueado, la interfaz y la API local son inaccesibles, pero las tareas en segundo plano siguen ejecutándose.",
       "enterLabel": "Ingrese un PIN de 6 dígitos",

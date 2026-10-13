@@ -6,6 +6,7 @@
   },
   "privacy": {
     "title": "ロックとプライバシー",
+    "thirdParty": "チャット内の株価チャートは TradingView の埋め込みです。埋め込みチャートの常として、TradingView にはシンボルとあなたの IP アドレスが伝わります。",
     "enroll": {
       "description": "Exodusをロックするための6桁のPINを設定します。ロック中はUIとローカルAPIにアクセスできませんが、バックグラウンドのタスクは引き続き実行されます。",
       "enterLabel": "6桁のPINを入力してください",

@@ -114,7 +114,7 @@ export function InstalledSkillsList({
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => setPendingUninstall(skill)}
                   >
-                    <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                    <HugeiconsIcon icon={Delete02Icon} />
                   </Button>
                 </>
               }

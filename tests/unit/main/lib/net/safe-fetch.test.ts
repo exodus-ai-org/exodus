@@ -22,16 +22,24 @@ type PinnedLookup = (
   cb: (err: Error | null, a: unknown, f?: number) => void
 ) => void
 const responses = new Map<string, Scripted>()
-const requests: Array<{ url: string; lookup: PinnedLookup }> = []
+const requests: Array<{
+  url: string
+  lookup: PinnedLookup
+  headers?: Record<string, string>
+}> = []
 
 vi.mock('https', () => ({
   request: (
     url: URL | string,
-    options: { lookup: PinnedLookup },
+    options: { lookup: PinnedLookup; headers?: Record<string, string> },
     cb: (res: unknown) => void
   ) => {
     const href = String(url)
-    requests.push({ url: href, lookup: options.lookup })
+    requests.push({
+      url: href,
+      lookup: options.lookup,
+      headers: options.headers
+    })
     const req = new EventEmitter() as EventEmitter & {
       end: () => void
       destroy: (e?: Error) => void
@@ -193,6 +201,26 @@ describe('fetchPublicHttps', () => {
     )
     expect(dnsLookup).not.toHaveBeenCalled()
     expect(requests).toHaveLength(0)
+  })
+
+  it('sends the headers it is given with the request', async () => {
+    dnsLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
+    responses.set('https://en.wikipedia.org/api/rest_v1/page/summary/X', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      body: '{}'
+    })
+    await fetchPublicHttps(
+      'https://en.wikipedia.org/api/rest_v1/page/summary/X',
+      {
+        maxBytes: 1024,
+        headers: { 'User-Agent': 'Exodus/1 test', Accept: 'application/json' }
+      }
+    )
+    expect(requests.at(-1)?.headers).toEqual({
+      'User-Agent': 'Exodus/1 test',
+      Accept: 'application/json'
+    })
   })
 
   it('refuses a hostname that resolves to a private address', async () => {

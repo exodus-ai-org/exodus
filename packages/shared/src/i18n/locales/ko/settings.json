@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "설정 열기"
       },
+      "go-back": {
+        "label": "뒤로"
+      },
+      "go-forward": {
+        "label": "앞으로"
+      },
       "lock-now": {
         "label": "지금 잠금"
       },
@@ -145,7 +151,7 @@
         "label": "찾기 표시줄 닫기"
       },
       "close-tab": {
-        "label": "현재 탭 닫기"
+        "label": "채팅 닫기"
       },
       "focus-chat-input": {
         "label": "채팅 입력창에 포커스"
@@ -329,7 +335,11 @@
       "refresh": "모델 목록 새로고침",
       "fetchErrorTitle": "모델 목록을 가져올 수 없습니다",
       "fetchErrorFallback": "모델 목록을 가져오지 못했습니다",
-      "reenterKey": "새 기본 URL에서 사용하려면 API 키를 다시 입력해 주세요."
+      "reenterKey": "새 기본 URL에서 사용하려면 API 키를 다시 입력해 주세요.",
+      "retiring": "지원 종료 예정",
+      "retired": "지원 종료",
+      "retiringOn": "{{date}}에 지원 종료 예정",
+      "retiredOn": "{{date}}에 지원 종료됨"
     }
   },
   "tools": {
@@ -626,19 +636,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "전체",
       "allScopes": "전체",
       "datePlaceholder": "날짜",
-      "levelPlaceholder": "레벨",
       "scopePlaceholder": "범위",
-      "keywordPlaceholder": "검색어...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "검색  ·  scope:chat  trace:a1b2  -제외",
+      "clear": "필터 지우기"
     },
     "actions": {
       "openDirectory": "디렉터리 열기",
       "export": "내보내기",
       "clearAll": "모두 지우기",
-      "clearAllConfirm": "모든 로그 파일을 삭제하시겠습니까?"
+      "clearAllConfirm": "모든 로그 파일을 삭제하시겠습니까?",
+      "more": "추가 작업"
     },
     "toast": {
       "exported": "로그가 내보내졌습니다",
@@ -651,18 +661,47 @@
       "level": "레벨",
       "scope": "범위",
       "message": "메시지",
-      "trace": "Trace",
-      "empty": "로그 항목이 없습니다."
+      "empty": "로그 항목이 없습니다.",
+      "noMatch": "이 필터와 일치하는 줄이 없습니다."
     },
     "pagination": {
-      "total_other": "총 {{count}}개 항목",
       "pageOf": "{{totalPages}} 중 {{page}} 페이지",
       "prev": "이전",
-      "next": "다음"
+      "next": "다음",
+      "range": "{{total}}개 중 {{from}}–{{to}}"
     },
     "details": {
       "stack": "스택 트레이스",
-      "componentStack": "컴포넌트 스택"
+      "componentStack": "컴포넌트 스택",
+      "attributes": "속성"
+    },
+    "live": {
+      "label": "실시간",
+      "onlyToday": "실시간은 오늘 로그를 따라갑니다"
+    },
+    "levels": {
+      "error": "오류",
+      "warn": "경고",
+      "info": "정보",
+      "debug": "디버그"
+    },
+    "chart": {
+      "lines_other": "줄",
+      "newestFirst": "최신순",
+      "label": "시간별 줄 수",
+      "noLines": "줄 없음"
+    },
+    "detail": {
+      "previous": "이전 줄",
+      "next": "다음 줄",
+      "close": "닫기",
+      "linesAround": "주변 줄",
+      "copyForAi": "AI용으로 복사",
+      "sameTrace": "같은 트레이스",
+      "message": "메시지",
+      "fields": "필드",
+      "resource": "리소스",
+      "copied": "AI용으로 복사했습니다"
     }
   },
   "mcpServers": {
@@ -1058,7 +1097,6 @@
       "elasticsearchPassword": "Elasticsearch 비밀번호",
       "s3AccessKeyId": "Amazon S3 액세스 키 ID",
       "s3SecretAccessKey": "Amazon S3 비밀 액세스 키",
-      "legacyMcpServers": "이전 MCP 구성",
       "mcp": "MCP 서버 “{{server}}”: {{field}}"
     }
   }

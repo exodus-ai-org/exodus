@@ -36,7 +36,7 @@ function ComboboxTrigger({
       {children}
       <HugeiconsIcon
         icon={ArrowDown01Icon}
-        strokeWidth={2}
+
         className="text-muted-foreground pointer-events-none size-4"
       />
     </ComboboxPrimitive.Trigger>
@@ -53,7 +53,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
     >
       <HugeiconsIcon
         icon={Cancel01Icon}
-        strokeWidth={2}
+
         className="pointer-events-none"
       />
     </ComboboxPrimitive.Clear>
@@ -167,7 +167,7 @@ function ComboboxItem({
       >
         <HugeiconsIcon
           icon={Tick02Icon}
-          strokeWidth={2}
+
           className="pointer-events-none"
         />
       </ComboboxPrimitive.ItemIndicator>
@@ -273,7 +273,7 @@ function ComboboxChip({
         >
           <HugeiconsIcon
             icon={Cancel01Icon}
-            strokeWidth={2}
+
             className="pointer-events-none"
           />
         </ComboboxPrimitive.ChipRemove>

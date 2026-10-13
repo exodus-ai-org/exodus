@@ -6,6 +6,7 @@
   },
   "privacy": {
     "title": "鎖定與私隱",
+    "thirdParty": "對話入面嘅股票圖表係 TradingView 嘅嵌入內容：同所有嵌入圖表一樣，TradingView 會見到股票代號同你嘅 IP 地址。",
     "enroll": {
       "description": "設定 6 位數 PIN 碼以鎖定 Exodus。鎖定期間，介面及本機 API 均無法存取，但背景任務仍會繼續執行。",
       "enterLabel": "輸入 6 位數 PIN 碼",

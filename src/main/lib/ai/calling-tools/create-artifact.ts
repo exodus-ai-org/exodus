@@ -174,7 +174,7 @@ function Performance() {
               <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
               <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} domain={['dataMin - 4', 'dataMax + 4']} />
               <Tooltip cursor={{ stroke: 'var(--border)' }} contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
-              <Line key={range + '-a'} type="monotone" dataKey="a" stroke="var(--primary)" strokeWidth={2} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
+              <Line key={range + '-a'} type="monotone" dataKey="a" stroke="var(--primary)"  dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
               <Line key={range + '-b'} type="monotone" dataKey="b" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
             </LineChart>
             </ResponsiveContainer>

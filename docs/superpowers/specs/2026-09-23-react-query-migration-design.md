@@ -75,7 +75,7 @@ Configured once, where `QueryClientProvider` replaces `SWRConfig` in `main.tsx`:
   handling (a multi-step flow, a non-toast error UI) passes its own `onError` to `useMutation`,
   which runs _in addition to_ the global one — `mutationCache.onError` cannot be suppressed by a
   local `onError` in React Query's design, so a genuine opt-out (rare) needs a `meta: { silent:
-true }` flag the global handler checks first and returns early on.
+  true }` flag the global handler checks first and returns early on.
 
 This is a third, non-overlapping error-reporting surface alongside what already exists:
 render-phase (`ErrorBoundary` → `reportRendererError('tool-card'/'markdown', …)`) and truly global

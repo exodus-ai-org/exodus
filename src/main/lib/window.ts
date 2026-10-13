@@ -36,7 +36,7 @@ export function createWindow(): void {
       ? { icon: getResourcePath('icon.png') }
       : {}),
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, 'preload.cjs'),
       sandbox: true,
       contextIsolation: true
     }
@@ -129,7 +129,7 @@ export function raiseMainWindow(): void {
 const SUB_APP_DIR = 'src/renderer/sub-apps'
 
 const SUB_APP_WEB_PREFERENCES = {
-  preload: join(__dirname, 'preload.js'),
+  preload: join(__dirname, 'preload.cjs'),
   sandbox: true,
   contextIsolation: true
 }

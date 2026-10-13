@@ -135,7 +135,7 @@ export function ChatAudit() {
       <SettingsSection title={t('chatAudit.snapshot.title')} plain>
         {unavailable ? (
           <Alert variant="destructive">
-            <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={Alert02Icon} />
             <AlertTitle>{t('chatAudit.snapshot.unavailable')}</AlertTitle>
             <AlertDescription>
               {status?.error ?? t('chatAudit.snapshot.unavailableHint')}
@@ -165,7 +165,7 @@ export function ChatAudit() {
                       <Badge
                         key={table.name}
                         variant="secondary"
-                        className="gap-1.5 font-mono"
+                        className="gap-1.5"
                       >
                         {table.name}
                         <span className="text-muted-foreground tabular-nums">
@@ -175,7 +175,6 @@ export function ChatAudit() {
                     ))}
                     <Badge
                       variant={snapshot.logsIncluded ? 'secondary' : 'outline'}
-                      className="font-mono"
                     >
                       {snapshot.logsIncluded
                         ? t('chatAudit.snapshot.logsIncluded')
@@ -212,7 +211,7 @@ export function ChatAudit() {
                     window.electron.ipcRenderer.invoke('open-analytics-dir')
                   }
                 >
-                  <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={FolderOpenIcon} />
                 </Button>
               )}
               <Button
@@ -225,13 +224,13 @@ export function ChatAudit() {
                 {building ? (
                   <HugeiconsIcon
                     icon={Loading03Icon}
-                    strokeWidth={2}
+
                     className="animate-spin"
                   />
                 ) : snapshot ? (
-                  <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={RefreshIcon} />
                 ) : (
-                  <HugeiconsIcon icon={DatabaseIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={DatabaseIcon} />
                 )}
                 {building
                   ? t('chatAudit.snapshot.building')
@@ -274,7 +273,7 @@ export function ChatAudit() {
           onRun={() => run(sql)}
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted-foreground font-mono text-xs">
+          <p className="text-muted-foreground text-xs">
             {t('chatAudit.query.tables')}
           </p>
           <div className="flex items-center gap-3">
@@ -291,11 +290,11 @@ export function ChatAudit() {
               {running ? (
                 <HugeiconsIcon
                   icon={Loading03Icon}
-                  strokeWidth={2}
+
                   className="animate-spin"
                 />
               ) : (
-                <HugeiconsIcon icon={PlayIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={PlayIcon} />
               )}
               {running
                 ? t('chatAudit.query.running')
@@ -307,9 +306,9 @@ export function ChatAudit() {
 
       {error && (
         <Alert variant="destructive">
-          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Alert02Icon} />
           <AlertTitle>{t('chatAudit.results.failed')}</AlertTitle>
-          <AlertDescription className="font-mono text-xs whitespace-pre-wrap">
+          <AlertDescription className="text-xs whitespace-pre-wrap">
             {error}
           </AlertDescription>
         </Alert>
@@ -325,7 +324,7 @@ export function ChatAudit() {
           plain
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="text-muted-foreground font-mono text-xs">
+            <span className="text-muted-foreground text-xs">
               {t('chatAudit.results.duration', { ms: result.durationMs })}
             </span>
             <Button
@@ -335,7 +334,7 @@ export function ChatAudit() {
               disabled={result.rowCount === 0}
               onClick={() => downloadCsv(result)}
             >
-              <HugeiconsIcon icon={DownloadIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={DownloadIcon} />
               {t('chatAudit.results.downloadCsv')}
             </Button>
           </div>
@@ -343,7 +342,7 @@ export function ChatAudit() {
             <Empty className="py-8">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
-                  <HugeiconsIcon icon={DatabaseIcon} strokeWidth={2} />
+                  <HugeiconsIcon icon={DatabaseIcon} />
                 </EmptyMedia>
                 <EmptyTitle>{t('chatAudit.results.empty')}</EmptyTitle>
                 <EmptyDescription>
@@ -356,13 +355,13 @@ export function ChatAudit() {
               data-testid={TEST_IDS.chatAudit.resultsTable}
               className="max-h-[28rem] overflow-auto rounded-xl border"
             >
-              <Table className="font-mono text-xs">
+              <Table className="text-xs">
                 <TableHeader className="bg-background sticky top-0 z-10">
                   <TableRow>
                     {result.columns.map((col) => (
                       <TableHead key={col.name} className="whitespace-nowrap">
                         {col.name}
-                        <span className="text-muted-foreground ml-1.5 text-[10px] font-normal">
+                        <span className="text-muted-foreground text-2xs ml-1.5 font-normal">
                           {col.type}
                         </span>
                       </TableHead>

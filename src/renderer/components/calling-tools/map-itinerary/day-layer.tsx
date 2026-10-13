@@ -190,7 +190,7 @@ const ThumbnailPin = memo(function ThumbnailPin({
         </span>
       </div>
       <span
-        className="bg-background/85 text-foreground mt-1 max-w-30 truncate rounded px-1.5 py-0.5 text-[10px] font-medium shadow-sm backdrop-blur-sm"
+        className="bg-background/85 text-foreground text-2xs mt-1 max-w-30 truncate rounded px-1.5 py-0.5 font-medium shadow-sm backdrop-blur-sm"
         title={place.name}
       >
         {place.name}

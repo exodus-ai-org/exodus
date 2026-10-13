@@ -371,7 +371,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from Task 1 directly (creates its own isolated `QueryClient` per call, never
   the app-wide singleton — tests must not share cache state with each other).
 - Produces: `renderWithQueryClient(node: ReactNode): { host: HTMLDivElement, queryClient:
-QueryClient }`, used by every hook/component test from Task 3 onward.
+  QueryClient }`, used by every hook/component test from Task 3 onward.
 
 - [ ] **Step 1: Write the helper**
 
@@ -550,11 +550,11 @@ Expected: FAIL — `settingsKeys` is not exported, `useSettings` still uses `use
 // src/renderer/hooks/use-settings.ts
 import type { Settings } from '@exodus/shared/schemas/settings-schema'
 import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { fetcher } from '@exodus/shared/utils/http'
 import { updateSettings as updateSettingsService } from '@/services/settings'
 
 export const settingsKeys = { all: ['settings'] as const }
@@ -633,9 +633,9 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 - Consumes: nothing from earlier tasks beyond the `QueryClientProvider`/error-reporting plumbing.
 - Produces: `historyKeys = { all: ['history'] as const, detail: (id: string) => [...historyKeys.all,
-'detail', id] as const }`; `useChatHistory()` (returns `{ data, isLoading }` for the full list,
+  'detail', id] as const }`; `useChatHistory()` (returns `{ data, isLoading }` for the full list,
   used by `nav-histories.tsx`); `useChatMessages(id: string | undefined)` (returns `{ data,
-isLoading }` for one chat's messages, used by `chat-detail.tsx`); `useUpdateChat()` and
+  isLoading }` for one chat's messages, used by `chat-detail.tsx`); `useUpdateChat()` and
   `useDeleteChat()` (mutation hooks, replacing `services/chat.ts`'s side-effecting versions) —
   Task 5 and Task 7 (`profile.tsx`, which reads chat count via `/api/v1/history`) import
   `historyKeys`/`useChatHistory` from this file rather than re-deriving the key.
@@ -975,7 +975,7 @@ touch; if either fails, the regression is in this task, not in `use-chat.ts` its
   `/api/v1/history?projectId=${id}` is a distinct query (filtered), gets its own key
   (`projectKeys.chats(id)`) rather than colliding with the unfiltered history list.
 - Produces: `projectKeys = { all: ['project'] as const, detail: (id: string) => [...projectKeys.all,
-'detail', id] as const, chats: (id: string) => [...projectKeys.all, 'chats', id] as const }`;
+  'detail', id] as const, chats: (id: string) => [...projectKeys.all, 'chats', id] as const }`;
   `useProjects()`, `useProject(id)`, `useProjectChats(id)`, `useCreateProject()`,
   `useUpdateProject()`, `useDeleteProject()`.
 
@@ -1426,10 +1426,11 @@ this task does, create the minimal version here and Task 15 extends it, never re
 - [ ] **Step 1: Create `hooks/use-usage.ts`**
 
 ```typescript
-// src/renderer/hooks/use-usage.ts
-import type { UsageSummary } from '@/services/usage'
 import { fetcher } from '@exodus/shared/utils/http'
 import { useQuery } from '@tanstack/react-query'
+
+// src/renderer/hooks/use-usage.ts
+import type { UsageSummary } from '@/services/usage'
 
 export const usageKeys = { all: ['usage'] as const }
 
@@ -1451,10 +1452,10 @@ adjust the import accordingly.
 ```typescript
 // src/renderer/hooks/use-installed-skills.ts
 import type { InstalledSkill } from '@exodus/shared/types/skills'
+import { fetcher } from '@exodus/shared/utils/http'
 import { useQuery } from '@tanstack/react-query'
 
 import { INSTALLED_SKILLS_KEY as INSTALLED_SKILLS_URL } from '@/services/skills'
-import { fetcher } from '@exodus/shared/utils/http'
 
 export const installedSkillsKeys = { all: ['installed-skills'] as const }
 
@@ -1577,7 +1578,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 
 - Produces: `backupKeys = { status: ['backup', 'status'] as const, list: ['backup', 'list'] as
-const }`, `useBackupStatus()`, `useBackupList()`, `useCreateBackup()`.
+  const }`, `useBackupStatus()`, `useBackupList()`, `useCreateBackup()`.
 
 - [ ] **Step 1: Implement the hook**
 
@@ -1662,7 +1663,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 
 - Produces: `logsKeys = { entries: (params: string) => ['logs', 'entries', params] as const, dates:
-['logs', 'dates'] as const, scopes: (date: string) => ['logs', 'scopes', date] as const }`,
+  ['logs', 'dates'] as const, scopes: (date: string) => ['logs', 'scopes', date] as const }`,
   `useLogs(params: URLSearchParams)`, `useLogDates()`, `useLogScopes(date: string)`.
 
 - [ ] **Step 1: Implement the hook**
@@ -1752,6 +1753,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - [ ] **Step 1: Implement the hook**
 
 ```typescript
+import { fetcher } from '@exodus/shared/utils/http'
 // src/renderer/hooks/use-analytics.ts
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -1759,7 +1761,6 @@ import {
   ANALYTICS_STATUS_KEY,
   type AnalyticsStatus
 } from '@/services/analytics'
-import { fetcher } from '@exodus/shared/utils/http'
 
 export const analyticsKeys = { status: ['analytics', 'status'] as const }
 
@@ -1822,6 +1823,9 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - [ ] **Step 1: Implement the hook**
 
 ```typescript
+// Match the McpToolsGroup type mcp-servers.tsx/composer-tools.tsx already
+// import today (`grep -n "McpToolsGroup" src/renderer/components/settings/settings-form/mcp-servers.tsx`)
+import type { McpToolsGroup } from '@exodus/shared/types/mcp'
 // src/renderer/hooks/use-mcp.ts
 import { fetcher } from '@exodus/shared/utils/http'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -1833,10 +1837,6 @@ import {
   updateMcpServerApi,
   type McpServerItem
 } from '@/services/mcp-service'
-
-// Match the McpToolsGroup type mcp-servers.tsx/composer-tools.tsx already
-// import today (`grep -n "McpToolsGroup" src/renderer/components/settings/settings-form/mcp-servers.tsx`)
-import type { McpToolsGroup } from '@exodus/shared/types/mcp'
 
 export const mcpKeys = {
   servers: ['mcp', 'servers'] as const,
@@ -2019,7 +2019,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 
 - Produces: `installedAppsKeys = { all: ['installed-apps'] as const }`; `useInstalledApps(enabled:
-boolean)` return shape (`{ apps, isLoading }`) preserved exactly.
+  boolean)` return shape (`{ apps, isLoading }`) preserved exactly.
 
 - [ ] **Step 1: Check for an existing test, then rewrite**
 
@@ -2096,8 +2096,8 @@ query the sidebar and the market's own "already installed" badge both read).
 - Consumes: `useInstalledSkills` / `installedSkillsKeys` from Task 7 — extended here, not
   redefined.
 - Produces: `skillsKeys = { registry: (view, page) => [...], search: (query) => [...], detail: (id)
-=> [...], audit: (id) => [...] }`; `useSkillsRegistry(view, page)`, `useSkillsInfiniteRegistry
-(view)` (the `useSWRInfinite` replacement, via `useInfiniteQuery`), `useSkillsSearch(query)`,
+  => [...], audit: (id) => [...] }`; `useSkillsRegistry(view, page)`, `useSkillsInfiniteRegistry
+  (view)` (the `useSWRInfinite` replacement, via `useInfiniteQuery`), `useSkillsSearch(query)`,
   `useSkillDetail(id)`, `useSkillAudit(id)`, `useInstallSkill()`, `useUninstallSkill()`,
   `useToggleSkill()`.
 
@@ -2169,9 +2169,9 @@ migration is meant to remove. Update every import site in this task's later step
 ```typescript
 // src/renderer/hooks/use-installed-skills.ts
 import type { InstalledSkill } from '@exodus/shared/types/skills'
+import { fetcher } from '@exodus/shared/utils/http'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { fetcher } from '@exodus/shared/utils/http'
 import {
   installSkill,
   INSTALLED_SKILLS_URL,
@@ -2437,7 +2437,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 
 - Produces: `deepResearchKeys = { result: (id: string) => ['deep-research', 'result', id] as
-const }`, `useDeepResearchResult(id: string | undefined)` (both components read the same key for
+  const }`, `useDeepResearchResult(id: string | undefined)` (both components read the same key for
   the same `id` — sharing a cache entry, matching today's behavior where both independently `useSWR`
   the identical URL and SWR dedupes it for them).
 

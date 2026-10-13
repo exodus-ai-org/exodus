@@ -1,9 +1,7 @@
-import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   SearchIcon,
   Delete02Icon,
   DashboardSquare01Icon,
-  PencilEdit02Icon,
   UserGroupIcon
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -46,7 +44,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
+  SidebarTrigger
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { i18n } from '@/lib/i18n'
@@ -54,6 +53,7 @@ import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/philharmonic'
 
 import { hueStyle, pickHue } from '../lib/hue'
+import { NewGroupButton } from './new-group-button'
 
 export type ConfigPage = 'workforce' | 'dashboard'
 
@@ -64,9 +64,7 @@ export function DeleteGroupDescription({ title }: { title: string }) {
       i18nKey="chat.conversationList.deleteDialog.description"
       values={{ title }}
     >
-      <span className="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">
-        {title}
-      </span>{' '}
+      <span className="bg-muted rounded-sm px-1.5 py-0.5 text-xs">{title}</span>{' '}
       and all its messages, tasks, and executions will be permanently removed.
     </Trans>
   )
@@ -163,15 +161,22 @@ export function ConversationList({
         '[--sidebar-accent:rgb(0_0_0/0.05)] dark:[--sidebar-accent:rgb(255_255_255/0.07)]'
       )}
     >
-      <SidebarHeader
-        className={cn(
-          'draggable gap-1 pt-11 transition-[padding] duration-200 ease-out',
-          {
-            ['pt-2']: isFullscreen
-          }
-        )}
-      >
-        <div className="flex items-center px-1 pb-1">
+      <SidebarHeader className="draggable gap-2 pt-2.25">
+        {/* The title bar's row, as Chat's sidebar has it: the sidebar toggle
+            to the right of the traffic lights and, where Chat has its history
+            arrows, New group — the spot they take in the content header once
+            the sidebar is away, so nothing jumps; in fullscreen the lights
+            are gone and they move to the edge. */}
+        <div
+          className={cn(
+            'flex h-7 items-center gap-1 transition-[padding] duration-200 ease-out',
+            isFullscreen ? 'pl-2' : 'pl-21'
+          )}
+        >
+          <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+          <NewGroupButton onCreate={onCreate} />
+        </div>
+        <div className="flex items-center px-1">
           <WorkspaceSwitcher />
         </div>
 
@@ -185,21 +190,10 @@ export function ConversationList({
               )}
             />
             <InputGroupAddon align="inline-start">
-              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={SearchIcon} />
             </InputGroupAddon>
           </InputGroup>
         </div>
-
-        <SidebarMenu className="gap-1">
-          <SidebarMenuItem
-            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150"
-            onClick={onCreate}
-            data-testid={TEST_IDS.philharmonic.newGroup}
-          >
-            <HugeiconsIcon icon={PencilEdit02Icon} strokeWidth={2} size={16} />
-            {t('philharmonic:chat.conversationList.newGroupMenuItem')}
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent className="no-scrollbar px-1">
@@ -250,10 +244,10 @@ export function ConversationList({
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate text-[13px] font-medium">
+                            <span className="text-ui truncate font-medium">
                               {c.title}
                             </span>
-                            <span className="text-muted-foreground shrink-0 text-[10px] tabular-nums">
+                            <span className="text-muted-foreground text-2xs shrink-0 tabular-nums">
                               {smartTime(c.lastMessageAt)}
                             </span>
                           </span>
@@ -273,7 +267,7 @@ export function ConversationList({
                       >
                         <HugeiconsIcon
                           icon={Delete02Icon}
-                          strokeWidth={2}
+
                           className="mr-1.5 h-3.5 w-3.5"
                         />
                         {t('action.delete')}
@@ -297,7 +291,7 @@ export function ConversationList({
                   isActive={activePage === item.page}
                   onClick={() => onNavigateConfig(item.page)}
                 >
-                  <HugeiconsIcon icon={Icon} strokeWidth={2} />
+                  <HugeiconsIcon icon={Icon} />
                   {item.label}
                 </SidebarMenuButton>
               </SidebarMenuItem>

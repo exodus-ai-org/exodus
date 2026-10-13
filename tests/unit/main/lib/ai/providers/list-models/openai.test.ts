@@ -84,4 +84,31 @@ describe('listOpenAiModels', () => {
       cost: null
     })
   })
+
+  it('carries shutdown_date as the day the model retires, and nothing for an unreadable one', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              { id: 'current', created: 5, shutdown_date: null },
+              { id: 'dated', created: 4, shutdown_date: '2027-01-20' },
+              { id: 'stamped', created: 3, shutdown_date: 1_800_000_000 },
+              { id: 'garbled', created: 2, shutdown_date: 'soon' }
+            ]
+          }),
+          { status: 200 }
+        )
+      )
+    )
+    const models = await listOpenAiModels({ apiKey: 'sk-test' })
+    expect(Object.fromEntries(models.map((m) => [m.id, m.retiresAt]))).toEqual({
+      current: undefined,
+      dated: '2027-01-20',
+      stamped: '2027-01-15',
+      garbled: undefined
+    })
+    expect('retiresAt' in models.find((m) => m.id === 'current')!).toBe(false)
+  })
 })

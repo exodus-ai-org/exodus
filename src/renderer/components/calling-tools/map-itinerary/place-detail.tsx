@@ -147,7 +147,7 @@ export function PlaceDetail({
           aria-label={t('placeDetail.closeAriaLabel')}
           className="bg-background/80 text-foreground hover:bg-background absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
         >
-          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} size={14} />
         </button>
       </div>
 
@@ -191,7 +191,7 @@ export function PlaceDetail({
                 </span>
                 <HugeiconsIcon
                   icon={StarIcon}
-                  strokeWidth={2}
+
                   size={11}
                   className="fill-amber-500 text-amber-500"
                 />
@@ -258,12 +258,12 @@ export function PlaceDetail({
       )}
 
       {/* Body */}
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+      <div className="flex-1 space-y-3 overflow-x-hidden overflow-y-auto px-4 py-3">
         {tab === 'overview' && (
           <>
             {place.note && (
               <div className="bg-muted/40 rounded-lg p-2.5">
-                <div className="text-muted-foreground mb-1 text-[10px] tracking-widest uppercase">
+                <div className="text-muted-foreground text-2xs mb-1 tracking-widest uppercase">
                   {t('placeDetail.notes')}
                 </div>
                 <p className="text-foreground text-xs leading-relaxed">
@@ -275,7 +275,7 @@ export function PlaceDetail({
               icon={
                 <HugeiconsIcon
                   icon={Location01Icon}
-                  strokeWidth={2}
+
                   size={12}
                 />
               }
@@ -286,19 +286,16 @@ export function PlaceDetail({
               }
             />
             <ContactRow
-              icon={<HugeiconsIcon icon={CallIcon} strokeWidth={2} size={12} />}
+              icon={<HugeiconsIcon icon={CallIcon} size={12} />}
               text={place.phone}
               href={
                 place.phone
                   ? `tel:${place.phone.replace(/\s+/g, '')}`
                   : undefined
               }
-              monospace
             />
             <ContactRow
-              icon={
-                <HugeiconsIcon icon={Globe02Icon} strokeWidth={2} size={12} />
-              }
+              icon={<HugeiconsIcon icon={Globe02Icon} size={12} />}
               text={place.websiteUri?.replace(/^https?:\/\//, '')}
               href={place.websiteUri}
               truncate
@@ -319,13 +316,13 @@ export function PlaceDetail({
                     <div className="text-foreground truncate text-xs font-medium">
                       {r.author ?? t('placeDetail.anonymousReviewer')}
                     </div>
-                    <div className="text-muted-foreground flex items-center gap-1 text-[10px]">
+                    <div className="text-muted-foreground text-2xs flex items-center gap-1">
                       {r.rating !== undefined && (
                         <span className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }).map((_, j) => (
                             <HugeiconsIcon
                               icon={StarIcon}
-                              strokeWidth={2}
+
                               key={j}
                               size={9}
                               className={
@@ -366,7 +363,7 @@ export function PlaceDetail({
                   <span className="text-muted-foreground flex items-center gap-1">
                     <HugeiconsIcon
                       icon={Clock01Icon}
-                      strokeWidth={2}
+
                       size={10}
                     />
                     {time}
@@ -391,9 +388,9 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
         </button>
-        <span className="text-muted-foreground text-[11px]">
+        <span className="text-muted-foreground text-2xs">
           {t('placeDetail.pagination', { index: index + 1, total })}
         </span>
         <button
@@ -406,7 +403,7 @@ export function PlaceDetail({
           )}
           disabled={total <= 1}
         >
-          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} size={14} />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
         </button>
       </div>
     </div>
@@ -421,7 +418,7 @@ export function PlaceDetail({
  *  still falls back to the initial. */
 function ReviewAvatar({ src, name }: { src?: string; name?: string }) {
   const initial = (
-    <div className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
+    <div className="bg-muted text-muted-foreground text-2xs flex size-6 shrink-0 items-center justify-center rounded-full font-medium">
       {name?.charAt(0)?.toUpperCase() ?? '·'}
     </div>
   )
@@ -441,22 +438,16 @@ function ContactRow({
   icon,
   text,
   href,
-  monospace,
   truncate
 }: {
   icon: React.ReactNode
   text: string | undefined
   href?: string
-  monospace?: boolean
   truncate?: boolean
 }) {
   if (!text) return null
   const content = (
-    <span
-      className={cn('flex-1', monospace && 'font-mono', truncate && 'truncate')}
-    >
-      {text}
-    </span>
+    <span className={cn('min-w-0 flex-1', truncate && 'truncate')}>{text}</span>
   )
   return (
     <div className="text-muted-foreground flex items-start gap-2 text-xs">
@@ -466,7 +457,10 @@ function ContactRow({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-foreground min-w-0 flex-1 transition-colors"
+          // A flex row itself: only then is the text a flex item with a
+          // width to truncate against — as an inline link's child a long
+          // website address ran on and scrolled the panel sideways.
+          className="hover:text-foreground flex min-w-0 flex-1 transition-colors"
         >
           {content}
         </a>

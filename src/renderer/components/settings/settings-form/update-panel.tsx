@@ -32,7 +32,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
           <HugeiconsIcon
             icon={RefreshIcon}
-            strokeWidth={2}
+
             className="mr-1.5 size-3.5"
             data-icon
           />
@@ -47,7 +47,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
       <div className="flex items-center gap-3 rounded-lg px-4 py-3">
         <HugeiconsIcon
           icon={Loading03Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground size-4 animate-spin"
         />
         <span className="text-muted-foreground text-sm">
@@ -63,7 +63,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <div className="flex items-center gap-3">
           <HugeiconsIcon
             icon={CheckmarkCircle02Icon}
-            strokeWidth={2}
+
             className="size-4 text-green-500"
           />
           <span className="text-sm">{t('settings:about.update.upToDate')}</span>
@@ -71,7 +71,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <Button variant="ghost" size="sm" onClick={() => updaterCheck()}>
           <HugeiconsIcon
             icon={RefreshIcon}
-            strokeWidth={2}
+
             className="mr-1.5 size-3.5"
             data-icon
           />
@@ -90,7 +90,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <div className="flex items-center gap-3">
           <HugeiconsIcon
             icon={ZapIcon}
-            strokeWidth={2}
+
             className="size-4 shrink-0 text-blue-500"
           />
           <div className="flex flex-col">
@@ -119,7 +119,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           >
             <HugeiconsIcon
               icon={DownloadIcon}
-              strokeWidth={2}
+
               className="mr-1.5 size-3.5"
               data-icon
             />
@@ -139,7 +139,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           <div className="flex items-center gap-3">
             <HugeiconsIcon
               icon={DownloadIcon}
-              strokeWidth={2}
+
               className="text-muted-foreground size-4"
             />
             <span className="text-sm">
@@ -166,7 +166,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <div className="flex items-center gap-3">
           <HugeiconsIcon
             icon={CheckmarkCircle02Icon}
-            strokeWidth={2}
+
             className="size-4 text-green-500"
           />
           <div className="flex flex-col">
@@ -191,7 +191,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <div className="flex items-center gap-3">
           <HugeiconsIcon
             icon={AlertCircleIcon}
-            strokeWidth={2}
+
             className="text-destructive size-4"
           />
           <div className="flex flex-col">
@@ -208,7 +208,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
           <HugeiconsIcon
             icon={RefreshIcon}
-            strokeWidth={2}
+
             className="mr-1.5 size-3.5"
             data-icon
           />

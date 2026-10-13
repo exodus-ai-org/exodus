@@ -24,7 +24,7 @@ composer/message actions.
   fully Rules-of-Hooks-compliant.
 - No `<Trans>`/rich-text markup anywhere in this plan.
 - `use-audio.ts` has the SAME fallback error string, `'An error
-occurred, please try again!'`, hardcoded twice (once in `textToSpeech`'s
+  occurred, please try again!'`, hardcoded twice (once in `textToSpeech`'s
   catch, once in `speechToText`'s catch) — this becomes ONE shared key
   (`hook.toast.genericErrorFallback`), not two near-duplicates, matching
   the established "identical string reused across multiple call sites

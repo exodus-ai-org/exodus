@@ -67,7 +67,9 @@ export function SettingsForm() {
         key={activeTitle}
         className={cn('flex flex-1 flex-col gap-8', PAGE_ENTER)}
       >
-        <h1 className="text-xl">{t(NAV_TITLE_KEYS[activeTitle])}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {t(NAV_TITLE_KEYS[activeTitle])}
+        </h1>
 
         {activeTitle === SettingsLabel.Profile && <Profile form={form} />}
 

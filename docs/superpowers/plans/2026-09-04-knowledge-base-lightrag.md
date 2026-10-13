@@ -129,9 +129,8 @@ export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
 `tests/unit/main/lib/db/schema-knowledge-base.test.ts`:
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import { knowledgeDoc, settings } from '@main/lib/db/schema'
+import { describe, expect, it } from 'vitest'
 
 describe('knowledge base schema', () => {
   it('knowledge_doc has the sync-tracking columns and no teamId', () => {
@@ -414,10 +413,9 @@ export class LightRagError extends Error {
 `tests/unit/main/lib/knowledge-base/lightrag-client.test.ts`:
 
 ```ts
-import { afterEach, describe, expect, it, vi } from 'vitest'
-
 import { LightRagError } from '@main/lib/knowledge-base/errors'
 import { LightRagClient } from '@main/lib/knowledge-base/lightrag-client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
@@ -573,7 +571,8 @@ export class LightRagClient {
       status: String(body.status ?? 'unknown'),
       llmModel: (cfg.llm_model ?? body.llm_model) as string | undefined,
       embeddingModel: (cfg.embedding_model ?? body.embedding_model) as
-        string | undefined,
+        | string
+        | undefined,
       embeddingDim:
         Number(cfg.embedding_dim ?? body.embedding_dim) || undefined,
       documentCount:
@@ -817,7 +816,10 @@ git commit -m "feat(kb): resolveKnowledgeBase (cached, never-throws)"
 
 ```ts
 export type QueueName =
-  'index-message' | 'lcm-post-turn' | 'memory-consolidate' | 'kb-sync'
+  | 'index-message'
+  | 'lcm-post-turn'
+  | 'memory-consolidate'
+  | 'kb-sync'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',
@@ -829,7 +831,8 @@ export const QUEUE_NAMES: QueueName[] = [
 // ...existing JobMessage interface unchanged...
 
 export type KbSyncPayload =
-  { op: 'upsert'; docId: string } | { op: 'delete'; lightragDocId: string }
+  | { op: 'upsert'; docId: string }
+  | { op: 'delete'; lightragDocId: string }
 ```
 
 - [ ] **Step 2: Write `reconcile.ts` (with `contentHash`)**
@@ -1242,8 +1245,8 @@ import {
   setIndexStatus,
   updateKnowledgeDoc
 } from '../../db/knowledge-queries'
-import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
+import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import {
   getRequiredParam,
   handleDatabaseOperation,
@@ -1450,7 +1453,11 @@ git commit -m "feat(kb): /api/knowledge-base router, drop philharmonic /knowledg
   - `src/shared/types/knowledge-base.ts`:
     ```ts
     export type KnowledgeIndexStatus =
-      'pending' | 'processing' | 'processed' | 'failed' | 'stale'
+      | 'pending'
+      | 'processing'
+      | 'processed'
+      | 'failed'
+      | 'stale'
     export interface KnowledgeDocData {
       id: string
       title: string
@@ -1579,10 +1586,9 @@ git commit -m "feat(kb): shared KnowledgeDocData type + renderer service"
 `tests/unit/main/lib/ai/calling-tools/search-knowledge-base.test.ts`:
 
 ```ts
-import { describe, expect, it, vi } from 'vitest'
-
-import { LightRagError } from '@main/lib/knowledge-base/errors'
 import { searchKnowledgeBase } from '@main/lib/ai/calling-tools/search-knowledge-base'
+import { LightRagError } from '@main/lib/knowledge-base/errors'
+import { describe, expect, it, vi } from 'vitest'
 
 const client = (retrieve: unknown) => ({ retrieve }) as never
 
@@ -1783,8 +1789,8 @@ git commit -m "feat(kb): searchKnowledgeBase retrieval tool"
 Add imports:
 
 ```ts
-import { searchKnowledgeBase } from '../calling-tools'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
+import { searchKnowledgeBase } from '../calling-tools'
 ```
 
 (`searchKnowledgeBase` should be added to the existing `from '../calling-tools'`
@@ -1994,7 +2000,7 @@ the team `Select`). Requirements:
     (`data-testid={TEST_IDS.knowledgeBase.testConnectionButton}`,
     `disabled={isTesting}`), calling `testKnowledgeBaseConnection()`. On success
     `sileo.success({ title: \`LLM: ${h.llmModel ?? '?'} · Embedding: ${h.embeddingModel ?? '?'}${h.embeddingDim ? \` (${h.embeddingDim}d)\` : ''}${h.documentCount != null ? \` · ${h.documentCount} docs\` : ''}\` })`.
-On error `sileo.error({ title: 'Failed to connect', description: getHttpErrorMessage(err) })`.
+    On error `sileo.error({ title: 'Failed to connect', description: getHttpErrorMessage(err) })`.
   - A persistent muted caption under that row: "Changing the embedding model in
     LightRAG requires re-ingesting every document."
 - **Documents `SettingsSection`:** only render when `form.watch('knowledgeBase.url')`

@@ -36,7 +36,7 @@ namespace scope includes "tool-call cards").
   a file with multiple components (e.g. `artifact-card.tsx`'s `UrlPill` +
   `FullscreenButton`) needs one call per component, not one shared call.
 - Renderer, a plain non-component/non-hook function: `import { i18n } from
-'@/lib/i18n'` → `i18n.t('chat:key', …)`. Never thread `t` through as a
+  '@/lib/i18n'` → `i18n.t('chat:key', …)`. Never thread `t` through as a
   parameter — this project's established, uniform rule is singleton for
   plain functions, hook for components, no third pattern.
 - Every key referenced must exist in `src/shared/i18n/locales/en/chat.json`

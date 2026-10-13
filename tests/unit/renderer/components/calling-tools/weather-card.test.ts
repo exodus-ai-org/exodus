@@ -45,15 +45,15 @@ function day(date: string, lo: number, hi: number): WeatherForecastDay {
   return {
     date,
     condition: 'Sunny',
-    weatherCode: '113',
+    weatherCode: '0',
     maxTempC: String(hi),
     minTempC: String(lo),
-    sunrise: '06:52 AM',
-    sunset: '07:18 PM',
-    hourly: Array.from({ length: 8 }, (_, i) => ({
-      time: String(i * 300),
+    sunrise: `${date}T06:52`,
+    sunset: `${date}T19:18`,
+    hourly: Array.from({ length: 24 }, (_, i) => ({
+      time: `${date}T${String(i).padStart(2, '0')}:00`,
       tempC: String(lo + Math.round(((hi - lo) * (i % 5)) / 4)),
-      weatherCode: '113',
+      weatherCode: '0',
       condition: 'Sunny',
       rainChance: '0'
     }))
@@ -62,7 +62,7 @@ function day(date: string, lo: number, hi: number): WeatherForecastDay {
 
 const current: WeatherResult['current'] = {
   condition: 'Sunny',
-  weatherCode: '113',
+  weatherCode: '0',
   tempC: '21',
   feelsLikeC: '21',
   humidity: '40',
@@ -73,7 +73,8 @@ const current: WeatherResult['current'] = {
   uvIndex: '5',
   visibility: '10',
   pressure: '1015',
-  observedAt: '12:00 PM'
+  observedAt: '2026-09-23T12:00',
+  isDay: true
 }
 
 async function mount(toolResult: WeatherResult) {

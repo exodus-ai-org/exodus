@@ -63,6 +63,15 @@ export function useLcmStatus(chatId: string): LcmStatusState {
           setState({ kind: 'running', startedAt: event.startedAt })
           break
         case 'complete':
+          // A pass that folded nothing away (the threshold was crossed but
+          // nothing old enough to compact) is not news: the running strip
+          // just fades, no "Compacted 0 messages".
+          if (event.messagesBefore - event.messagesAfter <= 0) {
+            if (dismissTimer) clearTimeout(dismissTimer)
+            dismissTimer = null
+            setState({ kind: 'idle' })
+            break
+          }
           setState({
             kind: 'just_completed',
             payload: {

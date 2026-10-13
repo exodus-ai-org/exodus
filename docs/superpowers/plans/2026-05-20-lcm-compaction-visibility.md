@@ -250,8 +250,8 @@ vi.mock('./compaction', () => ({
   runFullCompaction: vi.fn()
 }))
 
-import { LcmManager } from './index'
 import { runFullCompaction } from './compaction'
+import { LcmManager } from './index'
 import { getContextItems } from './queries'
 
 const fakeModel = { id: 'gpt-4.1-mini' } as unknown as Model<string>

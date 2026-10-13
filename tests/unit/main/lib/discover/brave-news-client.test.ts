@@ -1,4 +1,4 @@
-import { searchBraveNews } from '@main/lib/discover/brave-news-client'
+import { freshest, searchBraveNews } from '@main/lib/discover/brave-news-client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const fetchMock = vi.fn()
@@ -19,15 +19,35 @@ describe('searchBraveNews', () => {
     })
     const [url, init] = fetchMock.mock.calls[0]
     expect(String(url)).toContain('q=SoftBank')
-    // Requests a wide relevance-ranked pool (min 12), then re-ranks locally.
+    // A wide relevance-ranked pool (min 12) from the past week: a day left
+    // a niche topic's pool to loose matches.
     expect(String(url)).toContain('count=15')
-    expect(String(url)).toContain('freshness=pd')
+    expect(String(url)).toContain('freshness=pw')
     expect(String(url)).toContain('country=us')
     expect(String(url)).toContain('search_lang=en')
     expect(init.headers['x-subscription-token']).toBe('k')
   })
 
-  it('re-ranks the pool by recency and returns the freshest `count`', async () => {
+  it('hands back the whole pool in Brave’s relevance order', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        results: [
+          { title: 'on topic', url: 'https://x/1', age: '2 days ago' },
+          { title: 'loose match', url: 'https://x/2', age: '1 hour ago' },
+          { title: 'also on topic', url: 'https://x/3', age: '3 days ago' }
+        ]
+      })
+    )
+    const res = await searchBraveNews('k', 'q', { count: 2 })
+    expect(res.map((a) => a.title)).toEqual([
+      'on topic',
+      'loose match',
+      'also on topic'
+    ])
+    expect(res[1].publishedMs).toBeGreaterThan(res[0].publishedMs)
+  })
+
+  it('freshest: the most recent `count`, as shown', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
         results: [
@@ -45,12 +65,13 @@ describe('searchBraveNews', () => {
         ]
       })
     )
-    const res = await searchBraveNews('k', 'q', { count: 2 })
+    const res = freshest(await searchBraveNews('k', 'q', { count: 2 }), 2)
     expect(res.map((a) => a.title)).toEqual(['match report', 'mid'])
     expect(res[0].publishedAt).toBe('2026-09-09T18:46:20Z')
+    expect(res[0]).not.toHaveProperty('publishedMs')
   })
 
-  it('sorts a result with no timestamp to the bottom (evergreen page)', async () => {
+  it('freshest: a result with no timestamp sorts last (evergreen page)', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
         results: [
@@ -59,7 +80,7 @@ describe('searchBraveNews', () => {
         ]
       })
     )
-    const res = await searchBraveNews('k', 'q', { count: 2 })
+    const res = freshest(await searchBraveNews('k', 'q', { count: 2 }), 2)
     expect(res.map((a) => a.title)).toEqual(['todays news', 'club profile'])
   })
 
@@ -88,7 +109,8 @@ describe('searchBraveNews', () => {
         source: 'Example News',
         favicon: 'https://img/f.ico',
         thumbnail: 'https://img/a.jpg',
-        age: '2h'
+        age: '2h',
+        publishedMs: 0
       }
     ])
   })

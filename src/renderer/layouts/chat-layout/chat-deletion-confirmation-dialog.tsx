@@ -1,4 +1,4 @@
-import { useAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import { Trans, useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
@@ -13,12 +13,15 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { useDeleteChat } from '@/hooks/use-chat-history'
+import { without } from '@/lib/route-history'
 import { toBeDeletedChatAtom } from '@/stores/chat'
+import { historyAtom } from '@/stores/history'
 
 export function ChatDeletionConfirmationDialog() {
   const { t } = useTranslation(['common', 'chat'])
   const { id } = useParams<{ id: string }>()
   const [toBeDeletedChat, setToBeDeletedChat] = useAtom(toBeDeletedChatAtom)
+  const setHistory = useSetAtom(historyAtom)
   const { mutateAsync: deleteChat } = useDeleteChat()
 
   return (
@@ -54,6 +57,11 @@ export function ChatDeletionConfirmationDialog() {
                 // dialog stays open.
                 return
               }
+              // The deleted chat's pages leave the header's history: `←` must
+              // never lead back to it.
+              setHistory((history) =>
+                without(history, `/chat/${toBeDeletedChat.id}`)
+              )
               setToBeDeletedChat(undefined)
             }}
           >

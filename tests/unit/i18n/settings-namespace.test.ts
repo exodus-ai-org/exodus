@@ -132,7 +132,11 @@ describe('settings namespace (en)', () => {
       'Close find bar'
     )
     expect(settings.keyboardShortcuts.shortcuts['close-tab'].label).toBe(
-      'Close current tab'
+      'Close chat'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['go-back'].label).toBe('Back')
+    expect(settings.keyboardShortcuts.shortcuts['go-forward'].label).toBe(
+      'Forward'
     )
     expect(settings.keyboardShortcuts.shortcuts['focus-chat-input'].label).toBe(
       'Focus chat input'
@@ -557,13 +561,21 @@ describe('settings namespace (en)', () => {
   })
 
   it('has the Logger tab keys', () => {
-    expect(settings.logger.filters.allLevels).toBe('All')
     expect(settings.logger.filters.allScopes).toBe('All')
     expect(settings.logger.pagination).toMatchObject({
-      total_one: '{{count}} entry total',
-      total_other: '{{count}} entries total',
+      range: '{{from}}–{{to}} of {{total}}',
       pageOf: 'Page {{page}} of {{totalPages}}'
     })
+    expect(settings.logger.chart).toMatchObject({
+      lines_one: 'line',
+      lines_other: 'lines'
+    })
+    expect(Object.keys(settings.logger.levels)).toEqual([
+      'error',
+      'warn',
+      'info',
+      'debug'
+    ])
   })
 
   it('has the MCP Servers tab keys', () => {

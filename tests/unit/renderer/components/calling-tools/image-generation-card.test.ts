@@ -131,29 +131,12 @@ describe('imageSrcOf', () => {
     ).toBe(`http://localhost:60223/api/v1/media/${CHAT}/${MEDIA}`)
   })
 
-  it('still shows a row saved with a data URL, or an old DALL·E link', () => {
-    expect(imageSrcOf({ url: 'data:image/png;base64,QUJD' })).toBe(
-      'data:image/png;base64,QUJD'
-    )
-    expect(imageSrcOf({ url: 'https://img.example/1.png' })).toBe(
-      'https://img.example/1.png'
-    )
-  })
-
-  it('has nothing to show for a saved image with no chat, or a row with neither', () => {
+  it('has nothing to show for a saved image with no chat, or a row with no file', () => {
     expect(
       imageSrcOf({ mediaId: MEDIA, mimeType: 'image/png' })
     ).toBeUndefined()
+    expect(imageSrcOf({ chatId: CHAT })).toBeUndefined()
     expect(imageSrcOf({})).toBeUndefined()
-    expect(imageSrcOf({ url: 'javascript:alert(1)' })).toBeUndefined()
-    // Raster data: only — an SVG <img> fetches its own references (iOS C3).
-    expect(
-      imageSrcOf({ url: 'data:image/svg+xml;base64,PHN2Zy8+' })
-    ).toBeUndefined()
-    expect(imageSrcOf({ url: 'data:text/html,<b>x</b>' })).toBeUndefined()
-    expect(imageSrcOf({ url: 'data:image/webp;base64,QUJD' })).toBe(
-      'data:image/webp;base64,QUJD'
-    )
   })
 })
 
@@ -181,16 +164,6 @@ describe('ImageGenerationCard', () => {
       `http://localhost:60223/api/v1/media/${CHAT}/${MEDIA}`
     )
     expect(img?.getAttribute('alt')).toBe('a red fox')
-  })
-
-  it('still renders an old DALL·E row by its url', () => {
-    const el = render({
-      prompt: 'a fox',
-      result: result({ images: [{ url: 'https://img.example/1.png' }] })
-    })
-    expect(el.querySelector('img')?.getAttribute('src')).toBe(
-      'https://img.example/1.png'
-    )
   })
 
   it('shows a pending call as generating, with its prompt and the size the settings ask for', () => {
@@ -221,7 +194,12 @@ describe('ImageGenerationCard', () => {
       prompt: 'a fox',
       result: result({
         images: [
-          { url: 'data:image/png;base64,QUJD', revisedPrompt: 'a red fox' }
+          {
+            mediaId: MEDIA,
+            chatId: CHAT,
+            mimeType: 'image/png',
+            revisedPrompt: 'a red fox'
+          }
         ],
         size: '1536x1024'
       })
@@ -232,7 +210,9 @@ describe('ImageGenerationCard', () => {
     expect(after.dataset.state).toBe('complete')
     expect(after.getAttribute('aria-busy')).toBe('false')
     const img = after.querySelector('img')
-    expect(img?.getAttribute('src')).toBe('data:image/png;base64,QUJD')
+    expect(img?.getAttribute('src')).toBe(
+      `http://localhost:60223/api/v1/media/${CHAT}/${MEDIA}`
+    )
     expect(img?.getAttribute('alt')).toBe('a red fox')
     // The recorded size wins over the settings once there is one.
     expect(el.textContent).toContain('1536 × 1024')
@@ -247,7 +227,7 @@ describe('ImageGenerationCard', () => {
     expect(el.querySelector('button')).toBeNull()
   })
 
-  it('says the image is unavailable when a result carries no URL (an old row)', () => {
+  it('says the image is unavailable when a result names no saved file', () => {
     const el = render({ prompt: 'a fox', result: result({ images: [{}] }) })
     const [frame] = frames(el)
 

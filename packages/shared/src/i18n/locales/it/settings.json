@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Apri impostazioni"
       },
+      "go-back": {
+        "label": "Indietro"
+      },
+      "go-forward": {
+        "label": "Avanti"
+      },
       "lock-now": {
         "label": "Blocca ora"
       },
@@ -145,7 +151,7 @@
         "label": "Chiudi barra di ricerca"
       },
       "close-tab": {
-        "label": "Chiudi scheda corrente"
+        "label": "Chiudi chat"
       },
       "focus-chat-input": {
         "label": "Metti a fuoco il campo di chat"
@@ -329,7 +335,11 @@
       "refresh": "Aggiorna elenco modelli",
       "fetchErrorTitle": "Impossibile recuperare l'elenco dei modelli",
       "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito",
-      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base."
+      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base.",
+      "retiring": "in dismissione",
+      "retired": "dismesso",
+      "retiringOn": "Sarà dismesso il {{date}}",
+      "retiredOn": "Dismesso il {{date}}"
     }
   },
   "tools": {
@@ -628,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "Tutti",
       "allScopes": "Tutti",
       "datePlaceholder": "Data",
-      "levelPlaceholder": "Livello",
       "scopePlaceholder": "Ambito",
-      "keywordPlaceholder": "Cerca parola chiave...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "Cerca  ·  scope:chat  trace:a1b2  -escludi",
+      "clear": "Rimuovi filtri"
     },
     "actions": {
       "openDirectory": "Apri directory",
       "export": "Esporta",
       "clearAll": "Cancella tutto",
-      "clearAllConfirm": "Sei sicuro di voler eliminare tutti i file di log?"
+      "clearAllConfirm": "Sei sicuro di voler eliminare tutti i file di log?",
+      "more": "Altre azioni"
     },
     "toast": {
       "exported": "Log esportati",
@@ -653,19 +663,48 @@
       "level": "Livello",
       "scope": "Ambito",
       "message": "Messaggio",
-      "trace": "Trace",
-      "empty": "Nessuna voce di log trovata."
+      "empty": "Nessuna voce di log trovata.",
+      "noMatch": "Nessuna riga corrisponde a questi filtri."
     },
     "pagination": {
-      "total_one": "{{count}} voce totale",
-      "total_other": "{{count}} voci totali",
       "pageOf": "Pagina {{page}} di {{totalPages}}",
       "prev": "Prec",
-      "next": "Succ"
+      "next": "Succ",
+      "range": "{{from}}–{{to}} di {{total}}"
     },
     "details": {
       "stack": "Traccia dello stack",
-      "componentStack": "Stack dei componenti"
+      "componentStack": "Stack dei componenti",
+      "attributes": "Attributi"
+    },
+    "live": {
+      "label": "Live",
+      "onlyToday": "Live segue il log di oggi"
+    },
+    "levels": {
+      "error": "Errore",
+      "warn": "Avviso",
+      "info": "Info",
+      "debug": "Debug"
+    },
+    "chart": {
+      "lines_one": "riga",
+      "lines_other": "righe",
+      "newestFirst": "più recenti prima",
+      "label": "Righe nel tempo",
+      "noLines": "Nessuna riga"
+    },
+    "detail": {
+      "previous": "Riga precedente",
+      "next": "Riga successiva",
+      "close": "Chiudi",
+      "linesAround": "Righe intorno",
+      "copyForAi": "Copia per l'IA",
+      "sameTrace": "Stessa trace",
+      "message": "Messaggio",
+      "fields": "Campi",
+      "resource": "Risorsa",
+      "copied": "Copiato per l'IA"
     }
   },
   "mcpServers": {
@@ -1064,7 +1103,6 @@
       "elasticsearchPassword": "Password di Elasticsearch",
       "s3AccessKeyId": "ID chiave di accesso Amazon S3",
       "s3SecretAccessKey": "Chiave di accesso segreta Amazon S3",
-      "legacyMcpServers": "Configurazione MCP precedente",
       "mcp": "Server MCP «{{server}}»: {{field}}"
     }
   }

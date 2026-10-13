@@ -40,7 +40,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
   const { t } = useTranslation('chat')
   const { dateTime } = useFormat()
   const { current, forecast, location } = toolResult
-  const now = conditionOf(current.weatherCode, current.isDay ?? true)
+  const now = conditionOf(current.weatherCode, current.isDay)
   const [expanded, setExpanded] = useState(false)
   const [dayIndex, setDayIndex] = useState(0)
   const [hover, setHover] = useState<number | null>(null)
@@ -52,8 +52,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
     if (i === 1) return t('weatherCard.tomorrow')
     return dateTime(new Date(date), { weekday: 'short' })
   }
-  // Times are the place's own, shown as clocks in the user's locale — the
-  // parser reads Open-Meteo's ISO and the wttr.in strings on old rows.
+  // Times are the place's own, shown as clocks in the user's locale.
   const clock = (time: string, o: Intl.DateTimeFormatOptions) => {
     const h = weatherClockHours(time)
     if (h === null) return time
@@ -196,7 +195,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         <dl className="border-border grid grid-cols-3 gap-x-4 gap-y-3 border-t px-5 py-4">
           {readings.map(([label, reading], i) => (
             <div key={label} className={ROW_ENTER} style={staggerDelay(i)}>
-              <dt className="text-muted-foreground text-[11px] leading-none">
+              <dt className="text-muted-foreground text-2xs leading-none">
                 {label}
               </dt>
               <dd className="text-foreground mt-1.5 text-sm leading-none font-medium tabular-nums">
@@ -236,11 +235,11 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
           {hasCurve && (
             <>
               <TemperatureCurve day={day} hover={hover} onHover={setHover} />
-              <div className="text-muted-foreground flex items-center justify-between px-5 pb-2 text-[10px] tabular-nums">
+              <div className="text-muted-foreground text-2xs flex items-center justify-between px-5 pb-2 tabular-nums">
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon
                     icon={SunriseIcon}
-                    strokeWidth={2}
+
                     className="size-3"
                     aria-hidden="true"
                   />
@@ -250,7 +249,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon
                     icon={SunsetIcon}
-                    strokeWidth={2}
+
                     className="size-3"
                     aria-hidden="true"
                   />
@@ -366,7 +365,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         {expanded ? t('weatherCard.less') : t('weatherCard.details')}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           className={cn(
             'size-3.5 transition-transform duration-200 ease-out',
             expanded && 'rotate-180'

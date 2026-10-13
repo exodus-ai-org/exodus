@@ -5,8 +5,7 @@ import {
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
 /**
- * A day's temperature as a curve through its hourly slots (24 from
- * Open-Meteo; 8 on rows from the wttr.in years). It draws in once per day
+ * A day's temperature as a curve through its 24 hourly slots. It draws in once per day
  * (explanation, not decoration — the shape of the day is the point), the
  * pointer scrubs it (no animation: it follows the hand; the card shows the
  * readout), and sunrise / sunset sit as ticks on the baseline. The curve is
@@ -49,7 +48,7 @@ function curveOf(day: WeatherForecastDay) {
 
 /**
  * A clock → x across the day. The slots run from 0:00 to the day's last
- * slot (23:00 from Open-Meteo, 21:00 on old rows), so that is the width.
+ * slot (23:00), so that is the width.
  */
 function timeToX(clock: string, lastHour: number): number {
   const h = weatherClockHours(clock)

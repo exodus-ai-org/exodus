@@ -77,7 +77,7 @@ Recharts.
   `workforce.header.employeeCount`, `costAnalysis.kpi.totalCostHint`).
 - **`chartConfig`** (currently a module-level `const` in `cost-analysis.tsx`)
   moves inside the `CostAnalysis` component as a `useMemo(() => ({...}),
-[t])`, since its `label: 'Cost'` field needs translation — same pattern
+  [t])`, since its `label: 'Cost'` field needs translation — same pattern
   as prior sub-plans' single-consumer module constants.
 - **No tooling catches a stale/orphaned English catalog key** — manually
   grep/script-verify zero missing AND zero orphaned
@@ -85,7 +85,7 @@ Recharts.
   (and, since it's the last one, the WHOLE `philharmonic` namespace) done.
 - **Stray `node_modules/node_modules` symlink**: if any test run reports
   "Invalid hook call" or a `null` `useMemo` crash, run `ls -la
-node_modules/node_modules` first (see the
+  node_modules/node_modules` first (see the
   `stray-node-modules-symlink-incident` memory) and `rm` it if present.
 - **Known flaky test**: retry `pnpm test` once if the ONLY failure is the
   PGlite WASM teardown race (`RuntimeError: Aborted()`).
@@ -94,7 +94,7 @@ node_modules/node_modules` first (see the
   the full gate, re-check `git status --porcelain` and `git checkout --`
   any file outside this plan's intended scope before staging.
 - **Shared, concurrently-edited working tree**: re-run `git status
---porcelain` for this plan's 3 target files (`cost-analysis.tsx`,
+  --porcelain` for this plan's 3 target files (`cost-analysis.tsx`,
   `workforce/workforce-page.tsx`, `empty-state.tsx` — the last untouched
   code-wise but its 4th call site is populated here) immediately before
   starting.
@@ -167,8 +167,8 @@ becomes the new last section before `workforce` is added in Task 2.)
 
 ```tsx
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { useTranslation } from 'react-i18next'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import {
   ChartContainer,

@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "Agenda",
       "upcomingTrigger": "Próximas",
       "recurringTrigger": "Recorrentes"
     },
@@ -86,8 +85,7 @@
     "composer": {
       "placeholder": "Envie uma mensagem para sua equipe…",
       "stopAria": "Parar",
-      "sendAria": "Enviar",
-      "hint": "Pressione <1>Enter</1> para enviar, <4>Shift + Enter</4> para uma nova linha. Cole ou anexe imagens."
+      "sendAria": "Enviar"
     },
     "planCard": {
       "elapsed": {
@@ -217,11 +215,6 @@
   "costAnalysis": {
     "header": {
       "title": "Painel"
-    },
-    "period": {
-      "last7Days": "Últimos 7 dias",
-      "last30Days": "Últimos 30 dias",
-      "allTime": "Todo o período"
     },
     "periodToggle": {
       "sevenDays": "7d",

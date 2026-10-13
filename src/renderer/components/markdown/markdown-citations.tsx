@@ -18,7 +18,7 @@ import { SourceFavicon } from './source-favicon'
  * The 【N-source】 citation markers the model writes after a web search, as
  * hover-card chips. The markers are made nodes of the syntax tree by
  * `remarkCitations` (`lib/remark-citations.ts`), wherever they stand, and
- * drawn by `citationComponents` here; `sources-panel.tsx` and the
+ * drawn by `citationComponents` here; `chat/panel/chat-panel.tsx` and the
  * deep-research source list read `parseCitations`.
  */
 
@@ -121,7 +121,7 @@ function SourcePager({
         disabled={index === 0}
         onClick={() => onChange(index - 1)}
       >
-        <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={ArrowLeft02Icon} />
       </Button>
       <Button
         variant="ghost"
@@ -131,7 +131,7 @@ function SourcePager({
         disabled={index === total - 1}
         onClick={() => onChange(index + 1)}
       >
-        <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={ArrowRight01Icon} />
       </Button>
       <span className="text-muted-foreground ml-auto pr-1.5 text-xs tabular-nums">
         {t('citation.position', { current: index + 1, total })}

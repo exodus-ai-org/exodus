@@ -62,7 +62,7 @@ export function RouteErrorBoundary() {
         <Button onClick={() => window.location.reload()}>
           <HugeiconsIcon
             icon={RotateLeft01Icon}
-            strokeWidth={2}
+
             className="mr-1.5"
           />
           {t('routeBoundary.reload')}

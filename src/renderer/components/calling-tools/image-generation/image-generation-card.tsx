@@ -1,10 +1,7 @@
-import { BASE_URL } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type {
   ChatToolResultMessage,
-  GeneratedImage,
-  ImageGenerationDetails,
-  LegacyGeneratedImage
+  ImageGenerationDetails
 } from '@exodus/shared/types/chat'
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,8 +11,10 @@ import {
   type ImageGenerationStatus
 } from '@/components/calling-tools/image-generation/image-generation-loading'
 import { ZoomableAttachment } from '@/components/chat/attachment-frame'
-import { isRasterDataUrl } from '@/components/markdown/remote-image'
 import { useSettings } from '@/hooks/use-settings'
+import { imageSrcOf } from '@/lib/generated-image'
+
+export { imageSrcOf }
 
 // Placeholders shown while a call runs, one per image the settings ask for.
 const MAX_PLACEHOLDERS = 4
@@ -40,28 +39,6 @@ export function parseImageSize(size: string | null | undefined): {
   if (!match) return { aspectRatio: '1 / 1' }
   const [, w, h] = match
   return { aspectRatio: `${w} / ${h}`, resolution: `${w} × ${h}` }
-}
-
-/**
- * Where an image loads from: a saved image from the local media route; a row
- * written before images were saved (a base64 `data:` URL, or a DALL·E link —
- * dead an hour after it was made, which `onError` turns into "unavailable")
- * from its `url`. A `data:` URL only when it is a raster image — the same rule
- * as the chat's remote images: an SVG rendered as `<img>` still fetches its
- * own `<image href>` / `url()` references. Anything else has nothing to show.
- */
-export function imageSrcOf(
-  image: Partial<GeneratedImage> & LegacyGeneratedImage
-): string | undefined {
-  if (image.mediaId) {
-    return image.chatId
-      ? `${BASE_URL}/api/v1/media/${encodeURIComponent(image.chatId)}/${encodeURIComponent(image.mediaId)}`
-      : undefined
-  }
-  const url = image.url
-  if (!url) return undefined
-  if (/^data:/iu.test(url)) return isRasterDataUrl(url) ? url : undefined
-  return /^https?:/iu.test(url) ? url : undefined
 }
 
 function imagesOf(result: ChatToolResultMessage | undefined) {

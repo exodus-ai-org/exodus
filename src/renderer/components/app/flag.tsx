@@ -40,7 +40,7 @@ export function Flag({
     return (
       <HugeiconsIcon
         icon={Globe02Icon}
-        strokeWidth={2}
+
         aria-hidden
         className={cn('text-muted-foreground size-4 shrink-0', className)}
       />

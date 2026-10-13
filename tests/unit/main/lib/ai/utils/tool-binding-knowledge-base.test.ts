@@ -81,8 +81,7 @@ describe('bindCallingTools — knowledge base', () => {
       setting: {
         id: 'global',
         knowledgeBase: { url: 'http://h:9621' },
-        // The pre-rename key still disables the tool.
-        tools: { disabledTools: ['searchKnowledgeBase'] }
+        tools: { disabledTools: ['search_knowledge_base'] }
       },
       mcpTools: []
     } as never)

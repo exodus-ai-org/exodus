@@ -118,7 +118,7 @@ describe('colour tones', () => {
     ],
     [
       'send',
-      'src/renderer/components/chat/composer/composer.tsx',
+      'src/renderer/components/chat/composer/composer-turn-button.tsx',
       "t('composer.send')"
     ]
   ])(
@@ -138,7 +138,7 @@ describe('colour tones', () => {
 
   it('draws the stop button neutral, its square white in light', () => {
     const classes = classesBefore(
-      'src/renderer/components/chat/composer/composer.tsx',
+      'src/renderer/components/chat/composer/composer-turn-button.tsx',
       "t('composer.stop')"
     )
     expect(classes).toContain('bg-foreground')
@@ -152,7 +152,7 @@ describe('colour tones', () => {
   })
 
   it('draws links in the ink', () => {
-    const links = css.slice(css.indexOf('.markdown :where(a) {'))
+    const links = css.slice(css.indexOf(':scope :where(a) {'))
     expect(links.slice(0, links.indexOf('}'))).toContain(
       'color: var(--primary-ink)'
     )
@@ -181,5 +181,77 @@ describe('text in the tone’s colour', () => {
         )
     )
     expect(offenders).toEqual([])
+  })
+})
+
+describe('a code block’s panel', () => {
+  // A tone tints `--muted`; code on a tinted panel read as part of the
+  // decoration (owner, 2026-10-08), so the panel has a token of its own that
+  // only the two neutral schemes set.
+  it('is neutral in every tone: --code is set by :root and .dark alone', () => {
+    expect(block(':root')['--code']).toBe('oklch(0.97 0 0)')
+    expect(block('.dark')['--code']).toBe('oklch(0.269 0 0)')
+    for (const palette of palettes) {
+      if (palette.name.startsWith('neutral')) continue
+      expect(palette.tokens['--code'], palette.name).toBeUndefined()
+    }
+  })
+
+  it('and its header strip both use it, never --muted', () => {
+    expect(css).toMatch(/:scope :where\(pre\) \{\s*@apply bg-code /u)
+    const markdown = readFileSync(
+      join(ROOT, 'src/renderer/components/markdown/markdown.tsx'),
+      'utf8'
+    )
+    expect(markdown).toContain(
+      'className="bg-code text-muted-foreground sticky'
+    )
+    expect(markdown).not.toContain('bg-muted text-muted-foreground sticky')
+  })
+})
+
+// The tone colours a conversation, not the page around it: a
+// `data-tone-scope="neutral"` region (Philharmonic's pages) is drawn with the
+// neutral tone's accents, and `data-tone-scope="tone"` inside it takes the
+// chosen tone back (a group's transcript and composer).
+describe('where the tone stops', () => {
+  const neutralLight = block(`[data-tone-scope='neutral']`)
+  const neutralDark = block(`.dark [data-tone-scope='neutral']`)
+  const toned = block(`[data-tone-scope='tone']`)
+  // The aliases sit in a `:root` block of their own, after the tones.
+  const aliases = Object.fromEntries(
+    [...css.matchAll(/(--toned-[\w-]+):\s*([^;]+);/gu)].map((m) => [m[1], m[2]])
+  )
+
+  it('is the neutral tone’s accents, light and dark', () => {
+    for (const [name, value] of Object.entries(neutralLight)) {
+      expect(value, name).toBe(block(':root')[name])
+    }
+    for (const [name, value] of Object.entries(neutralDark)) {
+      expect(value, name).toBe(block('.dark')[name])
+    }
+    expect(Object.keys(neutralDark)).toEqual(Object.keys(neutralLight))
+  })
+
+  it('resets every accent a tone sets, and brings each one back', () => {
+    // Each token a tone gives its fill, ink, bubble, accent or ring.
+    const accents = Object.keys(neutralLight)
+    for (const name of [
+      '--primary',
+      '--primary-foreground',
+      '--primary-ink',
+      '--bubble',
+      '--accent',
+      '--ring',
+      '--sidebar-primary'
+    ]) {
+      expect(accents, name).toContain(name)
+    }
+    expect(Object.keys(toned)).toEqual(accents)
+    for (const name of accents) {
+      const alias = `--toned-${name.slice(2)}`
+      expect(toned[name], name).toBe(`var(${alias})`)
+      expect(aliases[alias], alias).toBe(`var(${name})`)
+    }
   })
 })

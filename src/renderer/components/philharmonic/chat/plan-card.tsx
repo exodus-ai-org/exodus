@@ -94,20 +94,20 @@ export function PlanCard({ plan, agentsById }: Props) {
         {collapsed ? (
           <HugeiconsIcon
             icon={ArrowRight01Icon}
-            strokeWidth={2}
+
             className="text-muted-foreground h-4 w-4"
           />
         ) : (
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            strokeWidth={2}
+
             className="text-muted-foreground h-4 w-4"
           />
         )}
-        <span className="text-foreground flex-1 truncate text-[12.5px] font-semibold">
+        <span className="text-foreground text-ui flex-1 truncate font-semibold">
           {plan.summary}
         </span>
-        <span className="text-muted-foreground text-[11px]">
+        <span className="text-muted-foreground text-2xs">
           {done}/{total} · {elapsedLabel(plan)}
         </span>
         <StatusPill status={plan.status} />
@@ -127,20 +127,20 @@ export function PlanCard({ plan, agentsById }: Props) {
                 )}
               >
                 <span
-                  className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[12px]"
+                  className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-xs"
                   style={{ color: STATUS_COLOR[s.status] }}
                   aria-label={stepStatusAria[s.status]}
                 >
                   {s.status === 'done' ? (
                     <HugeiconsIcon
                       icon={Tick02Icon}
-                      strokeWidth={2}
+
                       className="h-3.5 w-3.5"
                     />
                   ) : s.status === 'failed' ? (
                     <HugeiconsIcon
                       icon={Cancel01Icon}
-                      strokeWidth={2}
+
                       className="h-3.5 w-3.5"
                     />
                   ) : (
@@ -150,7 +150,7 @@ export function PlanCard({ plan, agentsById }: Props) {
                 <div className="min-w-0 flex-1">
                   <div
                     className={cn(
-                      'text-[13px] font-medium',
+                      'text-ui font-medium',
                       s.status === 'done' &&
                         'text-muted-foreground line-through',
                       s.status === 'skipped' && 'text-muted-foreground',
@@ -162,19 +162,17 @@ export function PlanCard({ plan, agentsById }: Props) {
                     {s.ordinal + 1}. {s.title}
                   </div>
                   {s.intent && (
-                    <div className="text-muted-foreground text-[11.5px]">
+                    <div className="text-muted-foreground text-xs">
                       {s.intent}
                     </div>
                   )}
                   {s.output && s.status === 'done' && (
-                    <div className="text-muted-foreground mt-1 line-clamp-2 text-[11.5px]">
+                    <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">
                       → {s.output}
                     </div>
                   )}
                   {s.note && (
-                    <div className="mt-1 text-[11.5px] text-amber-500">
-                      {s.note}
-                    </div>
+                    <div className="mt-1 text-xs text-amber-500">{s.note}</div>
                   )}
                 </div>
                 {agent && (
@@ -206,7 +204,7 @@ function StatusPill({ status }: { status: PlanDto['status'] }) {
   return (
     <span
       className={cn(
-        'bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium',
+        'bg-muted rounded-full px-2 py-0.5 text-2xs font-medium',
         status === 'completed'
           ? 'text-emerald-500'
           : status === 'aborted'

@@ -91,7 +91,7 @@ export function CuratedOwners({
           </span>
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            strokeWidth={2}
+
             className={cn(
               'text-muted-foreground size-4 shrink-0 transition-transform duration-200',
               isOpen && 'rotate-180'

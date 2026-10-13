@@ -92,7 +92,7 @@ Search tab (Elasticsearch config), and the Logger tab (in-app log viewer).
 - Never `git commit --amend`. `git add` scoped to the exact files each
   task names — never `-A`/`.` (the working tree has substantial unrelated
   concurrent changes from other in-flight work — confirmed via `git
-status --porcelain` during planning: `memory.tsx`, `lock-privacy.tsx`,
+  status --porcelain` during planning: `memory.tsx`, `lock-privacy.tsx`,
   `update-panel.tsx`, and several non-settings files are mid-edit by
   other agents; none of them are touched by this plan).
 - `pnpm i18n:check` / `pnpm typecheck` / `pnpm lint` / `pnpm test` must

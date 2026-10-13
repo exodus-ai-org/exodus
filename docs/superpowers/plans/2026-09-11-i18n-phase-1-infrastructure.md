@@ -56,9 +56,9 @@
 - [ ] **Step 1: Write the failing test**
 
 ```ts
+import { resolveLocale, isLocaleId, LOCALE_IDS } from '@shared/i18n/locales'
 // tests/unit/i18n/locales.test.ts
 import { describe, expect, it } from 'vitest'
-import { resolveLocale, isLocaleId, LOCALE_IDS } from '@shared/i18n/locales'
 
 describe('resolveLocale', () => {
   const cases: [string[], string][] = [
@@ -326,20 +326,20 @@ The remaining 10 (`chat.json`, `philharmonic.json`, `discover.json`, `knowledgeB
 - [ ] **Step 3: Write `types.d.ts`**
 
 ```ts
+import type audio from './locales/en/audio.json'
+import type chat from './locales/en/chat.json'
 // src/shared/i18n/types.d.ts
 import type common from './locales/en/common.json'
-import type chat from './locales/en/chat.json'
-import type settings from './locales/en/settings.json'
-import type philharmonic from './locales/en/philharmonic.json'
-import type discover from './locales/en/discover.json'
-import type knowledgeBase from './locales/en/knowledgeBase.json'
-import type deepResearch from './locales/en/deepResearch.json'
 import type computerUse from './locales/en/computerUse.json'
-import type lock from './locales/en/lock.json'
-import type webSearch from './locales/en/webSearch.json'
-import type audio from './locales/en/audio.json'
+import type deepResearch from './locales/en/deepResearch.json'
+import type discover from './locales/en/discover.json'
 import type errors from './locales/en/errors.json'
+import type knowledgeBase from './locales/en/knowledgeBase.json'
+import type lock from './locales/en/lock.json'
 import type menu from './locales/en/menu.json'
+import type philharmonic from './locales/en/philharmonic.json'
+import type settings from './locales/en/settings.json'
+import type webSearch from './locales/en/webSearch.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -407,9 +407,9 @@ export function createI18n(
 - [ ] **Step 5: Write the failing test**
 
 ```ts
+import { createI18n } from '@shared/i18n'
 // tests/unit/i18n/engine.test.ts
 import { describe, expect, it } from 'vitest'
-import { createI18n } from '@shared/i18n'
 
 describe('createI18n', () => {
   it('loads the active locale and returns a real string', async () => {
@@ -541,10 +541,11 @@ git commit -m "feat(i18n): empty non-English catalog stubs + _status.json"
 // tests/unit/i18n/catalogs.test.ts
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { describe, expect, it } from 'vitest'
+
+import { auditCatalogs, flattenCatalog } from '@shared/i18n/catalog-audit'
 import { LOCALE_IDS } from '@shared/i18n/locales'
 import { NAMESPACES } from '@shared/i18n/namespaces'
-import { auditCatalogs, flattenCatalog } from '@shared/i18n/catalog-audit'
+import { describe, expect, it } from 'vitest'
 
 const ROOT = join(
   __dirname,
@@ -862,9 +863,9 @@ git commit -m "feat(i18n): catalog audit + i18n:check/status/audit scripts + gat
 - [ ] **Step 1: Write the failing test**
 
 ```ts
+import { SettingsSchema } from '@shared/schemas/settings-schema'
 // tests/unit/i18n/settings-language.test.ts
 import { describe, expect, it } from 'vitest'
-import { SettingsSchema } from '@shared/schemas/settings-schema'
 
 const base = { id: 'global', createdAt: new Date(), updatedAt: new Date() }
 
@@ -1004,8 +1005,6 @@ Expected: FAIL — module missing.
 - [ ] **Step 3: Write `src/main/lib/i18n.ts`**
 
 ```ts
-import { app, ipcMain } from 'electron'
-
 import { createI18n } from '@shared/i18n'
 import {
   isLocaleId,
@@ -1013,6 +1012,7 @@ import {
   type LanguageSetting,
   type LocaleId
 } from '@shared/i18n/locales'
+import { app, ipcMain } from 'electron'
 
 import { getSettings } from './db/queries'
 import { logger } from './logger'
@@ -1223,15 +1223,13 @@ export const i18nReady = created.ready
 - [ ] **Step 4: Write `src/renderer/components/i18n-provider.tsx`**
 
 ```tsx
+import { isLocaleId, type LanguageSetting } from '@shared/i18n/locales'
 import { useEffect } from 'react'
 import { I18nextProvider } from 'react-i18next'
 
-import { isLocaleId, type LanguageSetting } from '@shared/i18n/locales'
-
 import { useSettings } from '@/hooks/use-settings'
-import { setAppLocale } from '@/lib/ipc'
-
 import { i18n } from '@/lib/i18n'
+import { setAppLocale } from '@/lib/ipc'
 
 /**
  * Follows `settings.language` and keeps i18next, `<html lang>`, and the main
@@ -1387,6 +1385,7 @@ git commit -m "feat(i18n): mount I18nProvider in all four renderer entry points"
 ```ts
 // tests/unit/i18n/format.test.ts
 import { describe, expect, it } from 'vitest'
+
 import { makeFormatters } from '@/lib/format'
 
 describe('makeFormatters', () => {
@@ -1395,9 +1394,11 @@ describe('makeFormatters', () => {
   it('formats numbers per locale', () => {
     expect(makeFormatters('en').number(1234567.5)).toBe('1,234,567.5')
     expect(makeFormatters('de').number(1234567.5)).toBe('1.234.567,5')
-    expect(makeFormatters('fr').number(1234567.5).replace(/ | /g, ' ')).toBe(
-      '1 234 567,5'
-    )
+    expect(
+      makeFormatters('fr')
+        .number(1234567.5)
+        .replace(/ | /g, ' ')
+    ).toBe('1 234 567,5')
   })
 
   it('formats dates per locale', () => {
@@ -1437,6 +1438,7 @@ Expected: FAIL — module missing.
 - [ ] **Step 3: Write `src/renderer/lib/format.ts`**
 
 ```ts
+import type { LocaleId } from '@shared/i18n/locales'
 import { formatDistanceToNow } from 'date-fns'
 import {
   de,
@@ -1454,8 +1456,6 @@ import {
 } from 'date-fns/locale'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import type { LocaleId } from '@shared/i18n/locales'
 
 const DATE_FNS: Record<LocaleId, Locale> = {
   en: enUS,

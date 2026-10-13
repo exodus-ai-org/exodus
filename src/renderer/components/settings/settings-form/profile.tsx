@@ -203,7 +203,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
         <Card className="gap-2 overflow-x-auto px-4 py-4">
           <div className="flex min-w-fit flex-col gap-1">
             <div
-              className="text-muted-foreground grid text-[10px]"
+              className="text-muted-foreground text-2xs grid"
               style={{
                 gridTemplateColumns: `repeat(${Math.ceil(grid.length / 7)}, ${CELL_PX}px)`,
                 columnGap: CELL_GAP_PX

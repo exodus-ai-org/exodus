@@ -93,3 +93,55 @@ describe('filterRecords', () => {
     expect(filterRecords([rec(), rec()], {})).toHaveLength(2)
   })
 })
+
+describe('levelsFromParam', () => {
+  it('reads a comma list, none for a param naming no level', async () => {
+    const { levelsFromParam } =
+      await import('@main/lib/server/routes/logs-filter')
+    expect(levelsFromParam(undefined)).toBeUndefined()
+    expect([...levelsFromParam('error,warn,bogus')!]).toEqual(['error', 'warn'])
+    expect(levelsFromParam('none')!.size).toBe(0)
+  })
+})
+
+describe('filterRecords — the chart and the search box', () => {
+  it('keeps exactly the levels asked for', () => {
+    const out = filterRecords(
+      [
+        rec({ severityNumber: 5 }),
+        rec({ severityNumber: 9 }),
+        rec({ severityNumber: 17 })
+      ],
+      { levels: new Set(['error', 'debug'] as const) }
+    )
+    expect(out.map((r) => r.severityNumber)).toEqual([5, 17])
+    expect(filterRecords([rec()], { levels: new Set() })).toEqual([])
+  })
+
+  it('keeps a time window, from inclusive and to exclusive', () => {
+    const from = Date.parse('2026-09-06T00:00:00.000Z')
+    const out = filterRecords(
+      [
+        rec({ timestamp: '2026-09-06T00:00:00.000Z', body: 'a' }),
+        rec({ timestamp: '2026-09-06T00:00:59.999Z', body: 'b' }),
+        rec({ timestamp: '2026-09-06T00:01:00.000Z', body: 'c' })
+      ],
+      { from, to: from + 60_000 }
+    )
+    expect(out.map((r) => r.body)).toEqual(['a', 'b'])
+  })
+
+  it('applies a parsed query', async () => {
+    const { parseLogQuery } = await import('@exodus/shared/utils/log-query')
+    const out = filterRecords(
+      [
+        rec({ body: 'tool failed', scope: { name: 'chat' } }),
+        rec({ body: 'tool ok', scope: { name: 'chat' } }),
+        rec({ body: 'tool failed', scope: { name: 'jobs' } })
+      ],
+      { query: parseLogQuery('tool -ok scope:chat') }
+    )
+    expect(out).toHaveLength(1)
+    expect(out[0].body).toBe('tool failed')
+  })
+})

@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Ask anything",
+    "listening": "Listening…",
     "pleaseWaitTitle": "Please wait",
     "pleaseWaitDescription": "The model is still generating a response.",
     "stop": "Stop",
@@ -112,7 +113,12 @@
     "exitFullscreen": "Exit fullscreen",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreenEsc": "Exit fullscreen (Esc)",
-    "fullscreen": "Fullscreen"
+    "fullscreen": "Fullscreen",
+    "draft": {
+      "untitled": "Untitled artifact",
+      "writing_one": "Writing · {{count}} line",
+      "writing_other": "Writing · {{count}} lines"
+    }
   },
   "computerUseCard": {
     "title": "Computer Use",
@@ -203,11 +209,39 @@
     "details": "Details",
     "less": "Less"
   },
-  "sourcesPanel": {
-    "title_one": "{{count}} Source",
-    "title_other": "{{count}} Sources",
-    "citations": "Citations ({{count}})",
-    "more": "More"
+  "header": {
+    "back": "Back",
+    "forward": "Forward",
+    "streaming": "Replying…",
+    "noModel": "Choose a model",
+    "modelMenu": "Model",
+    "noModels": "No models fetched yet",
+    "openProviders": "Open AI Providers",
+    "menu": "Chat options",
+    "exportMarkdown": "Export as Markdown…",
+    "exportPdf": "Export as PDF…",
+    "exportFailed": "Couldn't export the chat",
+    "panel": "Files, tools and sources"
+  },
+  "export": {
+    "you": "You",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} picture attached",
+    "pictures_other": "{{count}} pictures attached",
+    "tool": "Tool: {{name}}"
+  },
+  "panel": {
+    "files": "Files",
+    "tools": "Tools",
+    "sources": "Sources",
+    "empty": "Files, tools and sources from this chat will show up here.",
+    "yours": "Yours",
+    "madeHere": "Made here",
+    "picture": "Picture {{index}}",
+    "generatedPicture": "Generated picture {{index}}",
+    "calls_one": "{{count}} call",
+    "calls_other": "{{count}} calls",
+    "untitledQuestion": "(no text)"
   },
   "sidebar": {
     "newChat": "New chat",
@@ -397,6 +431,16 @@
       "note": "Note",
       "title": "Your answer"
     }
+  },
+  "richBlocks": {
+    "stepLabel": "Step {{number}}",
+    "openOnTradingView": "Open on TradingView",
+    "chartBy": "Chart by TradingView",
+    "chartUnavailable": "The chart could not be loaded.",
+    "entityLoading": "Loading…",
+    "entityNothing": "Nothing found on Wikipedia.",
+    "entityFailed": "Could not reach Wikipedia.",
+    "readMore": "Read more on Wikipedia"
   },
   "workspaceFile": {
     "created": "Created",

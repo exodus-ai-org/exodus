@@ -281,7 +281,12 @@ describe('POST /api/v1/chat on the faux provider', () => {
     let seen: { system?: string; messages: unknown[] } = { messages: [] }
     faux.setResponses([
       (ctx) => {
-        seen = { system: ctx.systemPrompt, messages: ctx.messages }
+        // pi 1.0: the system prompt is the transcript's leading system message.
+        const lead = ctx.messages.find((m) => m.role === 'system')
+        seen = {
+          system: typeof lead?.content === 'string' ? lead.content : undefined,
+          messages: ctx.messages
+        }
         return fauxAssistantMessage([fauxText('Sunny.')])
       }
     ])
@@ -400,7 +405,9 @@ describe('POST /api/v1/chat on the faux provider', () => {
       let seen: unknown[] = []
       faux.setResponses([
         (ctx) => {
-          seen = ctx.messages
+          // The conversation only: pi 1.0 leads the transcript with the
+          // system message, which these cases do not compare.
+          seen = ctx.messages.filter((m) => m.role !== 'system')
           return fauxAssistantMessage([fauxText('Sunny.')])
         }
       ])

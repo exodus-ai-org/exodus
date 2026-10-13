@@ -122,11 +122,15 @@ async function send(
   const answer = `answer ${++takes}`
   faux.setResponses([
     (ctx: Context) => {
-      request = ctx.messages.map((m) =>
-        typeof m.content === 'string'
-          ? m.content
-          : m.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
-      )
+      // The conversation only: pi 1.0 leads the transcript with the system
+      // message, which these cases do not compare.
+      request = ctx.messages
+        .filter((m) => m.role !== 'system')
+        .map((m) =>
+          typeof m.content === 'string'
+            ? m.content
+            : m.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
+        )
       return fauxAssistantMessage([fauxText(answer)])
     }
   ])

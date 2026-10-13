@@ -32,6 +32,18 @@ async function render(attributes: Record<string, unknown> | undefined) {
   return host
 }
 
+// The attributes table, as { key: the value as shown }.
+const table = (host: HTMLElement) => {
+  const el = host.querySelector('[data-log-attributes]')
+  if (!el) return null
+  return Object.fromEntries(
+    [...el.querySelectorAll('[data-log-attribute]')].map((row) => [
+      row.getAttribute('data-log-attribute'),
+      row.lastElementChild?.textContent
+    ])
+  )
+}
+
 const blocks = (host: HTMLElement) =>
   [...host.querySelectorAll('[data-log-stack]')].map((el) => ({
     kind: el.getAttribute('data-log-stack'),
@@ -101,19 +113,29 @@ describe('LogAttributes', () => {
     expect(stack.className).toMatch(/\bfont-mono\b/u)
   })
 
-  it('keeps the rest of the attributes as JSON, without the stack it showed', async () => {
+  it('keeps the rest of the attributes as a table, without the stack it showed', async () => {
     const host = await render({
       'exception.type': 'TypeError',
       'exception.stacktrace': STACK,
       'exception.stacktrace_raw': RAW,
-      chatId: 'c1'
+      chatId: 'c1',
+      attempt: 2
     })
-    const json = host.querySelector('[data-log-attributes]')
-    expect(json).not.toBeNull()
-    expect(JSON.parse(json!.textContent ?? '')).toEqual({
-      'exception.type': 'TypeError',
-      'exception.stacktrace_raw': RAW,
-      chatId: 'c1'
+    // Sorted by key; a string keeps its quotes, a number does not.
+    expect(table(host)).toEqual({
+      attempt: '2',
+      chatId: '"c1"',
+      'exception.stacktrace_raw': JSON.stringify(RAW),
+      'exception.type': '"TypeError"'
+    })
+  })
+
+  it('notes a duration in milliseconds in seconds', async () => {
+    const host = await render({ duration_ms: 5012, latencyMs: '1500', ms: 20 })
+    expect(table(host)).toEqual({
+      duration_ms: '5012// 5.0 s',
+      latencyMs: '"1500"// 1.5 s',
+      ms: '20'
     })
   })
 
@@ -135,20 +157,16 @@ describe('LogAttributes', () => {
         '    at WeatherCard\n    at ErrorBoundary'
       ]
     ])
-    expect(
-      JSON.parse(host.querySelector('[data-log-attributes]')!.textContent ?? '')
-    ).toEqual({ toolName: 'weather' })
+    expect(table(host)).toEqual({ toolName: '"weather"' })
   })
 
-  it('shows only the JSON when there is no stack', async () => {
+  it('shows only the table when there is no stack', async () => {
     const host = await render({ chatId: 'c1' })
     expect(blocks(host)).toEqual([])
-    expect(
-      JSON.parse(host.querySelector('[data-log-attributes]')!.textContent ?? '')
-    ).toEqual({ chatId: 'c1' })
+    expect(table(host)).toEqual({ chatId: '"c1"' })
   })
 
-  it('shows no empty JSON block under a stack that was all there was', async () => {
+  it('shows no empty table under a stack that was all there was', async () => {
     const host = await render({ stack: STACK })
     expect(blocks(host)).toHaveLength(1)
     expect(host.querySelector('[data-log-attributes]')).toBeNull()

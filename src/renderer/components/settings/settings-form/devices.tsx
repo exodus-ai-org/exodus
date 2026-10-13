@@ -59,9 +59,9 @@ function DeviceRow({
       className={ENTER_UP}
       icon={
         /ipad|tablet/iu.test(device.name) ? (
-          <HugeiconsIcon icon={Tablet01Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Tablet01Icon} />
         ) : (
-          <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={SmartPhone01Icon} />
         )
       }
       title={<span className="truncate">{device.name}</span>}

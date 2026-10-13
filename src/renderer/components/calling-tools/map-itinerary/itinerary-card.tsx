@@ -153,7 +153,7 @@ function ItineraryNotice({ notice }: { notice: ToolNotice }) {
     >
       <HugeiconsIcon
         icon={Icon}
-        strokeWidth={2}
+
         className="mt-px size-3.5 shrink-0"
       />
       <span>{notice.message}</span>
@@ -299,7 +299,7 @@ function MapItineraryCardImpl({
               >
                 <HugeiconsIcon
                   icon={LinkSquare02Icon}
-                  strokeWidth={2}
+
                   size={14}
                 />
               </a>
@@ -311,9 +311,9 @@ function MapItineraryCardImpl({
               className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
             >
               {copied === copyMarkdown ? (
-                <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} size={14} />
+                <HugeiconsIcon icon={Tick02Icon} size={14} />
               ) : (
-                <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} size={14} />
+                <HugeiconsIcon icon={Copy01Icon} size={14} />
               )}
             </button>
           </div>

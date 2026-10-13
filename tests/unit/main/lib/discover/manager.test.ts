@@ -49,7 +49,10 @@ vi.mock('@main/lib/ai/kernel/models', () => ({
 }))
 
 const mockSearchBraveNews = vi.fn()
-vi.mock('@main/lib/discover/brave-news-client', () => ({
+vi.mock('@main/lib/discover/brave-news-client', async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import('@main/lib/discover/brave-news-client')
+  >()),
   searchBraveNews: (...args: unknown[]) => mockSearchBraveNews(...args)
 }))
 
@@ -64,10 +67,30 @@ function llmReturns(obj: unknown) {
   })
 }
 
+/** The model's two answers in turn: the topics, then which results fit. */
+function llmAnswers(...answers: unknown[]) {
+  for (const answer of answers) {
+    mockCompleteSimple.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify(answer) }]
+    })
+  }
+}
+
+function pooled(title: string, hoursAgo: number) {
+  return {
+    title,
+    url: `https://x/${encodeURIComponent(title)}`,
+    description: '',
+    source: 'x',
+    publishedMs: Date.parse('2026-10-08T12:00:00Z') - hoursAgo * 3_600_000
+  }
+}
+
 function memoryRow(over: Record<string, unknown> = {}) {
   return {
     id: 'mem-1',
     key: 'SoftBank',
+    section: 'topic',
     summary: 'Holds SoftBank 9984',
     lastUsedAt: new Date('2026-09-05'),
     updatedAt: new Date('2026-09-05'),
@@ -275,6 +298,92 @@ describe('runDiscoverRefresh', () => {
     expect(
       idleWrites.some((p) => Array.isArray(p.groups) && p.groups.length === 0)
     ).toBe(false)
+  })
+
+  it('asks only about the topics the user follows, not their profile or people', async () => {
+    mockGetActiveMemories.mockResolvedValue([
+      memoryRow({ id: 'mem-1', key: 'Investing' }),
+      memoryRow({ id: 'mem-2', key: 'Location', section: 'profile' }),
+      memoryRow({ id: 'mem-3', key: 'Meiji', section: 'person' })
+    ])
+    llmReturns({ items: [] })
+
+    await runDiscoverRefresh()
+
+    const prompt = mockCompleteSimple.mock.calls[0][1].messages[0].content[0]
+      .text as string
+    expect(prompt).toContain('mem-1')
+    expect(prompt).not.toContain('mem-2')
+    expect(prompt).not.toContain('mem-3')
+  })
+
+  it('shows the freshest of what the check keeps, and drops a topic left with nothing', async () => {
+    mockGetActiveMemories.mockResolvedValue([
+      memoryRow({ id: 'mem-1', key: 'Investing' }),
+      memoryRow({ id: 'mem-2', key: 'Zelda' })
+    ])
+    llmAnswers(
+      {
+        items: [
+          { memoryId: 'mem-1', topic: 'Japan stocks', query: 'q1' },
+          { memoryId: 'mem-2', topic: 'Zelda', query: 'q2' }
+        ]
+      },
+      {
+        topics: [
+          { topic: 1, keep: [1, 3, 4] },
+          { topic: 2, keep: [] }
+        ]
+      }
+    )
+    mockSearchBraveNews.mockImplementation(async (_key: string, q: string) =>
+      q === 'q1'
+        ? [
+            pooled('Nikkei tops 70,000', 30),
+            pooled('European shares fall', 1),
+            pooled('Advantest buyback', 5),
+            pooled('Murata results', 50)
+          ]
+        : [pooled('A failed execution', 2)]
+    )
+
+    await runDiscoverRefresh()
+
+    const judge = mockCompleteSimple.mock.calls[1][1].messages[0].content[0]
+      .text as string
+    expect(judge).toContain('Topic 1: Japan stocks')
+    expect(judge).toContain('2. European shares fall')
+    const written = mockSetDiscoverFeed.mock.calls.find(
+      (c) => c[0].status === 'idle' && c[0].groups
+    )?.[0]
+    expect(written.groups).toHaveLength(1)
+    expect(
+      written.groups[0].articles.map((a: { title: string }) => a.title)
+    ).toEqual(['Advantest buyback', 'Nikkei tops 70,000', 'Murata results'])
+    expect(written.groups[0].articles[0]).not.toHaveProperty('publishedMs')
+  })
+
+  it('when the check cannot be read, shows Brave’s relevance order, not the newest', async () => {
+    mockGetActiveMemories.mockResolvedValue([memoryRow()])
+    llmAnswers(
+      { items: [{ memoryId: 'mem-1', topic: 'SoftBank', query: 'q' }] },
+      'not json'
+    )
+    mockSearchBraveNews.mockResolvedValue([
+      pooled('most relevant', 40),
+      pooled('second', 30),
+      pooled('third', 20),
+      pooled('fresh loose match', 1)
+    ])
+
+    await runDiscoverRefresh()
+
+    const written = mockSetDiscoverFeed.mock.calls.find(
+      (c) => c[0].status === 'idle' && c[0].groups
+    )?.[0]
+    expect(
+      written.groups[0].articles.map((a: { title: string }) => a.title)
+    ).toEqual(['third', 'second', 'most relevant'])
   })
 
   it('on an LLM failure, marks status failed, leaves groups/generatedAt untouched, and rethrows', async () => {

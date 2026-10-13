@@ -2,7 +2,9 @@
 // no other prompt does.
 import {
   askBlockSchema,
-  confirmBlockSchema
+  confirmBlockSchema,
+  stepsBlockSchema,
+  stockBlockSchema
 } from '@exodus/shared/types/interactive'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -24,8 +26,13 @@ vi.mock('@main/lib/ai/utils/model-util', () => ({
 }))
 vi.mock('@main/lib/db/memory-queries', () => ({ createMemory: vi.fn() }))
 
-const { ASK_EXAMPLE, CONFIRM_EXAMPLE, INTERACTIVE_BLOCKS_PROMPT } =
-  await import('@main/lib/ai/interactive-blocks-prompt')
+const {
+  ASK_EXAMPLE,
+  CONFIRM_EXAMPLE,
+  INTERACTIVE_BLOCKS_PROMPT,
+  STEPS_EXAMPLE,
+  STOCK_EXAMPLE
+} = await import('@main/lib/ai/interactive-blocks-prompt')
 const {
   deepResearchBootPrompt,
   deepResearchSystemPrompt,
@@ -45,6 +52,13 @@ describe('the interactive blocks section', () => {
     expect(prompt).toContain(
       `\`\`\`exodus-confirm\n${JSON.stringify(CONFIRM_EXAMPLE)}\n\`\`\``
     )
+    expect(prompt).toContain(
+      `\`\`\`exodus-steps\n${JSON.stringify(STEPS_EXAMPLE)}\n\`\`\``
+    )
+    expect(prompt).toContain(
+      `\`\`\`exodus-stock\n${JSON.stringify(STOCK_EXAMPLE)}\n\`\`\``
+    )
+    expect(prompt).toContain('[Marie Curie](entity:Marie_Curie)')
     expect(prompt).toContain('```exodus-answer')
     // Before the response format, after the citations.
     expect(prompt.indexOf('<interactive_blocks>')).toBeGreaterThan(
@@ -58,6 +72,8 @@ describe('the interactive blocks section', () => {
   it('shows examples the clients draw', () => {
     expect(askBlockSchema.safeParse(ASK_EXAMPLE).success).toBe(true)
     expect(confirmBlockSchema.safeParse(CONFIRM_EXAMPLE).success).toBe(true)
+    expect(stepsBlockSchema.safeParse(STEPS_EXAMPLE).success).toBe(true)
+    expect(stockBlockSchema.safeParse(STOCK_EXAMPLE).success).toBe(true)
   })
 
   it('asks for a confirmation only where the prompt already stops: a hard stop or outside this machine', () => {
@@ -76,8 +92,14 @@ describe('the interactive blocks section', () => {
     )
   })
 
+  it('tells the model where a picture may come from, and which ranges exist', () => {
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain('never an original image')
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain('1D, 1M, 3M, 12M, 60M, ALL')
+    expect(INTERACTIVE_BLOCKS_PROMPT).toContain('at most five a reply')
+  })
+
   it('stays short: every chat turn reads it', () => {
-    expect(INTERACTIVE_BLOCKS_PROMPT.split('\n').length).toBeLessThanOrEqual(40)
+    expect(INTERACTIVE_BLOCKS_PROMPT.split('\n').length).toBeLessThanOrEqual(70)
   })
 
   it('is in no other prompt', () => {
@@ -90,6 +112,9 @@ describe('the interactive blocks section', () => {
     ]) {
       expect(other).not.toContain('exodus-ask')
       expect(other).not.toContain('exodus-confirm')
+      expect(other).not.toContain('exodus-steps')
+      expect(other).not.toContain('exodus-stock')
+      expect(other).not.toContain('(entity:')
     }
   })
 })

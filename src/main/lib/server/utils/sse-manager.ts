@@ -1,7 +1,8 @@
 export const SSE_HEADERS = {
   'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache',
-  Connection: 'keep-alive'
+  // No `Connection`: HTTP/1.1 keeps the connection by default, and HTTP/2
+  // (the LAN listener) forbids the header.
+  'Cache-Control': 'no-cache'
 } as const
 
 export class SseManager<Topic extends string = string> {

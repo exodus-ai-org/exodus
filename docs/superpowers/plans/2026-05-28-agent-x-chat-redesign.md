@@ -133,6 +133,7 @@ git commit -m "build(agent-x): add dicebear for deterministic employee avatars"
 ```typescript
 // src/shared/constants/avatar.test.ts
 import { describe, expect, it } from 'vitest'
+
 import { AVATAR_STYLES, DEFAULT_AVATAR_STYLE, randomAvatarSeed } from './avatar'
 
 describe('avatar constants', () => {
@@ -708,6 +709,7 @@ git commit -m "feat(agent-x): add knowledge base queries with stub search"
 ```typescript
 // src/main/lib/ai/agent-x/names.test.ts
 import { describe, expect, it } from 'vitest'
+
 import { NAME_POOL, pickName } from './names'
 
 describe('pickName', () => {
@@ -958,6 +960,7 @@ git commit -m "feat(agent-x): add employee recruit helper with auto-name and ava
 ```typescript
 // src/shared/types/agent-x.test.ts
 import { describe, expect, it } from 'vitest'
+
 import { CONVERSATION_MESSAGE_ROLES, type AgentXSseEvent } from './agent-x'
 
 describe('agent-x shared types', () => {
@@ -1365,7 +1368,6 @@ import {
 } from '../../db/agent-x-queries'
 import { getSettings } from '../../db/queries'
 import type { Agent } from '../../db/schema'
-import { calculateCost } from '../utils/cost'
 import { getMcpTools, getMcpToolsByNames } from '../mcp'
 import {
   getActiveSkillsContent,
@@ -1375,6 +1377,7 @@ import {
   bindCallingTools,
   getModelFromProvider
 } from '../utils/chat-message-util'
+import { calculateCost } from '../utils/cost'
 
 export type SseEmitter = (event: AgentXSseEvent) => void
 
@@ -1799,6 +1802,7 @@ The PM's `askUser` tool blocks the loop on a promise keyed by conversationId; th
 ```typescript
 // src/main/lib/ai/agent-x/ask-user-registry.test.ts
 import { describe, expect, it } from 'vitest'
+
 import { askUserRegistry } from './ask-user-registry'
 
 describe('askUserRegistry', () => {
@@ -1975,8 +1979,8 @@ import { getSettings } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
-import { runDelegatedTask } from './execution-engine'
 import type { SseEmitter } from './employee-loop'
+import { runDelegatedTask } from './execution-engine'
 import { createSearchKnowledgeBaseTool } from './kb-tools'
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
@@ -2274,8 +2278,8 @@ import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
-import { runPmCoordinator } from '../../ai/agent-x/pm-coordinator'
 import { askUserRegistry } from '../../ai/agent-x/ask-user-registry'
+import { runPmCoordinator } from '../../ai/agent-x/pm-coordinator'
 import { getAgentXCostRows } from '../../db/agent-x-queries'
 import {
   addMemberToConversation,
@@ -3258,9 +3262,9 @@ git commit -m "feat(agent-x): conversation SSE hook assembling live bubbles"
 - [ ] **Step 1: Implement `employee-avatar.tsx`** (deterministic render from seed+style)
 
 ```tsx
+import * as collection from '@dicebear/collection'
 // src/renderer/components/agent-x/employees/employee-avatar.tsx
 import { createAvatar } from '@dicebear/core'
-import * as collection from '@dicebear/collection'
 import { DEFAULT_AVATAR_STYLE } from '@shared/constants/avatar'
 import { useMemo } from 'react'
 
@@ -3863,16 +3867,16 @@ export function EmployeeEditor({
 - [ ] **Step 2: `employees-page.tsx`** — grid of employees + create + open editor (Sheet/Dialog).
 
 ```tsx
+import {
+  randomAvatarSeed,
+  DEFAULT_AVATAR_STYLE
+} from '@shared/constants/avatar'
 // src/renderer/components/agent-x/employees/employees-page.tsx
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
-import {
-  randomAvatarSeed,
-  DEFAULT_AVATAR_STYLE
-} from '@shared/constants/avatar'
 import {
   createAgentApi,
   deleteAgentApi,
@@ -4088,7 +4092,11 @@ In `agent-x-layout/index.tsx`, change the page union and titles; make `chat` the
 
 ```typescript
 export type AgentXPage =
-  'chat' | 'employees' | 'knowledge' | 'dashboard' | 'costs'
+  | 'chat'
+  | 'employees'
+  | 'knowledge'
+  | 'dashboard'
+  | 'costs'
 
 const pageTitles: Record<AgentXPage, string> = {
   chat: '工作群',

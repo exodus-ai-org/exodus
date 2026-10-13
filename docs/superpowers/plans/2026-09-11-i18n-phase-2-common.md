@@ -40,6 +40,7 @@
 // tests/unit/i18n/common-namespace.test.ts
 import { readFileSync } from 'fs'
 import { join } from 'path'
+
 import { describe, expect, it } from 'vitest'
 
 const common = JSON.parse(

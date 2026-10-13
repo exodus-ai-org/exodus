@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Pergunte qualquer coisa",
+    "listening": "Ouvindo…",
     "pleaseWaitTitle": "Aguarde",
     "pleaseWaitDescription": "O modelo ainda está gerando uma resposta.",
     "stop": "Parar",
@@ -112,7 +113,12 @@
     "exitFullscreen": "Sair da tela cheia",
     "enterFullscreen": "Entrar em tela cheia",
     "exitFullscreenEsc": "Sair da tela cheia (Esc)",
-    "fullscreen": "Tela cheia"
+    "fullscreen": "Tela cheia",
+    "draft": {
+      "untitled": "Artefato sem título",
+      "writing_one": "Escrevendo · {{count}} linha",
+      "writing_other": "Escrevendo · {{count}} linhas"
+    }
   },
   "computerUseCard": {
     "title": "Uso do Computador",
@@ -203,11 +209,39 @@
     "details": "Detalhes",
     "less": "Menos"
   },
-  "sourcesPanel": {
-    "title_one": "{{count}} Fonte",
-    "title_other": "{{count}} Fontes",
-    "citations": "Citações ({{count}})",
-    "more": "Mais"
+  "header": {
+    "back": "Voltar",
+    "forward": "Avançar",
+    "streaming": "Respondendo…",
+    "noModel": "Escolher um modelo",
+    "modelMenu": "Modelo",
+    "noModels": "Nenhum modelo obtido ainda",
+    "openProviders": "Abrir provedores de IA",
+    "menu": "Opções do chat",
+    "exportMarkdown": "Exportar como Markdown…",
+    "exportPdf": "Exportar como PDF…",
+    "exportFailed": "Não foi possível exportar o chat",
+    "panel": "Arquivos, ferramentas e fontes"
+  },
+  "export": {
+    "you": "Você",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} imagem anexada",
+    "pictures_other": "{{count}} imagens anexadas",
+    "tool": "Ferramenta: {{name}}"
+  },
+  "panel": {
+    "files": "Arquivos",
+    "tools": "Ferramentas",
+    "sources": "Fontes",
+    "empty": "Arquivos, ferramentas e fontes deste chat aparecerão aqui.",
+    "yours": "Seus",
+    "madeHere": "Criados aqui",
+    "picture": "Imagem {{index}}",
+    "generatedPicture": "Imagem gerada {{index}}",
+    "calls_one": "{{count}} chamada",
+    "calls_other": "{{count}} chamadas",
+    "untitledQuestion": "(sem texto)"
   },
   "sidebar": {
     "newChat": "Novo chat",
@@ -397,6 +431,16 @@
       "note": "Observação",
       "title": "Sua resposta"
     }
+  },
+  "richBlocks": {
+    "stepLabel": "Passo {{number}}",
+    "openOnTradingView": "Abrir no TradingView",
+    "chartBy": "Gráfico do TradingView",
+    "chartUnavailable": "Não foi possível carregar o gráfico.",
+    "entityLoading": "Carregando…",
+    "entityNothing": "Nada encontrado na Wikipédia.",
+    "entityFailed": "Não foi possível acessar a Wikipédia.",
+    "readMore": "Ler mais na Wikipédia"
   },
   "workspaceFile": {
     "created": "Criado",

@@ -241,7 +241,6 @@ Replace `src/main/lib/ai/providers/resolve-model.ts` in full:
 ```ts
 import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 import { getModel } from '@mariozechner/pi-ai'
-
 import type { ModelSnapshot } from '@shared/schemas/settings-schema'
 
 interface FallbackDefaults {
@@ -1807,19 +1806,18 @@ In `src/shared/constants/test-ids.ts`, add a new top-level group (alongside `set
 - [ ] **Step 2: Implement the component**
 
 ```tsx
+import { TEST_IDS } from '@shared/constants/test-ids'
 // src/renderer/components/settings/settings-form/providers/model-picker.tsx
 import {
   ModelSnapshot,
   UseFormReturnType
 } from '@shared/schemas/settings-schema'
-import { TEST_IDS } from '@shared/constants/test-ids'
 import { AiProviders } from '@shared/types/ai'
-import { FieldPath } from 'react-hook-form'
-import { useState } from 'react'
-import { sileo } from 'sileo'
-
 import { getHttpErrorMessage } from '@shared/utils/http'
 import { fetcher } from '@shared/utils/http'
+import { useState } from 'react'
+import { FieldPath } from 'react-hook-form'
+import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
 

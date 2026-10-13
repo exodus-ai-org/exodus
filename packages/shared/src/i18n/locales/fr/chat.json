@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "Posez n'importe quelle question",
+    "listening": "À l’écoute…",
     "pleaseWaitTitle": "Veuillez patienter",
     "pleaseWaitDescription": "Le modèle génère encore une réponse.",
     "stop": "Arrêter",
@@ -112,7 +113,12 @@
     "exitFullscreen": "Quitter le plein écran",
     "enterFullscreen": "Passer en plein écran",
     "exitFullscreenEsc": "Quitter le plein écran (Échap)",
-    "fullscreen": "Plein écran"
+    "fullscreen": "Plein écran",
+    "draft": {
+      "untitled": "Artefact sans titre",
+      "writing_one": "Écriture · {{count}} ligne",
+      "writing_other": "Écriture · {{count}} lignes"
+    }
   },
   "computerUseCard": {
     "title": "Utilisation de l'ordinateur",
@@ -203,11 +209,39 @@
     "details": "Détails",
     "less": "Moins"
   },
-  "sourcesPanel": {
-    "title_one": "{{count}} source",
-    "title_other": "{{count}} sources",
-    "citations": "Citations ({{count}})",
-    "more": "Plus"
+  "header": {
+    "back": "Précédent",
+    "forward": "Suivant",
+    "streaming": "Réponse en cours…",
+    "noModel": "Choisir un modèle",
+    "modelMenu": "Modèle",
+    "noModels": "Aucun modèle récupéré pour l'instant",
+    "openProviders": "Ouvrir les fournisseurs d'IA",
+    "menu": "Options de la discussion",
+    "exportMarkdown": "Exporter en Markdown…",
+    "exportPdf": "Exporter en PDF…",
+    "exportFailed": "Impossible d'exporter la discussion",
+    "panel": "Fichiers, outils et sources"
+  },
+  "export": {
+    "you": "Vous",
+    "assistant": "Exodus",
+    "pictures_one": "{{count}} image jointe",
+    "pictures_other": "{{count}} images jointes",
+    "tool": "Outil : {{name}}"
+  },
+  "panel": {
+    "files": "Fichiers",
+    "tools": "Outils",
+    "sources": "Sources",
+    "empty": "Les fichiers, outils et sources de cette discussion apparaîtront ici.",
+    "yours": "Les vôtres",
+    "madeHere": "Créés ici",
+    "picture": "Image {{index}}",
+    "generatedPicture": "Image générée {{index}}",
+    "calls_one": "{{count}} appel",
+    "calls_other": "{{count}} appels",
+    "untitledQuestion": "(sans texte)"
   },
   "sidebar": {
     "newChat": "Nouvelle conversation",
@@ -397,6 +431,16 @@
       "note": "Note",
       "title": "Ta réponse"
     }
+  },
+  "richBlocks": {
+    "stepLabel": "Étape {{number}}",
+    "openOnTradingView": "Ouvrir sur TradingView",
+    "chartBy": "Graphique TradingView",
+    "chartUnavailable": "Le graphique n'a pas pu être chargé.",
+    "entityLoading": "Chargement…",
+    "entityNothing": "Rien trouvé sur Wikipédia.",
+    "entityFailed": "Wikipédia est injoignable.",
+    "readMore": "Lire la suite sur Wikipédia"
   },
   "workspaceFile": {
     "created": "Créé",

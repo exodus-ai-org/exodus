@@ -10,12 +10,7 @@ describe('providers table', () => {
   it('each registry-backed provider resolves its pi-ai provider + default id + api', () => {
     const cases: [AiProviders, string, string, string][] = [
       [AiProviders.OpenAiGpt, 'openai', 'gpt-5.6', 'openai-responses'],
-      [
-        AiProviders.AzureOpenAi,
-        'azure-openai-responses',
-        'gpt-5.6',
-        'azure-openai-responses'
-      ],
+      [AiProviders.AzureOpenAi, 'azure', 'gpt-5.6', 'azure-openai-responses'],
       [
         AiProviders.AnthropicClaude,
         'anthropic',

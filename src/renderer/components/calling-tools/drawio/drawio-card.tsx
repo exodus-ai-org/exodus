@@ -155,7 +155,7 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
           {t('drawioCard.openInDrawio')}
           <HugeiconsIcon
             icon={LinkSquare02Icon}
-            strokeWidth={2}
+
             className="ml-1 size-3"
           />
         </Button>

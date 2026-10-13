@@ -9,6 +9,7 @@ import { ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 import { ErrorBoundary, RenderFailed } from '../app/card-error-boundary'
+import { ArtifactDraft } from '../calling-tools/artifact/artifact-card'
 import { ImageGenerationCard } from '../calling-tools/image-generation/image-generation-card'
 import Markdown from '../markdown/markdown'
 import { collectGalleryImages } from '../web-search/collect-gallery-images'
@@ -135,8 +136,16 @@ function turnBlockContent({
     )
   }
 
-  // The card is drawn from the tool's answer; until then its place is held.
-  if (!block.result) return null
+  // The card is drawn from the tool's answer; until then its place is held —
+  // by the artifact's code being written, while the run streams.
+  if (!block.result) {
+    if (!block.draft || !isStreaming) return null
+    return (
+      <section className="mb-4 w-full">
+        <ArtifactDraft title={block.draft.title} code={block.draft.code} />
+      </section>
+    )
+  }
   return (
     <ErrorBoundary
       scope="tool-card"
@@ -268,6 +277,7 @@ export const AssistantTurnSegment = memo(
               webSearchResults={ownSources}
               citationSources={citationResults}
               timestamp={turn.timestamp}
+              runId={turn.runId}
             />
           )}
           {foot && <div className="mt-2">{foot}</div>}

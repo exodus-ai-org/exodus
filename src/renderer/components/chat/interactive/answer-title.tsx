@@ -20,7 +20,7 @@ export function AnswerTitle({ head }: { head: AnswerHead }) {
     <p className="mb-1 flex items-start gap-1.5 text-sm font-medium">
       <HugeiconsIcon
         icon={Icon}
-        strokeWidth={2}
+
         aria-hidden
         className="text-primary-ink mt-0.5 size-4 shrink-0"
       />

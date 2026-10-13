@@ -157,7 +157,7 @@ Exodus is the successor of the older `universal-client` app and shares its
   where the legacy-location migration looks. There is no `-dev` variant of
   anything.
 - **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
-60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
+  60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
   renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
   can reach it. `LAN_SERVER_PORT = 63129` is what `exodus-ios` on a device
   connects to. Don't change either without updating the clients.
@@ -302,7 +302,15 @@ They are too light to be text, so a tone is a fill (`--primary`, with
 `--primary-foreground` on it) and an ink (`--primary-ink`: links, tinted
 text, focus rings, thin lines — `text-primary-ink`, never `text-primary`),
 plus `--bubble` for the user's message. `tests/unit/renderer/tone-palette.test.ts`
-holds the colours, their contrast and the class rule.
+holds the colours, their contrast and the class rule. The tone colours a
+conversation, not the page around it (owner, 2026-10-09): a
+`data-tone-scope="neutral"` region is drawn with the neutral tone's accents
+(`--primary`, `--primary-ink`, `--accent`, `--ring`, `--bubble`,
+`--chart-1`, `--sidebar-primary`…; the greys keep the tone's hue, as Chat's
+do) and `data-tone-scope="tone"` inside it takes the chosen tone back
+through `--toned-*`, which `:root` computes from the tone on `<html>`
+(globals.css, "Where the tone stops"). Philharmonic's layout is neutral; a
+group's transcript and composer (`group-chat.tsx`) are toned.
 
 **What leaves the app** (same date): Copy writes an answer's `【N-source】`
 markers as `[n]` with a References list under it (`lib/citation-references.ts`,
@@ -614,7 +622,7 @@ either client's chat code, and keep it true in the same change.
    accepted; only its last message is used). The question is stamped with the
    server's clock (every read orders by `createdAt`). With `protocol: 2`,
    `done` is `{ messages: <the run: its question as stored, then its
-answer>, attempts: <every group's stored state> }` and the client merges
+   answer>, attempts: <every group's stored state> }` and the client merges
    (`mergeRun()` in `packages/shared/src/utils/run-merge.ts`; exodus-ios
    `RunMerge`, same vectors); without it, `done` echoes the whole
    conversation (read from the database) as before
@@ -727,6 +735,13 @@ when it is a raster image, the chat's remote-image rule). The card
 made), not something `MessageCallingTools` draws, so the frame that shows
 the dither field while the call runs is the same element the image resolves
 in (with its zoom); a call left without a result by Stop shows nothing.
+A `create_artifact` call holds its place the same way: while its arguments
+stream (pi keeps a partial call's arguments parsed, and every
+`message_update` carries them) the block's `draft` — the title and the code
+so far — is drawn as `ArtifactDraft` (`calling-tools/artifact/artifact-card.tsx`:
+the card's frame and 400 px height, the newest lines of the code at its
+foot), and the result swaps the real card in at the same place. Gemini sends
+a call's arguments whole, so there the draft stays empty until the end.
 
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
@@ -985,7 +1000,7 @@ A local PIN lock protects the app and gates all API access.
 - Main process: `src/main/lib/lock/` (`lock-manager` state machine, `pin-store` using scrypt + Electron `safeStorage`, `idle-watcher`, `lock-config`, IPC handlers)
 - The `lockGate` middleware rejects every `/api/*` request with `423` while locked (`/api/v1/lock/unlock` excepted, below)
 - Unlock is IPC (the lock screen: PIN, or the Mac's Touch ID) or `POST
-/api/v1/lock/unlock` (`routes/lock.ts`), the one API route mounted ahead of
+  /api/v1/lock/unlock` (`routes/lock.ts`), the one API route mounted ahead of
   `lockGate`. It reads no PIN: a paired device's own biometric (Face ID on
   the phone) stands in for it, the way Touch ID does locally — the trust is
   in holding a device token. `authGate` still runs first, so on the LAN only
@@ -1126,7 +1141,7 @@ Their windows live in `src/main/lib/window.ts`.
   echo through `useForm({ values: settings })` and loop the autosave), so it `try`/`catch`es the write
   itself and toasts both outcomes directly, instead of going through a `useMutation`.
 - Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
-'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
+  'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
   (exodus-ios, exodus-cli, the phone) can change: chat history,
   devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
   (`use-chat-history.ts`, `use-devices.ts`, `use-installed-skills.ts`,
@@ -1254,9 +1269,30 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   exodus-ios: `RunGrouper.narratingTools`, `ThinkingStep.isNarration`). Blocks are only ever added at the end and the last
   text grows in place, which is what lets the text above a card sit out the
   frames of the text streaming below it. `body` — every text block joined —
-  is what Copy, read-aloud and the Sources panel take as the answer. A
+  is what Copy, read-aloud and the panel's Sources section take as the answer. A
   provider error is pinned to the run it ended (`useChat().runError`) and
   shown at that message's foot.
+- **The chat header** (`components/chat/header/`, spec
+  `docs/superpowers/specs/2026-10-08-chat-header-redesign-design.md`): the
+  browser-like tab strip is gone (2026-10-08). `history-arrows.tsx` draws `←`
+  `→` beside the sidebar toggle — in the sidebar's top row while it is open,
+  in the 44 px header (a fading shadow under it, no rule) once it is away —
+  over the app's own page history — a pure stack in `lib/route-history.ts`
+  (`historyAtom`, capped at 50, a deleted chat's entries removed), recorded
+  once by `useRouteHistoryRecorder` in `layouts/chat-layout/index.tsx`, walked
+  by the arrows and by `Mod+[` / `Mod+]` (`Mod+W` closes the chat on screen:
+  home, nothing deleted); on a chat page the title (the history list's, live)
+  with a dot while replying, `model-chip.tsx` (the provider and model from
+  `providerConfig`, a pick from the cached `modelCatalog` saved with its
+  snapshot) and `chat-menu.tsx` (rename, favourite, export as Markdown / PDF
+  through `lib/chat-export.ts` and the `md-to-pdf` route's print sheet
+  `main/lib/pdf/print-document.ts`, delete); and the toggle of
+  `components/chat/panel/chat-panel.tsx` — files, tools and sources derived
+  from the open chat's messages (`chatMessagesAtom`, set by `<Chat>` when a
+  message is added or the stream settles) by `lib/chat-panel-items.ts`, each
+  row scrolling to its run (`lib/scroll-to-run.ts`, the rail's rule) and an
+  artifact row opening its card (`revealArtifactAtom`). It replaced the
+  Sources panel: a message's Sources button opens the panel on that run.
 - **A regenerate group is one segment** (`type: 'compare'`, key
   `group:<firstRunId>`; spec
   `docs/superpowers/specs/2026-09-26-regenerate-compare-design.md`): the
@@ -1384,6 +1420,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 ### When Working with Frontend
 
 - Use Jotai atoms for global state (avoid prop drilling)
+- **Type scale** (globals.css, set by the 14px body): `text-2xs` 11 (the
+  floor — badges, counters, uppercase labels) · `text-xs` 12 (captions,
+  meta) · `text-ui` 13 (sidebar rows, dense UI) · `text-sm` 14 (body,
+  controls) · `text-base`+ for titles. No `text-[Npx]`; the only sizes under
+  11 are the citation chip and a map pin's numeral. `cn()` knows `2xs` / `ui`
+  as sizes (`lib/utils.ts`) — tailwind-merge would otherwise drop `text-ui`
+  beside a text colour
 - React Query hooks (`hooks/use-<domain>.ts`) for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
@@ -1549,7 +1592,7 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
   registration replaces the one before it, so register last and pass
   `handle.getModel()` in. Modules that one-shot through `completeSimple` are
   mocked at `@main/lib/ai/kernel/models` (`getKernelModels: () => ({
-completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
+  completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
   `tests/unit/main/lib/server/routes/chat.faux.test.ts`
 - **A migration or a query is tested on a real in-memory PGlite** with the
   shipped migrations applied: `createMigratedPglite('0008')` in
@@ -1577,7 +1620,7 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 5. Configure at least one AI provider in settings before chatting
 6. The dev window opens DevTools automatically. A console error whose stack is
    only `VMnnn` / `<anonymous>` frames — e.g. `Cannot read properties of
-undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
+   undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
    frames show `localhost:5173/src/...`, and nothing here depends on
    `web-vitals`): it is the script DevTools injects for the Performance panel's
    Live metrics, and is noise.
@@ -1642,7 +1685,7 @@ undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
    the FULL `<Trans>` children array — text nodes and an explicit `{' '}`
    each occupy their own index too, not just element children. A block
    with two `<code>` children separated by plain text (`[text, <code>,
-text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
+   text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
    anywhere before the second one shifts it to `<4>`. This makes such a
    block fragile against `bun run fmt`/oxfmt reflowing the JSX (a
    line-wrap can insert or remove an explicit `{' '}` with no visible
@@ -1653,7 +1696,7 @@ text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
    renumbering had nothing to fail against. For any `<Trans>` block with
    two or more non-allowlisted (numbered) children, extract it into its
    own exported component and have the test `await
-import('@/path/to/the/file')` and render that component directly —
+   import('@/path/to/the/file')` and render that component directly —
    never hand-copy its children into the test (see `s3.tsx`'s
    `PublicReadAccessNotice` and its render test in
    `tests/unit/i18n/settings-namespace.test.ts` for the pattern). Don't
@@ -1781,8 +1824,12 @@ Main process:
   so far — fed by the settings cache fill and each MCP row read — masked in
   each line before it is written). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
-  `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
-  Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
+  `/api/v1/logs` (filters incl. `traceId`; `q` — the search box's words,
+  `-word`, `scope:` and `trace:`, parsed by `parseLogQuery()` in
+  `packages/shared/src/utils/log-query.ts`; `levels=error,warn`; a
+  `from`/`to` window; the response carries a per-level `histogram` drawn
+  without the levels and the window, which the chart sets) +
+  `/api/v1/logs/scopes` and the Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
   error it caught (`lib/report-error.ts`), written under a
   `renderer/<scope>` surface — or, with `source: 'ios'` in the body, a
   paired exodus-ios device reporting its own local errors over the LAN
@@ -1859,7 +1906,7 @@ Main process:
   `~/.exodus/lan-revoked.json` that keeps the listener wanted until
   `authGate` answers that token once, or 30 days pass; a reset replaces the
   certificate, so it keeps none and drops the rest). Routes: `POST
-/api/v1/pair` (code → token), `DELETE /api/v1/pair` (a paired device
+  /api/v1/pair` (code → token), `DELETE /api/v1/pair` (a paired device
   unpairing itself — authenticated by its own token, it leaves the Devices
   list too), `/api/v1/devices` (list, open/close a window, revoke, reset —
   loopback only). Spec:
@@ -1945,11 +1992,20 @@ Renderer:
   or — while a window is open — numbered steps beside the QR code and a
   countdown drawn from the shared `PAIRING_TTL_MS`
   (`packages/shared/src/constants/systems.ts`, enforced by the main process)
-- `src/renderer/components/settings/settings-form/log-attributes.tsx` — an
-  expanded row of Settings → Logger: the stack (`exception.stacktrace`, or a
-  client report's `stack`) and the `componentStack` as blocks of their own —
-  text with real line breaks, mono, scrolling both ways — above the JSON of
-  the other attributes (the `…_raw` stacks stay in there)
+- `src/renderer/components/settings/settings-form/logger.tsx` — Settings →
+  Logger: day + scope pickers, Live (polls today's file every 2 s, paused
+  while a line is open), a search box (`/` focuses it; the query syntax of
+  `log-query.ts`), the level chart (`log-chart.tsx`: stacked bars by level —
+  a bar is a time window, the legend is the level filter), the list, and a
+  line opened in a side sheet (`log-detail.tsx`: ↑/↓ or k/j walk the list
+  across pages — handled on the sheet in the capture phase, since the dialog
+  swallows arrow keys before a global hotkey sees them; Lines around, Copy
+  for AI (`log-copy.ts`), Same trace). `log-levels.ts` holds the four level
+  colours. `log-attributes.tsx` draws the sheet's body: the stack
+  (`exception.stacktrace`, or a client report's `stack`) and the
+  `componentStack` as blocks of their own — text with real line breaks,
+  mono, scrolling both ways — then the other attributes as a key/value
+  table (the `…_raw` stacks stay in there; a `*_ms` value notes its seconds)
 - `src/renderer/components/settings/settings-form/tools.tsx` — Settings →
   Built-in Tools: one hairline row per `TOOL_REGISTRY` entry (name, what it
   does, its switch). A tool with something to set up carries its panel under

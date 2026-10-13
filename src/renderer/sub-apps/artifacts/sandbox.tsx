@@ -271,7 +271,7 @@ export function ArtifactSandbox() {
   if (error) {
     return (
       <div className="p-4">
-        <p className="text-destructive font-mono text-sm">{error}</p>
+        <p className="text-destructive text-sm">{error}</p>
       </div>
     )
   }
@@ -290,7 +290,7 @@ export function ArtifactSandbox() {
       onError={handleRenderError}
       fallback={(err) => (
         <div className="p-4">
-          <p className="text-destructive font-mono text-sm">{err.message}</p>
+          <p className="text-destructive text-sm">{err.message}</p>
         </div>
       )}
     >

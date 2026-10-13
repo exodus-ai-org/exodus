@@ -155,7 +155,7 @@ export function ComposerToolsButton() {
             hasActiveTool && 'text-[#0285ff] dark:text-[#48aaff]'
           )}
         >
-          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Add01Icon} />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
@@ -165,7 +165,7 @@ export function ComposerToolsButton() {
           <DropdownMenuItem
             onClick={() => setTimeout(() => fileRef.current?.click(), 0)}
           >
-            <HugeiconsIcon icon={AttachmentIcon} strokeWidth={2} />
+            <HugeiconsIcon icon={AttachmentIcon} />
             {t('chat:composerTools.attachFiles')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -174,7 +174,7 @@ export function ComposerToolsButton() {
               <DropdownMenuSubTrigger
                 data-testid={TEST_IDS.composer.reasoningEffortItem}
               >
-                <HugeiconsIcon icon={AiBrainIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={AiBrainIcon} />
                 {t('composer.reasoning')}
                 {reasoningEffort !== 'off' && (
                   <span className="text-muted-foreground ml-auto text-xs">
@@ -209,7 +209,7 @@ export function ComposerToolsButton() {
               checked={advancedTools.includes(key)}
               onCheckedChange={() => toggle(key)}
             >
-              <HugeiconsIcon icon={Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Icon} />
               {t(labelKey)}
             </DropdownMenuCheckboxItem>
           ))}
@@ -217,7 +217,7 @@ export function ComposerToolsButton() {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setMcpOpen(true)}>
-                <HugeiconsIcon icon={HammerIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={HammerIcon} />
                 {t('chat:composerTools.mcpTools')}
                 <span className="text-muted-foreground ml-auto text-xs">
                   {mcpCount}
@@ -295,11 +295,11 @@ export function ActiveToolPills() {
           onClick={() => setEffort('off')}
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
-          <HugeiconsIcon icon={AiBrainIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={AiBrainIcon} />
           {t('composer.reasoningPill', { label: t(effortLabelKey) })}
           <HugeiconsIcon
             icon={Cancel01Icon}
-            strokeWidth={2}
+
             className="opacity-60"
           />
         </button>
@@ -311,11 +311,11 @@ export function ActiveToolPills() {
           onClick={() => toggle(key)}
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
-          <HugeiconsIcon icon={Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Icon} />
           {t(labelKey)}
           <HugeiconsIcon
             icon={Cancel01Icon}
-            strokeWidth={2}
+
             className="opacity-60"
           />
         </button>

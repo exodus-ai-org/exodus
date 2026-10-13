@@ -27,7 +27,8 @@ const SPECS: Record<Exclude<AiProviders, AiProviders.Ollama>, ProviderSpec> = {
     defaultModel: 'gpt-5.6'
   },
   [AiProviders.AzureOpenAi]: {
-    provider: 'azure-openai-responses',
+    // pi-ai 1.0 names the provider `azure`; the API keeps its Responses name.
+    provider: 'azure',
     api: 'azure-openai-responses',
     baseUrl: (s) => s.providers?.azureOpenAiEndpoint ?? '',
     defaultModel: 'gpt-5.6'

@@ -13,7 +13,12 @@ import { v4 as uuidV4 } from 'uuid'
 import { useChooseAttempt } from '@/hooks/use-attempts'
 import { useChat } from '@/hooks/use-chat'
 import { useOlderPages } from '@/hooks/use-older-pages'
-import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
+import {
+  advancedToolsAtom,
+  chatMessagesAtom,
+  reasoningEffortAtom,
+  revealArtifactAtom
+} from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import MultimodalInput from './composer/composer'
@@ -63,6 +68,8 @@ export function Chat({
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
   const setChatStop = useSetAtom(chatStopFnAtom)
+  const setChatMessages = useSetAtom(chatMessagesAtom)
+  const setRevealArtifact = useSetAtom(revealArtifactAtom)
 
   const [title, setTitle] = useState(chatTitle)
 
@@ -117,6 +124,24 @@ export function Chat({
   useEffect(() => {
     setChatStop(() => stop)
   }, [stop, setChatStop])
+
+  // What the header and its panel show — pictures, tool results, sources —
+  // arrives whole, as a message. While a reply streams only a message added
+  // is published, not every frame; once settled, every change is (an attempt
+  // chosen, a cut row fetched whole), since neither changes the length. They
+  // go with the chat, and a reveal no card answered goes with them.
+  const replying = status === 'submitted' || status === 'streaming'
+  useEffect(() => {
+    setChatMessages(messages)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- while replying, a message added; settled, any change
+  }, [replying ? messages.length : messages, status, setChatMessages])
+  useEffect(
+    () => () => {
+      setChatMessages([])
+      setRevealArtifact(null)
+    },
+    [setChatMessages, setRevealArtifact]
+  )
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {

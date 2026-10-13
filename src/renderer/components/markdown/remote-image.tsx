@@ -112,6 +112,42 @@ export function allowedImageUrls(
   return urls.size > 0 ? urls : null
 }
 
+/**
+ * The thumbnails a run's search returned — a page's thumbnail, a media
+ * result's thumbnail — and nothing else: what a step's picture may be. A
+ * media result's original `url`, which `allowedImageUrls` admits for a
+ * Markdown image, is left out on purpose: an original is a hot-link the
+ * source site may refuse or swap (owner, 2026-10-07).
+ */
+export function searchThumbnailUrls(
+  webSearchResults: WebSearchResult[] | undefined
+): ReadonlySet<string> | null {
+  if (!webSearchResults || webSearchResults.length === 0) return null
+  const urls = new Set<string>()
+  const add = (src: string | undefined) => {
+    const href = httpsHref(src)
+    if (href) urls.add(href)
+  }
+  for (const result of webSearchResults) {
+    add(result.thumbnail)
+    for (const media of result.media ?? []) add(media.thumbnailUrl)
+  }
+  return urls.size > 0 ? urls : null
+}
+
+/** Provided by `Markdown` beside `AllowedImageUrlsContext`, for the same reason. */
+export const SearchThumbnailUrlsContext =
+  createContext<ReadonlySet<string> | null>(null)
+
+/** `src` in `URL.href` form when it is one of the thumbnails; null otherwise. */
+export function thumbnailHref(
+  src: string,
+  thumbnails: ReadonlySet<string> | null
+): string | null {
+  const href = httpsHref(src)
+  return href !== null && thumbnails?.has(href) ? href : null
+}
+
 /** A `data:` URL, the app's own media route, or an `https:` image URL in
  *  `allowedUrls` — loads without asking. */
 export function loadsAutomatically(
@@ -196,7 +232,7 @@ export function RemoteImage({
     >
       <HugeiconsIcon
         icon={Image01Icon}
-        strokeWidth={2}
+
         className="size-3.5 shrink-0"
         aria-hidden
       />

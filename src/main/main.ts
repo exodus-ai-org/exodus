@@ -7,7 +7,6 @@ import { join } from 'path'
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 import started from 'electron-squirrel-startup'
 
-import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { closeDuckDB } from './lib/analytics/duckdb'
 import {
   registerArtifactScheme,
@@ -32,7 +31,7 @@ import { getLockManager } from './lib/lock/lock-manager'
 import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
-import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
+import { ensureExodusDirs, getExodusHome } from './lib/paths'
 import { secretSafeWriteError } from './lib/secrets'
 import { secretsAtRestStartup } from './lib/secrets/migrate'
 import { hardenRenderers } from './lib/security'
@@ -69,9 +68,8 @@ process.on('unhandledRejection', (reason) => {
 app.on('ready', async () => {
   setDevDockIcon()
 
-  // Migrate data from the legacy location to ~/.exodus (one-time, idempotent).
-  // Also creates the ~/.exodus directory tree.
-  migrateFromLegacyLocation()
+  // The ~/.exodus directory tree.
+  ensureExodusDirs()
   cleanupOldLogs()
 
   // Which data directory this run uses (~/.exodus unless EXODUS_HOME says
@@ -109,13 +107,6 @@ app.on('ready', async () => {
       'Failed to initialize main-process i18n; continuing with English defaults',
       { error: err }
     )
-  })
-
-  // One-time migration of legacy `shared/` artifacts into per-chat folders
-  await migrateSharedArtifacts().catch((err) => {
-    logger.warn('app', 'Failed to migrate legacy artifacts', {
-      error: err
-    })
   })
 
   // One-time reconciliation of tasks orphaned by a previous process crash

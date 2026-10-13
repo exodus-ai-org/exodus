@@ -7,7 +7,7 @@ import {
 } from '@earendil-works/pi-ai'
 import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy'
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic'
-import { azureOpenAIResponsesProvider } from '@earendil-works/pi-ai/providers/azure-openai-responses'
+import { azureProvider } from '@earendil-works/pi-ai/providers/azure'
 import { googleProvider } from '@earendil-works/pi-ai/providers/google'
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai'
 import { xaiProvider } from '@earendil-works/pi-ai/providers/xai'
@@ -51,7 +51,7 @@ export function getKernelModels(): MutableModels {
   models.setProvider(openaiProvider())
   models.setProvider(googleProvider())
   models.setProvider(xaiProvider())
-  models.setProvider(azureOpenAIResponsesProvider())
+  models.setProvider(azureProvider())
   models.setProvider(ollamaProvider())
   return models
 }

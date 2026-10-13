@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "Schedule",
       "upcomingTrigger": "Upcoming",
       "recurringTrigger": "Recurring"
     },
@@ -86,8 +85,7 @@
     "composer": {
       "placeholder": "Message your team…",
       "stopAria": "Stop",
-      "sendAria": "Send",
-      "hint": "Press <1>Enter</1> to send, <4>Shift + Enter</4> for a new line. Paste or attach images."
+      "sendAria": "Send"
     },
     "planCard": {
       "elapsed": {
@@ -217,11 +215,6 @@
   "costAnalysis": {
     "header": {
       "title": "Dashboard"
-    },
-    "period": {
-      "last7Days": "Last 7 days",
-      "last30Days": "Last 30 days",
-      "allTime": "All time"
     },
     "periodToggle": {
       "sevenDays": "7d",

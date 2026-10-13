@@ -47,6 +47,20 @@ describe('bold beside CJK text and punctuation', () => {
     )
   })
 
+  it('closes after CJK punctuation though a digit or a Latin letter follows, and opens before it', () => {
+    expect(render('**三、地理与性别的再平衡。**2018 年以来男女严格交替')).toBe(
+      '<p><strong>三、地理与性别的再平衡。</strong>2018 年以来男女严格交替</p>'
+    )
+    expect(render('**结论：**Carson 获奖')).toBe(
+      '<p><strong>结论：</strong>Carson 获奖</p>'
+    )
+    expect(render('2018**「女性年」**之后')).toBe(
+      '<p>2018<strong>「女性年」</strong>之后</p>'
+    )
+    // Half-width punctuation keeps CommonMark's rule.
+    expect(render('**bold.**2018')).toBe('<p>**bold.**2018</p>')
+  })
+
   it('bolds inside a CJK sentence', () => {
     expect(render('中文**粗体**中文')).toBe(
       '<p>中文<strong>粗体</strong>中文</p>'

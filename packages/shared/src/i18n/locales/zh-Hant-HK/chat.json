@@ -15,6 +15,7 @@
   },
   "composer": {
     "placeholder": "有什麼想問的？",
+    "listening": "正在聆聽…",
     "pleaseWaitTitle": "請稍候",
     "pleaseWaitDescription": "模型仍在生成回覆中。",
     "stop": "停止",
@@ -106,7 +107,11 @@
     "exitFullscreen": "結束全螢幕",
     "enterFullscreen": "進入全螢幕",
     "exitFullscreenEsc": "結束全螢幕（Esc）",
-    "fullscreen": "全螢幕"
+    "fullscreen": "全螢幕",
+    "draft": {
+      "untitled": "未命名的 Artifact",
+      "writing_other": "撰寫中 · {{count}} 行"
+    }
   },
   "computerUseCard": {
     "title": "電腦操作",
@@ -196,10 +201,37 @@
     "details": "詳情",
     "less": "收起"
   },
-  "sourcesPanel": {
-    "title_other": "{{count}} 項來源",
-    "citations": "引用（{{count}}）",
-    "more": "更多"
+  "header": {
+    "back": "上一頁",
+    "forward": "下一頁",
+    "streaming": "回覆中…",
+    "noModel": "選擇模型",
+    "modelMenu": "模型",
+    "noModels": "尚未取得模型",
+    "openProviders": "開啟 AI 供應商",
+    "menu": "聊天選項",
+    "exportMarkdown": "匯出為 Markdown…",
+    "exportPdf": "匯出為 PDF…",
+    "exportFailed": "無法匯出聊天",
+    "panel": "檔案、工具與來源"
+  },
+  "export": {
+    "you": "你",
+    "assistant": "Exodus",
+    "pictures_other": "附加 {{count}} 張圖片",
+    "tool": "工具：{{name}}"
+  },
+  "panel": {
+    "files": "檔案",
+    "tools": "工具",
+    "sources": "來源",
+    "empty": "此聊天的檔案、工具與來源會顯示在這裡。",
+    "yours": "你的",
+    "madeHere": "在此產生",
+    "picture": "圖片 {{index}}",
+    "generatedPicture": "生成圖片 {{index}}",
+    "calls_other": "{{count}} 次",
+    "untitledQuestion": "（無文字）"
   },
   "sidebar": {
     "newChat": "開新聊天",
@@ -383,6 +415,16 @@
       "note": "備註",
       "title": "你嘅答案"
     }
+  },
+  "richBlocks": {
+    "stepLabel": "第 {{number}} 步",
+    "openOnTradingView": "喺 TradingView 開啟",
+    "chartBy": "圖表：TradingView",
+    "chartUnavailable": "載入唔到圖表。",
+    "entityLoading": "載入緊…",
+    "entityNothing": "維基百科冇相關條目。",
+    "entityFailed": "連接唔到維基百科。",
+    "readMore": "喺維基百科閱讀更多"
   },
   "workspaceFile": {
     "created": "已建立",

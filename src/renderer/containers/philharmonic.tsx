@@ -25,7 +25,10 @@ import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
-import { PhilharmonicContentHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
+import {
+  PhilharmonicHeaderSlot,
+  PhilharmonicSlottedHeader
+} from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
@@ -54,22 +57,25 @@ const ScheduleTab = lazy(() =>
 
 export function PhilharmonicContainer({
   activePage,
-  onNavigate
+  groupId,
+  onOpenPage,
+  onOpenGroup
 }: {
   activePage: PhilharmonicPage
-  onNavigate: (p: PhilharmonicPage) => void
+  /** The group the path names; on a bare `/philharmonic`, the first group shows. */
+  groupId: string | null
+  onOpenPage: (p: Exclude<PhilharmonicPage, 'chat'>) => void
+  onOpenGroup: (id: string | null, options?: { replace?: boolean }) => void
 }) {
   const { t } = useTranslation('philharmonic')
   const [conversations, setConversations] = useState<ConversationData[]>([])
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
-  const [activeId, setActiveId] = useState<string | null>(null)
   const [membersOpen, setMembersOpen] = useState(false)
 
   useEffect(() => {
     getConversations().then((cs) => {
       setConversations(cs)
-      setActiveId((cur) => cur ?? cs[0]?.id ?? null)
     })
     getAgents().then(setEmployees)
     getTeams().then(setTeams)
@@ -84,21 +90,23 @@ export function PhilharmonicContainer({
     [teams]
   )
 
+  // The group on screen: the one the path names, else the first (a bare
+  // `/philharmonic` is not redirected, so it never enters the history twice).
+  const activeId = groupId ?? conversations[0]?.id ?? null
+
   const handleCreate = useCallback(async () => {
     const conv = await createConversation({
       title: t('container.newGroupDefaultTitle')
     })
     setConversations((p) => [{ ...conv, latestMessage: null }, ...p])
-    setActiveId(conv.id)
-    onNavigate('chat')
-  }, [onNavigate, t])
+    onOpenGroup(conv.id)
+  }, [onOpenGroup, t])
 
   const handleSelect = useCallback(
     (id: string) => {
-      setActiveId(id)
-      onNavigate('chat')
+      onOpenGroup(id)
     },
-    [onNavigate]
+    [onOpenGroup]
   )
 
   const handleDelete = useCallback(
@@ -106,7 +114,7 @@ export function PhilharmonicContainer({
       try {
         await deleteConversation(id)
         setConversations((p) => p.filter((c) => c.id !== id))
-        setActiveId((cur) => (cur === id ? null : cur))
+        if (id === activeId) onOpenGroup(null, { replace: true })
         sileo.success({ title: t('container.toast.groupDeleted') })
       } catch (err) {
         sileo.error({
@@ -115,7 +123,7 @@ export function PhilharmonicContainer({
         })
       }
     },
-    [t]
+    [activeId, onOpenGroup, t]
   )
 
   const handleRename = useCallback(async (id: string, title: string) => {
@@ -124,8 +132,8 @@ export function PhilharmonicContainer({
   }, [])
 
   const handleNavigateConfig = useCallback(
-    (page: ConfigPage) => onNavigate(page),
-    [onNavigate]
+    (page: ConfigPage) => onOpenPage(page),
+    [onOpenPage]
   )
 
   const activeConv = conversations.find((c) => c.id === activeId)
@@ -143,13 +151,31 @@ export function PhilharmonicContainer({
     if (activePage === 'workforce') return <WorkforcePage />
     if (activePage === 'dashboard')
       return (
-        <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">
-          <TabsList className="mx-4 mt-3 w-fit shrink-0">
-            <TabsTrigger value="costs">{t('container.tabs.costs')}</TabsTrigger>
-            <TabsTrigger value="schedule" data-testid={TEST_IDS.schedule.tab}>
-              {t('container.tabs.schedule')}
-            </TabsTrigger>
-          </TabsList>
+        <Tabs
+          defaultValue="costs"
+          className="flex h-full min-h-0 flex-col gap-0"
+        >
+          {/* The page's title and its tabs in the content bar, as Workforce's;
+              each tab adds its own controls at the bar's right end. */}
+          <PhilharmonicHeaderSlot>
+            <div className="no-drag flex min-w-0 items-center gap-3 pl-2">
+              <h1 className="truncate text-sm font-medium">
+                {t('costAnalysis.header.title')}
+              </h1>
+              <TabsList className="w-fit shrink-0">
+                <TabsTrigger value="costs">
+                  {t('container.tabs.costs')}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="schedule"
+                  data-testid={TEST_IDS.schedule.tab}
+                >
+                  {t('container.tabs.schedule')}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            <div className="min-w-0 flex-1" />
+          </PhilharmonicHeaderSlot>
           <TabsContent value="costs" className="min-h-0 flex-1">
             <Suspense fallback={null}>
               <CostAnalysis />
@@ -174,6 +200,7 @@ export function PhilharmonicContainer({
           onRename={handleRename}
           membersOpen={membersOpen}
           onToggleMembers={() => setMembersOpen((v) => !v)}
+          onCreateGroup={handleCreate}
         />
       )
     }
@@ -181,7 +208,7 @@ export function PhilharmonicContainer({
       <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <HugeiconsIcon
           icon={MessageAdd01Icon}
-          strokeWidth={2}
+
           className="h-12 w-12 opacity-30"
         />
         <div className="text-foreground text-sm font-medium">
@@ -222,8 +249,15 @@ export function PhilharmonicContainer({
         }
       >
         <SidebarInset className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
-          {!groupChatOwnsHeader && <PhilharmonicContentHeader />}
-          <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
+          {groupChatOwnsHeader ? (
+            <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
+          ) : (
+            <PhilharmonicSlottedHeader onCreateGroup={handleCreate}>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {mainContent}
+              </div>
+            </PhilharmonicSlottedHeader>
+          )}
         </SidebarInset>
       </ResizableSidebarShell>
 

@@ -34,7 +34,7 @@ function ExternalLink({
       className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm underline-offset-4 transition-colors hover:underline"
     >
       {children}
-      <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} size={12} />
+      <HugeiconsIcon icon={LinkSquare02Icon} size={12} />
     </a>
   )
 }
@@ -67,10 +67,10 @@ function AboutHeader() {
   )
 }
 
-/** A read-only fact on the right of a row — versions line up in mono digits. */
+/** A read-only fact on the right of a row. */
 function Value({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-muted-foreground font-mono text-sm tabular-nums">
+    <span className="text-muted-foreground text-sm tabular-nums">
       {children}
     </span>
   )

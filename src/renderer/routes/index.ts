@@ -23,7 +23,10 @@ export const router = createHashRouter([
       }))
   },
   {
-    path: '/philharmonic',
+    // `/philharmonic`, `/philharmonic/groups/:id`, `/philharmonic/workforce`,
+    // `/philharmonic/dashboard`: the page and the group are in the URL, so the
+    // header's arrows step through them.
+    path: '/philharmonic/*',
     HydrateFallback: LazyRouteFallback,
     ErrorBoundary: RouteErrorBoundary,
     lazy: () =>

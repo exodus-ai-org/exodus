@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Abrir configuración"
       },
+      "go-back": {
+        "label": "Atrás"
+      },
+      "go-forward": {
+        "label": "Adelante"
+      },
       "lock-now": {
         "label": "Bloquear ahora"
       },
@@ -145,7 +151,7 @@
         "label": "Cerrar barra de búsqueda"
       },
       "close-tab": {
-        "label": "Cerrar pestaña actual"
+        "label": "Cerrar chat"
       },
       "focus-chat-input": {
         "label": "Enfocar el campo de mensaje"
@@ -329,7 +335,11 @@
       "refresh": "Actualizar lista de modelos",
       "fetchErrorTitle": "No se pudo obtener la lista de modelos",
       "fetchErrorFallback": "Error al obtener la lista de modelos",
-      "reenterKey": "Vuelva a introducir la clave de API para usarla con la nueva URL base."
+      "reenterKey": "Vuelva a introducir la clave de API para usarla con la nueva URL base.",
+      "retiring": "se retira",
+      "retired": "retirado",
+      "retiringOn": "Se retira el {{date}}",
+      "retiredOn": "Retirado el {{date}}"
     }
   },
   "tools": {
@@ -628,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "Todos",
       "allScopes": "Todos",
       "datePlaceholder": "Fecha",
-      "levelPlaceholder": "Nivel",
       "scopePlaceholder": "Ámbito",
-      "keywordPlaceholder": "Buscar palabra clave...",
-      "traceChip": "traza {{id}}"
+      "traceChip": "traza {{id}}",
+      "searchPlaceholder": "Buscar  ·  scope:chat  trace:a1b2  -excluir",
+      "clear": "Quitar filtros"
     },
     "actions": {
       "openDirectory": "Abrir directorio",
       "export": "Exportar",
       "clearAll": "Borrar todo",
-      "clearAllConfirm": "¿Está seguro de que desea eliminar todos los archivos de registro?"
+      "clearAllConfirm": "¿Está seguro de que desea eliminar todos los archivos de registro?",
+      "more": "Más acciones"
     },
     "toast": {
       "exported": "Registros exportados",
@@ -653,19 +663,48 @@
       "level": "Nivel",
       "scope": "Ámbito",
       "message": "Mensaje",
-      "trace": "Traza",
-      "empty": "No se encontraron entradas de registro."
+      "empty": "No se encontraron entradas de registro.",
+      "noMatch": "Ninguna línea coincide con estos filtros."
     },
     "pagination": {
-      "total_one": "{{count}} entrada en total",
-      "total_other": "{{count}} entradas en total",
       "pageOf": "Página {{page}} de {{totalPages}}",
       "prev": "Anterior",
-      "next": "Siguiente"
+      "next": "Siguiente",
+      "range": "{{from}}–{{to}} de {{total}}"
     },
     "details": {
       "stack": "Traza de pila",
-      "componentStack": "Pila de componentes"
+      "componentStack": "Pila de componentes",
+      "attributes": "Atributos"
+    },
+    "live": {
+      "label": "En vivo",
+      "onlyToday": "En vivo sigue el registro de hoy"
+    },
+    "levels": {
+      "error": "Error",
+      "warn": "Aviso",
+      "info": "Info",
+      "debug": "Depuración"
+    },
+    "chart": {
+      "lines_one": "línea",
+      "lines_other": "líneas",
+      "newestFirst": "más recientes primero",
+      "label": "Líneas a lo largo del tiempo",
+      "noLines": "Sin líneas"
+    },
+    "detail": {
+      "previous": "Línea anterior",
+      "next": "Línea siguiente",
+      "close": "Cerrar",
+      "linesAround": "Líneas alrededor",
+      "copyForAi": "Copiar para IA",
+      "sameTrace": "Misma traza",
+      "message": "Mensaje",
+      "fields": "Campos",
+      "resource": "Recurso",
+      "copied": "Copiado para IA"
     }
   },
   "mcpServers": {
@@ -1064,7 +1103,6 @@
       "elasticsearchPassword": "Contraseña de Elasticsearch",
       "s3AccessKeyId": "ID de clave de acceso de Amazon S3",
       "s3SecretAccessKey": "Clave de acceso secreta de Amazon S3",
-      "legacyMcpServers": "Configuración MCP heredada",
       "mcp": "Servidor MCP «{{server}}»: {{field}}"
     }
   }

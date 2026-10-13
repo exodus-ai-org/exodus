@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { convertToUIMessages } from '@/lib/utils'
+import { cn, convertToUIMessages } from '@/lib/utils'
 import type { Message } from '@/types/db'
 
 function row(overrides: Partial<Message>): Message {
@@ -46,5 +46,21 @@ describe('convertToUIMessages — regenerate-group state', () => {
     const [m] = convertToUIMessages([row({})])
     expect('alternateOf' in m).toBe(false)
     expect('attempt' in m).toBe(false)
+  })
+})
+
+describe('cn — the type scale', () => {
+  it('keeps text-2xs / text-ui as sizes beside a text colour', () => {
+    expect(cn('text-ui text-muted-foreground')).toBe(
+      'text-ui text-muted-foreground'
+    )
+    expect(cn('text-muted-foreground text-2xs')).toBe(
+      'text-muted-foreground text-2xs'
+    )
+  })
+
+  it('lets a later size replace them, as any size does', () => {
+    expect(cn('text-2xs', 'text-sm')).toBe('text-sm')
+    expect(cn('text-xs', 'text-ui')).toBe('text-ui')
   })
 })

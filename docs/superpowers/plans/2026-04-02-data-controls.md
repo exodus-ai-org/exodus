@@ -22,6 +22,7 @@
 ```typescript
 // src/main/lib/paths.test.ts
 import { join } from 'path'
+
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({
@@ -169,6 +170,7 @@ Replace:
 
 ```typescript
 import { join } from 'path'
+
 // ...
 import { app } from 'electron'
 
@@ -329,6 +331,7 @@ Add at the bottom of `src/main/lib/paths.ts`:
 
 ```typescript
 import { renameSync } from 'fs'
+
 import { app } from 'electron'
 
 /**
@@ -1005,6 +1008,13 @@ git commit -m "feat: implement import and delete in use-db-io hook"
 - [ ] **Step 1: Rewrite the component**
 
 ```tsx
+import {
+  HardDriveDownload,
+  HardDriveUpload,
+  Loader2,
+  ShieldCheck,
+  Trash2
+} from 'lucide-react'
 // src/renderer/components/settings/settings-form/data-controls.tsx
 import { useRef, useState } from 'react'
 import { sileo } from 'sileo'
@@ -1029,13 +1039,6 @@ import {
   type BackupInfo,
   type BackupStatus
 } from '@/services/backup'
-import {
-  HardDriveDownload,
-  HardDriveUpload,
-  Loader2,
-  ShieldCheck,
-  Trash2
-} from 'lucide-react'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
@@ -1150,7 +1153,7 @@ export function DataControls() {
           description={`${backups.length} backup(s) stored`}
           layout="vertical"
         >
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex flex-col gap-1 text-xs">
             {backups.slice(0, 5).map((b) => (
               <div key={b.name} className="flex justify-between">
                 <span>{b.name}</span>

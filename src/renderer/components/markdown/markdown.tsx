@@ -1,4 +1,5 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { entityTitle } from '@exodus/shared/utils/entity-link'
 import {
   Tick02Icon,
   Copy01Icon,
@@ -28,6 +29,10 @@ import {
 import { cn } from '@/lib/utils'
 
 import {
+  EntityLink,
+  markdownUrlTransform
+} from '../chat/interactive/entity-link'
+import {
   fenceOf,
   InteractiveFence,
   MarkdownSourceContext
@@ -41,7 +46,9 @@ import {
 import {
   AllowedImageUrlsContext,
   RemoteImage,
-  allowedImageUrls
+  SearchThumbnailUrlsContext,
+  allowedImageUrls,
+  searchThumbnailUrls
 } from './remote-image'
 import { WorkspacePathCode } from './workspace-path-code'
 
@@ -92,6 +99,7 @@ const MarkdownBlock = memo(function MarkdownBlock({
       <ReactMarkdown
         remarkPlugins={remarkPluginsStable}
         rehypePlugins={rehypePluginsStable}
+        urlTransform={markdownUrlTransform}
         components={components}
       >
         {src}
@@ -148,8 +156,9 @@ function Pre({ className, children, node, ...rest }: any) {
       {children}
     </pre>
   )
-  // A reply's questionnaire or confirmation: the control, or this code when
-  // it is not the turn's block (see interactive-fence.tsx).
+  // A reply's block — a questionnaire, a confirmation, steps or a chart: the
+  // control, or this code when it is not the turn's block (see
+  // interactive-fence.tsx).
   const fence = fenceOf(node)
   return fence ? (
     <InteractiveFence
@@ -196,6 +205,10 @@ export function Markdown({
     () => allowedImageUrls(webSearchResults),
     [webSearchResults]
   )
+  const thumbnailUrls = useMemo(
+    () => searchThumbnailUrls(webSearchResults),
+    [webSearchResults]
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
   const components: Record<string, any> = useMemo(
@@ -205,20 +218,25 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       code({ className, children, node, ...rest }: any) {
         // `[\w-]`: a fence named `exodus-ask` is labelled that, not `exodus`.
-        const match = /language-([\w-]+)/u.exec(className || 'javascript')
-        return match ? (
+        // A fence with no language (an ASCII diagram, plain output) is still
+        // a code block, labelled Text; its text ends in a newline, which
+        // inline code never does.
+        const language =
+          /language-([\w-]+)/u.exec(className ?? '')?.[1] ??
+          (String(children).endsWith('\n') ? 'text' : null)
+        return language ? (
           <>
             {/* The strip stays put while the code under it scrolls — the
                 panel (`.markdown pre`) is the scroll container — on the
                 panel's own fill, as ChatGPT's. */}
-            <section className="bg-muted text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-xs">
+            <section className="bg-code text-muted-foreground sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 text-xs">
               <span className="flex items-center gap-2 font-medium">
                 <HugeiconsIcon
                   icon={SourceCodeIcon}
-                  strokeWidth={2}
+
                   size={14}
                 />
-                {languageName(match[1])}
+                {languageName(language)}
               </span>
               <div className="flex cursor-default items-center gap-6">
                 {copied === children ? (
@@ -242,7 +260,7 @@ export function Markdown({
                   >
                     <HugeiconsIcon
                       icon={Copy01Icon}
-                      strokeWidth={2}
+
                       size={14}
                     />
                     {t('action.copy')}
@@ -255,7 +273,7 @@ export function Markdown({
               {...rest}
               PreTag="div"
               className="font-mono"
-              language={match[1]}
+              language={language}
               style={codeTheme}
               customStyle={codeBlockStyle}
               codeTagProps={codeTagProps}
@@ -297,6 +315,14 @@ export function Markdown({
         // A link still streaming in (see healStreamingTail) is text until
         // its URL is complete.
         if (href === INCOMPLETE_LINK_HREF) return <span>{children}</span>
+        // A name that opens a Wikipedia summary (entity-link.tsx): never an
+        // `<a href="entity:…">`.
+        const entity = entityTitle(href)
+        if (entity !== null)
+          return <EntityLink title={entity}>{children}</EntityLink>
+        // A scheme the URL rule emptied (`tel:`, `javascript:`, a bad
+        // `entity:`): the words alone.
+        if (!href) return <span>{children}</span>
         // Styling lives in globals.css `.markdown a` — primary color, no
         // underline by default, underline on hover. The previous always-bold
         // + always-underlined treatment made body text feel cluttered.
@@ -393,20 +419,22 @@ export function Markdown({
   return (
     <WebSearchRankMapContext.Provider value={rankMap}>
       <AllowedImageUrlsContext.Provider value={allowedUrls}>
-        <section className="markdown max-w-none">
-          {/* Blocks are only ever appended or grown in place — never reordered
+        <SearchThumbnailUrlsContext.Provider value={thumbnailUrls}>
+          <section className="markdown max-w-none">
+            {/* Blocks are only ever appended or grown in place — never reordered
               — so the index is their identity. They render as fragments: the DOM
               under .markdown is the same flat run of elements as before. */}
-          {blocks.map((block, i) => (
-            <MarkdownBlock
-              // eslint-disable-next-line react/no-array-index-key -- see above
-              key={i}
-              src={block}
-              before={befores[i]}
-              components={components}
-            />
-          ))}
-        </section>
+            {blocks.map((block, i) => (
+              <MarkdownBlock
+                // eslint-disable-next-line react/no-array-index-key -- see above
+                key={i}
+                src={block}
+                before={befores[i]}
+                components={components}
+              />
+            ))}
+          </section>
+        </SearchThumbnailUrlsContext.Provider>
       </AllowedImageUrlsContext.Provider>
     </WebSearchRankMapContext.Provider>
   )

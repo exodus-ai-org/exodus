@@ -1,6 +1,6 @@
 import type { Message } from '@earendil-works/pi-ai'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
-import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { AdvancedTools } from '@exodus/shared/types/ai'
 import type {
@@ -452,9 +452,7 @@ chat.post('/', async (c) => {
   // Tools a call to which the kernel blocks before it runs — the binder
   // does not bind them either; this covers a setting changed mid-run and
   // the model naming a tool it was not given.
-  const disabledTools = new Set(
-    (setting.tools?.disabledTools ?? []).map(toToolName)
-  )
+  const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   if (!setting.computerUse?.enabled) disabledTools.add(TOOL_NAMES.computerUse)
 
   const recorder = new RunRecorder({
@@ -631,8 +629,7 @@ chat.post('/', async (c) => {
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
+      'Cache-Control': 'no-cache'
     }
   })
 })

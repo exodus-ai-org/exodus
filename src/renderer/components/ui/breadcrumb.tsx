@@ -89,7 +89,7 @@ function BreadcrumbSeparator({
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
     >
-      {children ?? <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />}
+      {children ?? <HugeiconsIcon icon={ArrowRight01Icon} />}
     </li>
   )
 }
@@ -109,7 +109,7 @@ function BreadcrumbEllipsis({
       )}
       {...props}
     >
-      <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
+      <HugeiconsIcon icon={MoreHorizontalCircle01Icon} />
       <span className="sr-only">More</span>
     </span>
   )

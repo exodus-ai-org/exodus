@@ -26,6 +26,7 @@ import { EmployeeAvatar } from '../employees/employee-avatar'
 import { PhilharmonicEmptyState } from '../empty-state'
 import { Composer } from './composer'
 import { GroupMessageBubble, type BubbleModel } from './group-message-bubble'
+import { NewGroupButton } from './new-group-button'
 import { PlanCard } from './plan-card'
 
 type BubbleWithDate = BubbleModel & { createdAt?: string }
@@ -53,7 +54,8 @@ export function GroupChat({
   stream,
   onRename,
   membersOpen,
-  onToggleMembers
+  onToggleMembers,
+  onCreateGroup
 }: {
   conversation: ConversationData
   agentsById: Record<string, AgentData>
@@ -65,6 +67,7 @@ export function GroupChat({
   onRename: (id: string, title: string) => void | Promise<void>
   membersOpen: boolean
   onToggleMembers: () => void
+  onCreateGroup: () => void
 }) {
   const { t } = useTranslation('philharmonic')
   const conversationId = conversation.id
@@ -231,14 +234,23 @@ export function GroupChat({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Chat's bar (the content header of `chat-layout`): 44 px, no rule —
+          the transcript fades into the bar's colour under it — and the sidebar
+          toggle with New group only once the sidebar is away. */}
       <header
         className={cn(
-          'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-2 border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
-          sidebarOpen ? 'pl-2' : isFullscreen ? 'pl-4' : 'pl-21'
+          'draggable bg-card/80 relative z-10 flex h-11 shrink-0 items-center gap-1 rounded-tl-xl pt-0.5 pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
+          'after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-linear-to-b after:from-card after:to-transparent',
+          sidebarOpen ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-23'
         )}
       >
-        <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
-        <div className="no-drag flex min-w-0 flex-1 items-center gap-3">
+        {!sidebarOpen && (
+          <>
+            <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
+            <NewGroupButton onCreate={onCreateGroup} />
+          </>
+        )}
+        <div className="no-drag flex min-w-0 flex-1 items-center gap-3 pl-2">
           {visibleMembers.length > 0 ? (
             <div className="flex">
               {visibleMembers.map((m, i) => (
@@ -251,7 +263,7 @@ export function GroupChat({
                 />
               ))}
               {overflow > 0 && (
-                <span className="bg-muted text-muted-foreground ring-card -ml-2 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[10px] font-semibold ring-2">
+                <span className="bg-muted text-muted-foreground ring-card text-2xs -ml-2 flex h-[30px] w-[30px] items-center justify-center rounded-full font-semibold ring-2">
                   +{overflow}
                 </span>
               )}
@@ -287,7 +299,7 @@ export function GroupChat({
                 {conversation.title}
               </button>
             )}
-            <div className="text-muted-foreground text-[11px]">
+            <div className="text-muted-foreground text-2xs">
               {t('chat.groupChat.memberCount', { count: memberCount })}
               {primaryTeam ? ` · ${primaryTeam}` : ''}
             </div>
@@ -304,103 +316,117 @@ export function GroupChat({
             membersOpen && 'bg-accent text-foreground'
           )}
         >
-          <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={UserGroupIcon} />
         </Button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
-        {plan && plan.steps.length > 0 && (
-          <div className="mx-auto max-w-2xl">
-            <PlanCard plan={plan} agentsById={agentsById} />
-          </div>
-        )}
-        {merged.length === 0 ? (
-          <PhilharmonicEmptyState
-            avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
-            title={t('chat.groupChat.emptyState.title')}
-            description={t('chat.groupChat.emptyState.description')}
-          />
-        ) : (
-          <div className="mx-auto flex max-w-2xl flex-col gap-1">
-            {merged.map((b, i) => {
-              const prev = i > 0 ? merged[i - 1] : null
-              // Use null when createdAt is absent (e.g. live streaming bubble) so
-              // the day divider is skipped rather than using an unstable new Date().
-              const curDate = b.createdAt ? new Date(b.createdAt) : null
-              const prevDate = prev?.createdAt ? new Date(prev.createdAt) : null
-              const showDay =
-                curDate !== null && (!prevDate || !isSameDay(curDate, prevDate))
-              return (
-                <div key={b.messageId}>
-                  {showDay && curDate && (
-                    <div className="my-3 flex items-center gap-3">
-                      <div className="border-border/60 flex-1 border-t" />
-                      <span className="text-muted-foreground text-[10px] tracking-wider uppercase">
-                        {formatDayLabel(curDate)}
-                      </span>
-                      <div className="border-border/60 flex-1 border-t" />
-                    </div>
-                  )}
-                  <GroupMessageBubble
-                    bubble={b}
-                    agentsById={agentsById}
-                    teamsById={teamsById}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        )}
-        {error && (
-          <div className="text-destructive bg-destructive/10 mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
-            <HugeiconsIcon
-              icon={Alert02Icon}
-              strokeWidth={2}
-              className="h-3.5 w-3.5 shrink-0"
+      {/* As Chat's: the composer floats over the transcript, which scrolls its
+          full height behind it and fades into the pane's colour above it.
+          The conversation takes the colour tone back from the neutral page
+          around it, as Chat's does (globals.css, "Where the tone stops"). */}
+      <div
+        data-tone-scope="tone"
+        className="relative flex min-h-0 flex-1 flex-col"
+      >
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pt-3 pb-36">
+          {plan && plan.steps.length > 0 && (
+            <div className="mx-auto max-w-2xl">
+              <PlanCard plan={plan} agentsById={agentsById} />
+            </div>
+          )}
+          {merged.length === 0 ? (
+            <PhilharmonicEmptyState
+              avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
+              title={t('chat.groupChat.emptyState.title')}
+              description={t('chat.groupChat.emptyState.description')}
             />
-            <span>{error}</span>
-          </div>
-        )}
-        {askUser && (
-          <div className="border-border bg-muted mx-auto my-3 max-w-2xl rounded-xl border p-3">
-            <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
+          ) : (
+            <div className="mx-auto flex max-w-2xl flex-col gap-1">
+              {merged.map((b, i) => {
+                const prev = i > 0 ? merged[i - 1] : null
+                // Use null when createdAt is absent (e.g. live streaming bubble) so
+                // the day divider is skipped rather than using an unstable new Date().
+                const curDate = b.createdAt ? new Date(b.createdAt) : null
+                const prevDate = prev?.createdAt
+                  ? new Date(prev.createdAt)
+                  : null
+                const showDay =
+                  curDate !== null &&
+                  (!prevDate || !isSameDay(curDate, prevDate))
+                return (
+                  <div key={b.messageId}>
+                    {showDay && curDate && (
+                      <div className="my-3 flex items-center gap-3">
+                        <div className="border-border/60 flex-1 border-t" />
+                        <span className="text-muted-foreground text-2xs tracking-wider uppercase">
+                          {formatDayLabel(curDate)}
+                        </span>
+                        <div className="border-border/60 flex-1 border-t" />
+                      </div>
+                    )}
+                    <GroupMessageBubble
+                      bubble={b}
+                      agentsById={agentsById}
+                      teamsById={teamsById}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {error && (
+            <div className="text-destructive bg-destructive/10 mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
               <HugeiconsIcon
-                icon={HelpCircleIcon}
-                strokeWidth={2}
-                className="text-primary-ink mt-0.5 h-4 w-4 shrink-0"
+                icon={Alert02Icon}
+
+                className="h-3.5 w-3.5 shrink-0"
               />
-              <span>{askUser.question}</span>
+              <span>{error}</span>
             </div>
-            <div className="flex gap-2">
-              <Input
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder={t('chat.groupChat.askUser.replyPlaceholder')}
-                autoFocus
-                className="border-border bg-card rounded-lg"
-              />
-              <Button
-                onClick={async () => {
-                  if (!answer.trim()) return
-                  await respondToConversation(conversationId, answer)
-                  setAnswer('')
-                }}
-              >
-                {t('chat.groupChat.askUser.sendButton')}
-              </Button>
+          )}
+          {askUser && (
+            <div className="border-border bg-muted mx-auto my-3 max-w-2xl rounded-xl border p-3">
+              <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
+                <HugeiconsIcon
+                  icon={HelpCircleIcon}
+
+                  className="text-primary-ink mt-0.5 h-4 w-4 shrink-0"
+                />
+                <span>{askUser.question}</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder={t('chat.groupChat.askUser.replyPlaceholder')}
+                  autoFocus
+                  className="border-border bg-card rounded-lg"
+                />
+                <Button
+                  onClick={async () => {
+                    if (!answer.trim()) return
+                    await respondToConversation(conversationId, answer)
+                    setAnswer('')
+                  }}
+                >
+                  {t('chat.groupChat.askUser.sendButton')}
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+        <div className="from-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t to-transparent pt-8 pb-6 [&>*]:pointer-events-auto">
+          <Composer
+            onSend={(text, attachments) =>
+              sendConversationMessage(conversationId, text, attachments)
+            }
+            busy={pmRunning}
+            onStop={() => {
+              interruptConversation(conversationId).catch(() => {})
+            }}
+          />
+        </div>
       </div>
-      <Composer
-        onSend={(text, attachments) =>
-          sendConversationMessage(conversationId, text, attachments)
-        }
-        busy={pmRunning}
-        onStop={() => {
-          interruptConversation(conversationId).catch(() => {})
-        }}
-      />
     </div>
   )
 }

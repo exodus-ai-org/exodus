@@ -40,6 +40,7 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { PhilharmonicHeaderSlot } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
@@ -84,27 +85,27 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
               {employee.name}
             </div>
             {employee.description && (
-              <div className="text-muted-foreground line-clamp-2 text-[11.5px]">
+              <div className="text-muted-foreground line-clamp-2 text-xs">
                 {employee.description}
               </div>
             )}
             {(modelChip || tools.length > 0) && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {modelChip && (
-                  <span className="bg-accent text-accent-foreground rounded-md px-1.5 py-0.5 text-[10px]">
+                  <span className="bg-accent text-accent-foreground text-2xs rounded-md px-1.5 py-0.5">
                     {modelChip}
                   </span>
                 )}
                 {tools.slice(0, 2).map((tool) => (
                   <span
                     key={tool}
-                    className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]"
+                    className="bg-background text-muted-foreground text-2xs rounded-md px-1.5 py-0.5"
                   >
                     {tool}
                   </span>
                 ))}
                 {tools.length > 2 && (
-                  <span className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]">
+                  <span className="bg-background text-muted-foreground text-2xs rounded-md px-1.5 py-0.5">
                     +{tools.length - 2}
                   </span>
                 )}
@@ -117,7 +118,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
         <ContextMenuItem onClick={() => onEdit(employee)}>
           <HugeiconsIcon
             icon={EditIcon}
-            strokeWidth={2}
+
             className="mr-1.5 h-3.5 w-3.5"
           />
           {t('action.edit')}
@@ -129,7 +130,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
         >
           <HugeiconsIcon
             icon={Delete02Icon}
-            strokeWidth={2}
+
             className="mr-1.5 h-3.5 w-3.5"
           />
           {t('action.delete')}
@@ -171,7 +172,7 @@ function TeamSection({
     >
       <HugeiconsIcon
         icon={ArrowRight01Icon}
-        strokeWidth={2}
+
         className={cn(
           'text-muted-foreground h-4 w-4 transition-transform',
           !collapsed && 'rotate-90'
@@ -188,13 +189,13 @@ function TeamSection({
           (team ? (
             <HugeiconsIcon
               icon={Building03Icon}
-              strokeWidth={2}
+
               className="h-4 w-4 opacity-60"
             />
           ) : (
             <HugeiconsIcon
               icon={UserGroupIcon}
-              strokeWidth={2}
+
               className="h-4 w-4 opacity-60"
             />
           ))}
@@ -202,7 +203,7 @@ function TeamSection({
       <span className="text-foreground text-sm font-semibold">
         {team?.name ?? t('workforce.teamSection.unassignedFallback')}
       </span>
-      <span className="bg-background text-muted-foreground ml-1 rounded-full px-2 py-0.5 text-[10px]">
+      <span className="bg-background text-muted-foreground text-2xs ml-1 rounded-full px-2 py-0.5">
         {members.length}
       </span>
       {team?.description && (
@@ -223,7 +224,7 @@ function TeamSection({
               <ContextMenuItem onClick={() => onEditTeam?.(team)}>
                 <HugeiconsIcon
                   icon={EditIcon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.editTeam')}
@@ -231,7 +232,7 @@ function TeamSection({
               <ContextMenuItem onClick={() => onAddEmployeeToTeam(team.id)}>
                 <HugeiconsIcon
                   icon={UserAdd01Icon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.addEmployeeHere')}
@@ -243,7 +244,7 @@ function TeamSection({
               >
                 <HugeiconsIcon
                   icon={Delete02Icon}
-                  strokeWidth={2}
+
                   className="mr-1.5 h-3.5 w-3.5"
                 />
                 {t('workforce.teamSection.deleteTeam')}
@@ -274,7 +275,7 @@ function TeamSection({
             >
               <HugeiconsIcon
                 icon={Add01Icon}
-                strokeWidth={2}
+
                 className="h-3.5 w-3.5"
               />
               {t('workforce.teamSection.addEmployeeButton')}
@@ -293,7 +294,7 @@ export function DeleteEmployeeDescription({ name }: { name: string }) {
       i18nKey="workforce.deleteEmployeeDialog.description"
       values={{ name }}
     >
-      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+      <span className="bg-background rounded-md px-1.5 py-0.5 text-xs">
         {name}
       </span>{' '}
       will be permanently removed along with their accumulated memory.
@@ -308,7 +309,7 @@ export function DeleteTeamDescription({ name }: { name: string }) {
       i18nKey="workforce.deleteTeamDialog.description"
       values={{ name }}
     >
-      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+      <span className="bg-background rounded-md px-1.5 py-0.5 text-xs">
         {name}
       </span>{' '}
       will be removed. Existing members keep their records but lose this team
@@ -456,12 +457,14 @@ export function WorkforcePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
-        <div>
-          <h1 className="text-foreground text-sm font-semibold">
+      {/* The page's title and actions sit in the content header's bar, as a
+          chat's title does — one bar, not a second header under it. */}
+      <PhilharmonicHeaderSlot>
+        <div className="no-drag flex min-w-0 items-baseline gap-2 pl-2">
+          <h1 className="truncate text-sm font-medium">
             {t('philharmonic:workforce.header.title')}
           </h1>
-          <p className="text-muted-foreground text-[11.5px]">
+          <p className="text-muted-foreground truncate text-xs">
             {t('philharmonic:workforce.header.employeeCount', {
               count: employees.length
             })}{' '}
@@ -471,11 +474,12 @@ export function WorkforcePage() {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="min-w-0 flex-1" />
+        <div className="no-drag flex items-center gap-1.5">
           <Button variant="ghost" size="sm" onClick={openNewTeam}>
             <HugeiconsIcon
               icon={Add01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
             {t('philharmonic:workforce.header.addTeamButton')}
@@ -492,13 +496,13 @@ export function WorkforcePage() {
           >
             <HugeiconsIcon
               icon={UserAdd01Icon}
-              strokeWidth={2}
+
               className="h-3.5 w-3.5"
             />
             {t('philharmonic:workforce.header.addEmployeeButton')}
           </Button>
         </div>
-      </header>
+      </PhilharmonicHeaderSlot>
 
       <div className="flex-1 overflow-y-auto px-5 py-5">
         {totalEmpty ? (

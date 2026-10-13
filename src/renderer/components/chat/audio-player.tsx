@@ -1,3 +1,4 @@
+import { withBlockText } from '@exodus/shared/utils/interactive-plain-text'
 import {
   Loading03Icon,
   StopIcon,
@@ -42,7 +43,8 @@ export function AudioPlayer({ content }: { content: string }) {
 
   const fetchSpeech = async () => {
     if (!data) {
-      textToSpeech(content)
+      // A block is read as its words, not its JSON.
+      textToSpeech(withBlockText(content))
     } else {
       playAudio()
     }
@@ -61,7 +63,7 @@ export function AudioPlayer({ content }: { content: string }) {
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper onClick={fetchSpeech}>
-            <HugeiconsIcon icon={VolumeHighIcon} strokeWidth={2} size={16} />
+            <HugeiconsIcon icon={VolumeHighIcon} size={16} />
           </IconWrapper>
         )}
 
@@ -69,7 +71,7 @@ export function AudioPlayer({ content }: { content: string }) {
           <IconWrapper>
             <HugeiconsIcon
               icon={Loading03Icon}
-              strokeWidth={2}
+
               size={16}
               className={cn('animate-spin')}
             />
@@ -80,7 +82,7 @@ export function AudioPlayer({ content }: { content: string }) {
           <IconWrapper onClick={handleStop}>
             <HugeiconsIcon
               icon={StopIcon}
-              strokeWidth={2}
+
               size={11}
               className="fill-current"
             />

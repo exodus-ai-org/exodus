@@ -93,12 +93,6 @@ export interface ToolNotice {
 }
 
 /**
- * `image_generation`'s `details`: what the card shows. `url` is an https URL
- * (DALL·E, valid for an hour) or a `data:` URL (GPT image models only return
- * base64) — the model is told only the count and the revised prompts, never
- * the bytes. Rows saved before 2026-09-25 may carry an image with no `url`.
- */
-/**
  * One generated image as `image_generation` records it: saved under
  * `~/.exodus/media/<chatId>/<mediaId>` and served by
  * `GET /api/v1/media/<chatId>/<mediaId>`. `chatId` is absent for a
@@ -114,17 +108,8 @@ export interface GeneratedImage {
   revisedPrompt?: string
 }
 
-/**
- * A row written before images were saved to disk: a base64 `data:` URL
- * (24665d84) or a DALL·E link that expired an hour after it was made.
- */
-export interface LegacyGeneratedImage {
-  url?: string
-  revisedPrompt?: string
-}
-
 export interface ImageGenerationDetails {
-  images: Array<GeneratedImage | LegacyGeneratedImage>
+  images: GeneratedImage[]
   /** The `size` the request asked for (e.g. `1024x1536`, `auto`). */
   size?: string
 }
@@ -193,8 +178,6 @@ import type { WebSearchResult } from './web-search'
 
 export type ChatStatus = 'idle' | 'submitted' | 'streaming' | 'error'
 
-export type ChatTab = { id: string; title: string }
-
 export interface SendMessageOptions {
   text?: string
   attachments?: Attachment[]
@@ -248,6 +231,12 @@ export type TurnBlock =
       toolName: string
       /** Absent until the tool has answered. */
       result?: ChatToolResultMessage
+      /**
+       * `create_artifact` only: its arguments as they stream (pi keeps a
+       * partial call's arguments parsed), drawn as a draft card until the
+       * result replaces it.
+       */
+      draft?: { title: string; code: string }
     }
   | {
       kind: 'image'

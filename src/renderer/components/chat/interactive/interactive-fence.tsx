@@ -2,6 +2,7 @@ import {
   findInteractiveBlock,
   interactiveKind,
   trimTrailingBlanks,
+  type InteractiveFence as FenceData,
   type InteractiveKind
 } from '@exodus/shared/types/interactive'
 import { createContext, type ReactNode, useContext, useMemo } from 'react'
@@ -10,12 +11,15 @@ import { ErrorBoundary } from '@/components/app/card-error-boundary'
 
 import { ConfirmationBlock } from './confirmation-block'
 import {
+  type Answered,
   InteractiveTurnContext,
   TurnTextAboveContext,
   unixLines,
   useInteractiveChat
 } from './interactive-context'
 import { QuestionnaireBlock } from './questionnaire-block'
+import { StepsBlock } from './steps-block'
+import { StockBlock } from './stock-block'
 
 /**
  * The Markdown text a `<pre>` was parsed from: `src`, the piece the node's
@@ -122,7 +126,7 @@ export function InteractiveFence({
   )
   if (!turn || !chat || !fence || !isBlock) return children
   const answerable = turn.answerable
-  const props = {
+  const answer: AnswerProps = {
     runId: turn.runId,
     answered: chat.answers.get(turn.runId) ?? null,
     canSubmit: answerable && chat.canSubmit,
@@ -130,11 +134,28 @@ export function InteractiveFence({
   }
   return (
     <ErrorBoundary scope="interactive-block" fallback={children}>
-      {fence.kind === 'ask' ? (
-        <QuestionnaireBlock block={fence.block} {...props} />
-      ) : (
-        <ConfirmationBlock block={fence.block} {...props} />
-      )}
+      {drawn(fence, answer)}
     </ErrorBoundary>
   )
+}
+
+/** What the two asking blocks need besides their data; the steps and the chart need nothing. */
+interface AnswerProps {
+  runId: string
+  answered: Answered | null
+  canSubmit: boolean
+  submit: (text: string) => void
+}
+
+function drawn(fence: FenceData, answer: AnswerProps): ReactNode {
+  switch (fence.kind) {
+    case 'ask':
+      return <QuestionnaireBlock block={fence.block} {...answer} />
+    case 'confirm':
+      return <ConfirmationBlock block={fence.block} {...answer} />
+    case 'steps':
+      return <StepsBlock block={fence.block} />
+    case 'stock':
+      return <StockBlock block={fence.block} />
+  }
 }

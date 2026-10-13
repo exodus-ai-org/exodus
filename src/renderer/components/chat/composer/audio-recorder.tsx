@@ -34,10 +34,16 @@ function extForMime(mime: string): string {
 
 export function AudioRecorder({
   input,
-  setInput
+  setInput,
+  onStream,
+  onBusyChange
 }: {
   input: string
   setInput: (input: string) => void
+  /** The microphone while recording, null otherwise: the voice glow listens. */
+  onStream?: (stream: MediaStream | null) => void
+  /** Recording or transcribing: the button must stay this one until done. */
+  onBusyChange?: (busy: boolean) => void
 }) {
   const { t } = useTranslation('audio')
   const [isRecording, setIsRecording] = useState(false)
@@ -63,6 +69,7 @@ export function AudioRecorder({
       recorder.onstop = async () => {
         // Release the mic so the OS recording indicator turns off.
         stream.getTracks().forEach((t) => t.stop())
+        onStream?.(null)
         const type = recorder.mimeType || 'audio/webm'
         const blob = new Blob(audioChunksRef.current, { type })
         audioChunksRef.current = []
@@ -74,6 +81,7 @@ export function AudioRecorder({
 
       recorder.start()
       setIsRecording(true)
+      onStream?.(stream)
     } catch (error) {
       sileo.error({
         title: t('recorder.toast.micErrorTitle'),
@@ -88,7 +96,33 @@ export function AudioRecorder({
   const stopRecording = () => {
     mediaRecorderRef.current?.stop()
     setIsRecording(false)
+    onStream?.(null)
   }
+
+  useEffect(() => {
+    onBusyChange?.(isRecording || loading)
+  }, [isRecording, loading, onBusyChange])
+
+  // Taken away mid-recording (the chat closed): the microphone stops and the
+  // clip is dropped, since nothing is left to take its text. It used to stay
+  // on, recording, with no control left to stop it.
+  const onStreamRef = useRef(onStream)
+  onStreamRef.current = onStream
+  const onBusyChangeRef = useRef(onBusyChange)
+  onBusyChangeRef.current = onBusyChange
+  useEffect(
+    () => () => {
+      const recorder = mediaRecorderRef.current
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.onstop = null
+        recorder.stop()
+        recorder.stream.getTracks().forEach((track) => track.stop())
+      }
+      onStreamRef.current?.(null)
+      onBusyChangeRef.current?.(false)
+    },
+    []
+  )
 
   // Append each new transcription once. `input` is in the deps so the append
   // uses the current value, and the ref guard stops the re-render from
@@ -114,17 +148,17 @@ export function AudioRecorder({
       {loading ? (
         <HugeiconsIcon
           icon={Loading03Icon}
-          strokeWidth={2}
+
           className="animate-spin"
         />
       ) : isRecording ? (
         <HugeiconsIcon
           icon={StopIcon}
-          strokeWidth={2}
+
           className="size-3 fill-current"
         />
       ) : (
-        <HugeiconsIcon icon={AudioWave01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={AudioWave01Icon} />
       )}
     </Button>
   )

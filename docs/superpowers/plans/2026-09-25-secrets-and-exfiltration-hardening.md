@@ -11,10 +11,10 @@ Playwright (faux provider).
 ## Global Constraints
 
 - Branch `feat/react-query`, shared tree: never stage/format/revert another session's uncommitted files, never `git
-stash`. If the pre-commit hook fails only because of their files (today `itinerary-card.tsx` TS18048), commit with
+  stash`. If the pre-commit hook fails only because of their files (today `itinerary-card.tsx` TS18048), commit with
   `$SCRATCH/commit-via-worktree.sh "<message>" <files…>` (the real hook runs in a temp worktree; it moves the branch).
 - Gate before each commit: `bun run fmt` (check `git status` for foreign changes) → `bun run lint` → `bun run
-typecheck` (TS1149 → `env PWD=/Users/yanceyleo/Code/exodus/exodus`) → `bun run i18n:check` → `bun run test`.
+  typecheck` (TS1149 → `env PWD=/Users/yanceyleo/Code/exodus/exodus`) → `bun run i18n:check` → `bun run test`.
   Trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never `--no-verify`.
 - Secrets never appear in logs, errors, SSE events, test snapshots or tool results. Tests never touch the real
   `~/.exodus` (temp `EXODUS_HOME`), never a real keychain (`safeStorage` mocked).

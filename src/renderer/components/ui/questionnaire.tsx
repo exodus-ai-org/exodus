@@ -99,6 +99,41 @@ function QuestionnaireChoices({
   )
 }
 
+/**
+ * A choice's row, shared by the live choice and the answered one. Its padding
+ * is what its 44 px leaves around one line, so a one-line choice sits in the
+ * middle rather than at the top with the spare room under it.
+ */
+const CHOICE_ROW =
+  'group/questionnaire-choice relative flex min-h-11 items-start gap-2.5 rounded-xl border border-input px-3 py-[calc((--spacing(11)-1lh)/2)] text-start text-xs/snug data-checked:border-primary/40 data-checked:bg-primary/10'
+
+/**
+ * A choice's box, centred on the label's first line whatever its size: the
+ * row and the label share one line height, and the box sits half of what
+ * that line has over 1rem below the top. A fixed nudge tuned for one line
+ * height left it low beside the label's tighter one.
+ */
+function ChoiceIndicator() {
+  return (
+    <span
+      aria-hidden="true"
+      data-slot="questionnaire-choice-indicator"
+      className="border-input group-data-checked/questionnaire-choice:border-primary group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground dark:bg-input/30 dark:group-data-checked/questionnaire-choice:bg-primary pointer-events-none relative mt-[calc((1lh-1rem)/2)] flex size-4 shrink-0 items-center justify-center rounded-[4px] border group-data-[type=radio]/questionnaire-choice:rounded-full"
+    >
+      <span
+        data-slot="questionnaire-choice-indicator-dot"
+        className="bg-primary-foreground hidden size-2 rounded-full group-data-checked/questionnaire-choice:block group-data-[type=checkbox]/questionnaire-choice:hidden"
+      />
+      <HugeiconsIcon
+        icon={Tick02Icon}
+
+        data-slot="questionnaire-choice-indicator-check"
+        className="hidden size-3.5 group-data-checked/questionnaire-choice:block group-data-[type=radio]/questionnaire-choice:hidden"
+      />
+    </span>
+  )
+}
+
 function QuestionnaireChoice({
   children,
   className,
@@ -108,7 +143,8 @@ function QuestionnaireChoice({
     <QuestionnairePrimitive.Choice
       data-slot="questionnaire-choice"
       className={cn(
-        'group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start gap-2.5 rounded-xl border border-input px-3 py-2.5 text-start text-xs/relaxed transition-colors outline-none select-none hover:bg-input/40 has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-2 has-[>input:focus-visible]:ring-ring/30 data-invalid:border-destructive data-checked:border-primary/40 data-checked:bg-primary/10',
+        CHOICE_ROW,
+        'cursor-pointer transition-colors outline-none select-none hover:bg-input/40 has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-2 has-[>input:focus-visible]:ring-ring/30 data-invalid:border-destructive',
         'data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50',
         className
       )}
@@ -118,22 +154,7 @@ function QuestionnaireChoice({
         data-slot="questionnaire-choice-input"
         className="absolute inset-0 z-10 size-full cursor-pointer opacity-0"
       />
-      <span
-        aria-hidden="true"
-        data-slot="questionnaire-choice-indicator"
-        className="border-input group-data-checked/questionnaire-choice:border-primary group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground dark:bg-input/30 dark:group-data-checked/questionnaire-choice:bg-primary pointer-events-none relative flex size-4 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-[4px] border group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[type=radio]/questionnaire-choice:rounded-full"
-      >
-        <span
-          data-slot="questionnaire-choice-indicator-dot"
-          className="bg-primary-foreground hidden size-2 rounded-full group-data-checked/questionnaire-choice:block group-data-[type=checkbox]/questionnaire-choice:hidden"
-        />
-        <HugeiconsIcon
-          icon={Tick02Icon}
-          strokeWidth={2}
-          data-slot="questionnaire-choice-indicator-check"
-          className="hidden size-3.5 group-data-checked/questionnaire-choice:block group-data-[type=radio]/questionnaire-choice:hidden"
-        />
-      </span>
+      <ChoiceIndicator />
       <QuestionnairePrimitive.ChoiceLabel
         data-slot="questionnaire-choice-label"
         className="flex min-w-0 flex-1 flex-col gap-0.5 leading-snug"
@@ -142,9 +163,46 @@ function QuestionnaireChoice({
       </QuestionnairePrimitive.ChoiceLabel>
       <QuestionnairePrimitive.ChoiceShortcut
         data-slot="questionnaire-choice-shortcut"
-        className="border-input bg-background/80 text-muted-foreground pointer-events-none ms-auto hidden size-4 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-sm border font-mono text-[0.5625rem] leading-none font-medium group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[shortcut]/questionnaire-choice:inline-flex"
+        className="border-input bg-background/80 text-muted-foreground pointer-events-none ms-auto mt-[calc((1lh-1rem)/2)] hidden size-4 shrink-0 items-center justify-center rounded-sm border text-[0.5625rem] leading-[calc(var(--text-xs)*var(--leading-snug))] font-medium group-data-[shortcut]/questionnaire-choice:inline-flex"
       />
     </QuestionnairePrimitive.Choice>
+  )
+}
+
+/**
+ * A choice as it was answered: the live choice's row and box, checked or not,
+ * taking no input. The block keeps its own shape once answered, as on the
+ * phone, rather than turning into a summary (owner, 2026-10-08).
+ */
+function QuestionnaireStaticChoice({
+  type,
+  checked,
+  children,
+  className
+}: {
+  type: 'radio' | 'checkbox'
+  checked: boolean
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      data-slot="questionnaire-choice"
+      data-type={type}
+      data-checked={checked ? '' : undefined}
+      role={type}
+      aria-checked={checked}
+      aria-disabled
+      className={cn(CHOICE_ROW, !checked && 'opacity-60', className)}
+    >
+      <ChoiceIndicator />
+      <span
+        data-slot="questionnaire-choice-label"
+        className="flex min-w-0 flex-1 flex-col gap-0.5 leading-snug"
+      >
+        {children}
+      </span>
+    </div>
   )
 }
 
@@ -326,6 +384,7 @@ export {
   QuestionnairePrevious,
   QuestionnaireProgress,
   QuestionnaireSkip,
+  QuestionnaireStaticChoice,
   QuestionnaireSubmit,
   QuestionnaireTitle
 }

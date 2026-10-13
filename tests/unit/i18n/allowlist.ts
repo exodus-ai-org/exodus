@@ -22,7 +22,7 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/calling-tools/artifact/artifact-card.tsx',
     text: 'artifact://',
-    line: 134,
+    line: 136,
     reason: "The app's own URI scheme prefix, not user-facing prose."
   },
   {
@@ -30,18 +30,6 @@ export const ALLOWLIST: AllowlistEntry[] = [
     text: 'draw.io ·',
     line: 139,
     reason: "draw.io is the third-party product's own brand name."
-  },
-  {
-    file: 'src/renderer/components/settings/settings-form/logger.tsx',
-    text: 'traceId:',
-    line: 379,
-    reason: 'Debug-only technical field label in the raw log inspector.'
-  },
-  {
-    file: 'src/renderer/components/settings/settings-form/logger.tsx',
-    text: 'originTraceId:',
-    line: 381,
-    reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',

@@ -65,13 +65,13 @@ function CopyLinkButton({ link }: { link: string }) {
         labels={{
           idle: (
             <>
-              <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Copy01Icon} />
               {t('devices.pairing.copyLink')}
             </>
           ),
           done: (
             <>
-              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Tick02Icon} />
               {t('devices.pairing.linkCopied')}
             </>
           )
@@ -190,7 +190,7 @@ export function PairCard({ onPair }: { onPair: () => void }) {
     <SettingsSection>
       <SettingsItem
         className={ENTER}
-        icon={<HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={2} />}
+        icon={<HugeiconsIcon icon={SmartPhone01Icon} />}
         title={t('devices.pairCard.title')}
         description={t('devices.pairCard.description')}
         actions={

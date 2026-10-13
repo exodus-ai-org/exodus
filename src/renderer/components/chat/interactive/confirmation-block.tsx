@@ -73,14 +73,14 @@ export function ConfirmationBlock({
           {decision === 'reject' ? (
             <HugeiconsIcon
               icon={Cancel01Icon}
-              strokeWidth={2}
+
               aria-hidden
               className="text-muted-foreground size-4"
             />
           ) : (
             <HugeiconsIcon
               icon={Tick02Icon}
-              strokeWidth={2}
+
               aria-hidden
               className="text-primary-ink size-4"
             />

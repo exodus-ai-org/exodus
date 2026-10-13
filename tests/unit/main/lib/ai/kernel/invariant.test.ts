@@ -57,6 +57,23 @@ describe('dropBrokenRuns', () => {
     expect(dropBrokenRuns(msgs)).toEqual({ messages: msgs, dropped: 0 })
   })
 
+  it('keeps a system message where it stands — the prompt ahead of the first run, a tool-set change between runs', () => {
+    const system = (t: string): Message => ({
+      role: 'system',
+      content: t,
+      timestamp: 0
+    })
+    const msgs = [
+      system('prompt'),
+      user('a'),
+      text('x'),
+      system('tools changed'),
+      user('b'),
+      text('y')
+    ]
+    expect(dropBrokenRuns(msgs)).toEqual({ messages: msgs, dropped: 0 })
+  })
+
   it('drops leading rows that precede the first user message', () => {
     const msgs = [result('9'), text('x'), user('a'), text('y')]
     expect(dropBrokenRuns(msgs)).toEqual({

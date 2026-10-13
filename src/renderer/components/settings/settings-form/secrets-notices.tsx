@@ -20,8 +20,7 @@ const FIELD_NAMES: Record<string, ParseKeys<'settings'>> = {
     'secrets.fields.elasticsearchPassword',
   'knowledgeBase.apiKey': 'secrets.fields.knowledgeBaseApiKey',
   's3.accessKeyId': 'secrets.fields.s3AccessKeyId',
-  's3.secretAccessKey': 'secrets.fields.s3SecretAccessKey',
-  mcpServers: 'secrets.fields.legacyMcpServers'
+  's3.secretAccessKey': 'secrets.fields.s3SecretAccessKey'
 }
 
 // `mcp:<server>:<column>.<name>` (or `url` / `args`); a server name may hold

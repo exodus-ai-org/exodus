@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/combobox'
 import { InputGroupAddon } from '@/components/ui/input-group'
 import { ENTER } from '@/lib/motion'
+import { modelRetirement } from '@/lib/provider-labels'
 import { cn } from '@/lib/utils'
 
 import { SettingsRow, SettingsSection } from '../../settings-row'
@@ -37,6 +38,7 @@ import { SettingsRow, SettingsSection } from '../../settings-row'
 interface ModelOption {
   value: string
   label: string
+  retiresAt?: string | null
 }
 
 interface ModelPickerProps {
@@ -90,8 +92,11 @@ export function ModelPicker({
       : undefined
 
   const options: ModelOption[] =
-    fetched?.map((m) => ({ value: m.id, label: m.displayName })) ??
-    (savedModel ? [{ value: savedModel, label: savedModel }] : [])
+    fetched?.map((m) => ({
+      value: m.id,
+      label: m.displayName,
+      retiresAt: m.retiresAt
+    })) ?? (savedModel ? [{ value: savedModel, label: savedModel }] : [])
 
   // The saved model may be stale (no longer in the freshest fetched list) —
   // fall back to a synthetic option so the combobox still displays it rather
@@ -161,6 +166,24 @@ export function ModelPicker({
 
   const isEmpty = useMemo(() => options.length === 0, [options])
 
+  // A model the provider is shutting down says so after its name, the day
+  // itself on hover.
+  const retirementLabel = (retiresAt: string | null | undefined) => {
+    const state = modelRetirement(retiresAt)
+    if (!state || !retiresAt) return null
+    const date = new Intl.DateTimeFormat(i18n.language, {
+      dateStyle: 'medium'
+    }).format(new Date(`${retiresAt}T00:00:00`))
+    return (
+      <span
+        className="text-muted-foreground ml-auto shrink-0 text-xs"
+        title={t(`settings:providers.model.${state}On`, { date })}
+      >
+        {t(`settings:providers.model.${state}`)}
+      </span>
+    )
+  }
+
   return (
     <SettingsSection>
       <SettingsRow
@@ -183,7 +206,7 @@ export function ModelPicker({
               data-testid={TEST_IDS.providerModels.modelSelect}
             >
               <InputGroupAddon>
-                <HugeiconsIcon icon={AsteroidIcon} strokeWidth={2} />
+                <HugeiconsIcon icon={AsteroidIcon} />
               </InputGroupAddon>
             </ComboboxInput>
             <ComboboxContent>
@@ -193,7 +216,8 @@ export function ModelPicker({
               <ComboboxList>
                 {(item) => (
                   <ComboboxItem key={item.value} value={item}>
-                    {item.label}
+                    <span className="truncate">{item.label}</span>
+                    {retirementLabel(item.retiresAt)}
                   </ComboboxItem>
                 )}
               </ComboboxList>

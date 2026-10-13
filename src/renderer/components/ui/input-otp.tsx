@@ -77,7 +77,7 @@ function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
       role="separator"
       {...props}
     >
-      <HugeiconsIcon icon={MinusSignIcon} strokeWidth={2} />
+      <HugeiconsIcon icon={MinusSignIcon} />
     </div>
   )
 }

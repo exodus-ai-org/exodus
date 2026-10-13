@@ -9,6 +9,7 @@ import {
   type ChartConfig
 } from '@/components/ui/chart'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { PhilharmonicHeaderSlot } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import { getAgents } from '@/services/philharmonic'
 import {
   getPhilharmonicCosts,
@@ -52,7 +53,7 @@ function KpiCard({
   return (
     <div className="bg-muted rounded-xl p-3.5">
       <div className="mb-2 flex items-start justify-between">
-        <span className="text-muted-foreground text-[11.5px]">{label}</span>
+        <span className="text-muted-foreground text-xs">{label}</span>
         <span
           className="flex h-7 w-7 items-center justify-center rounded-lg text-sm"
           style={{ background: iconBg, color: iconColor }}
@@ -60,11 +61,11 @@ function KpiCard({
           {icon}
         </span>
       </div>
-      <div className="text-foreground text-[22px] font-bold tabular-nums">
+      <div className="text-foreground text-2xl font-bold tabular-nums">
         {value}
       </div>
       {hint && (
-        <div className="text-muted-foreground mt-0.5 text-[11px]">{hint}</div>
+        <div className="text-muted-foreground text-2xs mt-0.5">{hint}</div>
       )}
     </div>
   )
@@ -82,7 +83,7 @@ function AgentCostList({
   const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
-      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
+      <div className="text-foreground text-ui mb-2 font-semibold">
         {t('costAnalysis.agentCostList.title')}
       </div>
       {rows.length === 0 ? (
@@ -112,7 +113,7 @@ function AgentCostList({
                   <div className="text-foreground truncate text-xs font-semibold">
                     {label}
                   </div>
-                  <div className="text-muted-foreground text-[10.5px]">
+                  <div className="text-muted-foreground text-2xs">
                     {t('costAnalysis.agentCostList.tokens', {
                       tokens: formatTokens(r.tokens)
                     })}
@@ -138,7 +139,7 @@ function ConversationCostList({
   const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
-      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
+      <div className="text-foreground text-ui mb-2 font-semibold">
         {t('costAnalysis.conversationCostList.title')}
       </div>
       {rows.length === 0 ? (
@@ -152,10 +153,10 @@ function ConversationCostList({
               key={r.conversationId}
               className="bg-card flex items-center gap-2.5 rounded-lg px-2 py-2"
             >
-              <div className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-[10.5px]">
+              <div className="text-muted-foreground text-2xs min-w-0 flex-1 truncate">
                 {r.conversationId.slice(0, 12)}…
               </div>
-              <div className="text-muted-foreground text-[10.5px] tabular-nums">
+              <div className="text-muted-foreground text-2xs tabular-nums">
                 {formatTokens(r.tokens)}
               </div>
               <div className="text-foreground text-xs font-semibold tabular-nums">
@@ -212,23 +213,13 @@ export function CostAnalysis() {
   }
 
   const agentCount = data.byAgent.length
-  const periodLabel =
-    period === '7d'
-      ? t('costAnalysis.period.last7Days')
-      : period === '30d'
-        ? t('costAnalysis.period.last30Days')
-        : t('costAnalysis.period.allTime')
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
-        <div>
-          <h1 className="text-foreground text-sm font-semibold">
-            {t('costAnalysis.header.title')}
-          </h1>
-          <p className="text-muted-foreground text-[11.5px]">{periodLabel}</p>
-        </div>
+      {/* The period toggle at the content bar's right end; the bar already
+          names the page, and the toggle shows the period. */}
+      <PhilharmonicHeaderSlot>
         <ToggleGroup
+          className="no-drag"
           value={[period]}
           onValueChange={(v) => {
             const next = (v as string[])[0]
@@ -247,7 +238,7 @@ export function CostAnalysis() {
             {t('costAnalysis.periodToggle.all')}
           </ToggleGroupItem>
         </ToggleGroup>
-      </header>
+      </PhilharmonicHeaderSlot>
 
       <div className="flex-1 overflow-y-auto p-5">
         {/* KPI grid */}
@@ -290,10 +281,10 @@ export function CostAnalysis() {
         {data.daily.length > 1 && (
           <div className="bg-muted mb-4 rounded-xl p-4">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-foreground text-[12.5px] font-semibold">
+              <div className="text-foreground text-ui font-semibold">
                 {t('costAnalysis.chart.sectionTitle')}
               </div>
-              <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
+              <div className="text-muted-foreground text-2xs flex items-center gap-1">
                 <span className="bg-primary inline-block h-2 w-2 rounded-full" />
                 {t('costAnalysis.chart.costLabel')}
               </div>
@@ -348,7 +339,6 @@ export function CostAnalysis() {
                   type="natural"
                   fill="url(#ph-cost-fill)"
                   stroke="var(--primary-ink)"
-                  strokeWidth={2}
                 />
               </AreaChart>
             </ChartContainer>

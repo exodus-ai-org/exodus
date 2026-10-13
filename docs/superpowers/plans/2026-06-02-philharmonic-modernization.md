@@ -334,6 +334,7 @@ pnpm format && pnpm lint && pnpm typecheck
 
 ```ts
 import { describe, it, expect } from 'vitest'
+
 import { HUE_NAMES, pickHue, hueStyle } from './hue'
 
 describe('pickHue', () => {
@@ -692,7 +693,7 @@ For the active row, use `style={{ background: 'var(--ph-primary-faint)' }}` so t
 Convert the bottom three-row config nav into a segmented pill:
 
 ```tsx
-<nav className="border-[var(--ph-border)] shrink-0 border-t p-2">
+<nav className="shrink-0 border-t border-[var(--ph-border)] p-2">
   <div className="flex gap-1">
     {CONFIG_NAV.map((item) => {
       const Icon = item.icon
@@ -1624,7 +1625,7 @@ Wrap the existing content with a sticky header containing summary + `+ Document`
   className="space-y-2 rounded-[var(--ph-radius-lg)] p-3.5"
   style={{ background: 'var(--ph-surface-sunken)' }}
 >
-  <div className="text-[11px] uppercase tracking-wider text-[var(--ph-text-muted)]">
+  <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
     New document
   </div>
   <Input
@@ -1882,7 +1883,7 @@ Inside `EmployeeEditor`, wrap its content with:
 <div className="flex h-full flex-col">
   <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
     <div>
-      <div className="text-[11px] uppercase tracking-wider text-[var(--ph-text-muted)]">
+      <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
         Employee
       </div>
       <div className="text-sm font-semibold">
@@ -1908,7 +1909,7 @@ Inside `EmployeeEditor`, wrap its content with:
       </button>
     </div>
   </header>
-  <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+  <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
     {/* form fields */}
   </div>
 </div>
@@ -1920,7 +1921,7 @@ Replace each `<Label>` + `<Input>` cluster with:
 
 ```tsx
 <div>
-  <div className="mb-1 text-[11px] uppercase tracking-wider text-[var(--ph-text-muted)]">
+  <div className="mb-1 text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
     Name
   </div>
   <Input
@@ -2000,6 +2001,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 ```tsx
 import { type ReactNode } from 'react'
+
 import type { HueName } from './lib/hue'
 
 interface AvatarSpec {

@@ -42,7 +42,7 @@ export function AttachmentDownloadButton({
     >
       <HugeiconsIcon
         icon={DownloadIcon}
-        strokeWidth={2}
+
         size={14}
         aria-hidden
       />

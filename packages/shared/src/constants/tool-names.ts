@@ -35,39 +35,3 @@ export const TOOL_NAMES = {
 } as const
 
 export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
-
-/**
- * The names as stored before migration 0007 (the camelCase key was the wire
- * name), keyed to their new spelling. Nineteen entries, fixed: a tool added
- * after the rename has no legacy name.
- */
-export const LEGACY_TOOL_NAMES: Record<string, ToolName> = Object.fromEntries(
-  (
-    [
-      'computerUse',
-      'deepResearch',
-      'createArtifact',
-      'imageGeneration',
-      'findFiles',
-      'editFile',
-      'lcmGrep',
-      'grep',
-      'lcmDescribe',
-      'searchKnowledgeBase',
-      'mapItinerary',
-      'webSearch',
-      'lcmExpand',
-      'weather',
-      'listDirectory',
-      'terminal',
-      'readFile',
-      'webFetch',
-      'writeFile'
-    ] as const
-  ).map((key) => [key, TOOL_NAMES[key]])
-)
-
-/** A legacy name becomes its snake_case name; anything else is unchanged. */
-export function toToolName(name: string): string {
-  return LEGACY_TOOL_NAMES[name] ?? name
-}

@@ -97,7 +97,7 @@ export function WorkspaceFileCard({
       }}
     >
       <div className="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md">
-        <HugeiconsIcon icon={File01Icon} strokeWidth={2} className="size-4" />
+        <HugeiconsIcon icon={File01Icon} className="size-4" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium" title={path}>
@@ -117,7 +117,7 @@ export function WorkspaceFileCard({
             aria-label={t('workspaceFile.quickLook')}
             onClick={() => setPreviewing(true)}
           >
-            <HugeiconsIcon icon={EyeIcon} strokeWidth={2} />
+            <HugeiconsIcon icon={EyeIcon} />
           </Button>
           <Button
             data-testid={TEST_IDS.chat.workspaceFile.reveal}
@@ -127,7 +127,7 @@ export function WorkspaceFileCard({
             aria-label={t(revealLabelKey())}
             onClick={() => void revealWorkspaceFileWithFeedback(file.path, t)}
           >
-            <HugeiconsIcon icon={FolderOpenIcon} strokeWidth={2} />
+            <HugeiconsIcon icon={FolderOpenIcon} />
           </Button>
           <Button
             data-testid={TEST_IDS.chat.workspaceFile.open}
@@ -135,7 +135,7 @@ export function WorkspaceFileCard({
             size="sm"
             onClick={() => void openWorkspaceFileWithFeedback(file.path, t)}
           >
-            <HugeiconsIcon icon={LinkSquare02Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={LinkSquare02Icon} />
             {t('workspaceFile.open')}
           </Button>
         </div>

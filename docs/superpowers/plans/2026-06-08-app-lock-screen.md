@@ -238,9 +238,9 @@ Expected: FAIL — `Cannot find module './pin-store'`.
 - [ ] **Step 3: Implement `pin-store.ts`**
 
 ```ts
+import { randomBytes, scryptSync, timingSafeEqual } from 'crypto'
 // src/main/lib/lock/pin-store.ts
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
-import { randomBytes, scryptSync, timingSafeEqual } from 'crypto'
 
 import { safeStorage } from 'electron'
 
@@ -697,9 +697,9 @@ git commit -m "feat(lock): LockManager state machine with attempt backoff"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
+import { Hono } from 'hono'
 // src/main/lib/server/middlewares/lock-gate.test.ts
 import { describe, expect, it, vi } from 'vitest'
-import { Hono } from 'hono'
 
 const locked = { value: false }
 vi.mock('../../lock/lock-manager', () => ({
@@ -953,11 +953,10 @@ This buffers recent task events and pushes them to the renderer's lock-screen fe
 - [ ] **Step 1: Implement (no separate test — thin glue; covered manually)**
 
 ```ts
-// src/main/lib/lock/lock-notifications.ts
-import { v4 as uuidV4 } from 'uuid'
-
 import type { LockNotification } from '@shared/types/lock'
 import { LOCK_CHANNELS } from '@shared/types/lock'
+// src/main/lib/lock/lock-notifications.ts
+import { v4 as uuidV4 } from 'uuid'
 
 import { notifyIfBackground } from '../philharmonic-notifications'
 import { getMainWindow } from '../window'
@@ -1012,16 +1011,15 @@ git commit -m "feat(lock): lock-screen notification ring buffer"
 - [ ] **Step 1: Implement `src/main/lib/lock/ipc.ts`**
 
 ```ts
+import type { LockConfig } from '@shared/types/lock'
+import { LOCK_CHANNELS } from '@shared/types/lock'
 // src/main/lib/lock/ipc.ts
 import { ipcMain, safeStorage, systemPreferences } from 'electron'
 
-import type { LockConfig } from '@shared/types/lock'
-import { LOCK_CHANNELS } from '@shared/types/lock'
-
 import { logger } from '../logger'
 import { getMainWindow } from '../window'
-import { getRecentNotifications } from './lock-notifications'
 import { getLockManager } from './lock-manager'
+import { getRecentNotifications } from './lock-notifications'
 
 function touchIdAvailable(): boolean {
   return (
@@ -1152,6 +1150,7 @@ Add imports at top of `src/main/index.ts`:
 
 ```ts
 import { powerMonitor } from 'electron'
+
 import { IdleWatcher } from './lib/lock/idle-watcher'
 import { setLockIdleWatcher } from './lib/lock/ipc'
 import { readConfig as readLockConfig } from './lib/lock/lock-config'
@@ -1254,9 +1253,6 @@ git commit -m "feat(lock): Lock Now menu item (CmdOrCtrl+L)"
 - [ ] **Step 1: Implement `src/renderer/lib/lock-ipc.ts`**
 
 ```ts
-// src/renderer/lib/lock-ipc.ts
-import type { IpcRendererEvent } from 'electron'
-
 import {
   LOCK_CHANNELS,
   type LockConfig,
@@ -1264,6 +1260,8 @@ import {
   type LockStatus,
   type UnlockResult
 } from '@shared/types/lock'
+// src/renderer/lib/lock-ipc.ts
+import type { IpcRendererEvent } from 'electron'
 
 const ipc = () => window.electron.ipcRenderer
 
@@ -1308,10 +1306,9 @@ export function onLockNotification(
 - [ ] **Step 2: Implement `src/renderer/stores/lock.ts`**
 
 ```ts
+import type { LockStatus } from '@shared/types/lock'
 // src/renderer/stores/lock.ts
 import { atom } from 'jotai'
-
-import type { LockStatus } from '@shared/types/lock'
 
 export const lockStatusAtom = atom<LockStatus | null>(null)
 ```
@@ -1558,7 +1555,7 @@ export function LockScreen({
 
       <PinPad value={pin} onChange={setPin} shake={shake} />
 
-      <div className="h-5 text-sm text-destructive">{error}</div>
+      <div className="text-destructive h-5 text-sm">{error}</div>
 
       {touchId && (
         <button
@@ -1641,11 +1638,11 @@ Follow the existing `memory-layer.tsx` section pattern for layout, labels, and s
 import { useState } from 'react'
 import { sileo } from 'sileo'
 
-import { useLock } from '@/hooks/use-lock'
-import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
-import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { useLock } from '@/hooks/use-lock'
+import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
 
 const IDLE_OPTIONS = [
   { label: 'Off', value: 0 },

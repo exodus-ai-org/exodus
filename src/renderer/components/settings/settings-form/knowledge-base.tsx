@@ -221,7 +221,7 @@ function DocListItem({
   return (
     <div className={cn('flex items-center gap-3.5', ENTER_UP)}>
       <IconTile>
-        <HugeiconsIcon icon={File01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={File01Icon} />
       </IconTile>
       <button
         type="button"
@@ -252,7 +252,7 @@ function DocListItem({
           title={t('action.edit')}
           onClick={() => onEdit(doc)}
         >
-          <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={EditIcon} />
         </Button>
         <Button
           variant="ghost"
@@ -261,7 +261,7 @@ function DocListItem({
           title={t('action.delete')}
           onClick={() => onDelete(doc)}
         >
-          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={Delete02Icon} />
         </Button>
       </div>
     </div>
@@ -544,7 +544,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                   <>
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="animate-spin"
                     />
                     {t('knowledgeBase:connection.testingLabel')}
@@ -582,7 +582,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 onClick={openAdd}
                 data-testid={TEST_IDS.knowledgeBase.addButton}
               >
-                <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+                <HugeiconsIcon icon={Add01Icon} />
                 {t('knowledgeBase:docDialog.addTitle')}
               </Button>
             </div>

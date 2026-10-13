@@ -1,10 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  writeFileSync
-} from 'fs'
+import { existsSync, mkdtempSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
@@ -13,7 +7,6 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 // `os.homedir()` reads $HOME on POSIX at call time, so pointing it at a temp
 // dir keeps every directory these tests create out of the real home.
 const home = mkdtempSync(join(tmpdir(), 'exodus-paths-'))
-const legacyUserData = join(home, 'legacy-user-data')
 const originalHome = process.env.HOME
 process.env.HOME = home
 // vitest.config.ts sets EXODUS_HOME for every test (so none can reach the real
@@ -21,15 +14,8 @@ process.env.HOME = home
 const originalExodusHome = process.env.EXODUS_HOME
 delete process.env.EXODUS_HOME
 
-const electronApp = vi.hoisted(() => ({
-  isPackaged: true,
-  userData: '',
-  getPath() {
-    return this.userData
-  }
-}))
+const electronApp = vi.hoisted(() => ({ isPackaged: true }))
 vi.mock('electron', () => ({ app: electronApp }))
-electronApp.userData = legacyUserData
 
 afterAll(() => {
   process.env.HOME = originalHome
@@ -85,17 +71,5 @@ describe('paths', () => {
     for (const sub of ['database', 'logs', 'artifacts', 'backups/auto']) {
       expect(existsSync(join(home, '.exodus', sub))).toBe(true)
     }
-  })
-
-  it('migrateFromLegacyLocation moves legacy data into ~/.exodus', () => {
-    mkdirSync(join(legacyUserData, 'database'), { recursive: true })
-    writeFileSync(join(legacyUserData, 'database', 'PG_VERSION'), '17')
-
-    paths.migrateFromLegacyLocation()
-
-    expect(
-      readFileSync(join(home, '.exodus', 'database', 'PG_VERSION'), 'utf8')
-    ).toBe('17')
-    expect(existsSync(join(legacyUserData, 'database'))).toBe(false)
   })
 })

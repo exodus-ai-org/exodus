@@ -49,16 +49,16 @@ export function GenericToolCard({
       >
         <HugeiconsIcon
           icon={Wrench01Icon}
-          strokeWidth={2}
+
           className="text-muted-foreground size-3.5 shrink-0"
         />
         <span className="font-medium">{label}</span>
-        <Badge variant="secondary" className="text-[10px]">
+        <Badge variant="secondary" className="text-2xs">
           {t('genericToolCard.badge')}
         </Badge>
         <HugeiconsIcon
           icon={ArrowRight01Icon}
-          strokeWidth={2}
+
           className={cn(
             'text-muted-foreground ml-auto size-3.5 shrink-0 transition-transform',
             open && 'rotate-90'
@@ -66,7 +66,7 @@ export function GenericToolCard({
         />
       </button>
       {open && pretty && (
-        <pre className="bg-muted/30 max-h-72 max-w-full overflow-auto border-t px-3 py-2 font-mono text-[11px] leading-snug [overflow-wrap:anywhere] whitespace-pre-wrap">
+        <pre className="bg-muted/30 text-2xs max-h-72 max-w-full overflow-auto border-t px-3 py-2 font-mono leading-snug [overflow-wrap:anywhere] whitespace-pre-wrap">
           {pretty}
         </pre>
       )}

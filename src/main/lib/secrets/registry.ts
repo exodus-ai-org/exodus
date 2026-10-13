@@ -22,11 +22,7 @@ export const SETTINGS_SECRET_PATHS = [
   // Also carried, by design, in the `X-Amz-Credential` of every presigned
   // URL `POST /api/v1/s3/presigned-url` returns (the secret key is not).
   's3.accessKeyId',
-  's3.secretAccessKey',
-  // The legacy universal-client MCP config blob (a JSON string of
-  // `{ mcpServers: { name: { command, env } } }`). Nothing reads it any more,
-  // but an old row can still carry `env` tokens in it, so it is masked whole.
-  'mcpServers'
+  's3.secretAccessKey'
 ] as const
 
 export type SettingsSecretPath = (typeof SETTINGS_SECRET_PATHS)[number]

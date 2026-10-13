@@ -1,6 +1,7 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { withBlockText } from '@exodus/shared/utils/interactive-plain-text'
 import { Tick02Icon, Copy01Icon, RefreshIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useSetAtom } from 'jotai'
@@ -10,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { withReferences } from '@/lib/citation-references'
 import { compactRelativeTime } from '@/lib/relative-time'
-import { sourcesPanelAtom } from '@/stores/chat'
+import { chatPanelAtom } from '@/stores/chat'
 
 import { Button } from '../ui/button'
 import { TooltipProvider } from '../ui/tooltip'
@@ -71,7 +72,8 @@ export const MessageAction = memo(function MessageAction({
   regenerate,
   webSearchResults,
   citationSources,
-  timestamp
+  timestamp,
+  runId
 }: {
   content: string
   /** Absent for an answer that cannot be asked again where it is shown. */
@@ -85,16 +87,19 @@ export const MessageAction = memo(function MessageAction({
   /** When the reply was generated (epoch ms). Shown as a compact relative
    *  time, matching the sidebar. */
   timestamp?: number
+  /** The run, for the panel: its Sources group comes into view. */
+  runId?: string
 }) {
   const { t } = useTranslation('chat')
   const { copied, handleCopy } = useClipboard()
-  const setSourcesPanel = useSetAtom(sourcesPanelAtom)
+  const setPanel = useSetAtom(chatPanelAtom)
 
-  // What leaves the app carries its sources, not the chips' markers.
+  // What leaves the app carries its sources, not the chips' markers, and a
+  // block's words, not its JSON.
   const copyText = useMemo(
     () =>
       withReferences(
-        content,
+        withBlockText(content),
         citationSources ?? [],
         t('deepResearchCard.referencesHeading')
       ),
@@ -102,12 +107,8 @@ export const MessageAction = memo(function MessageAction({
   )
   const onCopy = useCallback(() => handleCopy(copyText), [handleCopy, copyText])
   const onSourcesClick = useCallback(
-    () =>
-      setSourcesPanel({
-        webSearchResults: webSearchResults!,
-        messageText: content
-      }),
-    [setSourcesPanel, webSearchResults, content]
+    () => setPanel({ open: true, section: 'sources', runId }),
+    [setPanel, runId]
   )
 
   const relTime = timestamp ? compactRelativeTime(new Date(timestamp)) : null
@@ -122,9 +123,9 @@ export const MessageAction = memo(function MessageAction({
         <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
             {copied === copyText ? (
-              <HugeiconsIcon icon={Tick02Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Tick02Icon} />
             ) : (
-              <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
+              <HugeiconsIcon icon={Copy01Icon} />
             )}
           </IconWrapper>
         </MessageActionItem>
@@ -138,7 +139,7 @@ export const MessageAction = memo(function MessageAction({
               label={t('messageAction.regenerate')}
               testId={TEST_IDS.chat.regenerate}
             >
-              <HugeiconsIcon icon={RefreshIcon} strokeWidth={2} />
+              <HugeiconsIcon icon={RefreshIcon} />
             </IconWrapper>
           </MessageActionItem>
         )}

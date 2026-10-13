@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -13,12 +13,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { useUpdateChat } from '@/hooks/use-chat-history'
-import { openTabsAtom, renamedChatTitleAtom } from '@/stores/chat'
+import { renamedChatTitleAtom } from '@/stores/chat'
 
 export function RenameChatDialog() {
   const { t } = useTranslation(['common', 'chat'])
   const [renamedChatTitle, setRenamedChatTitle] = useAtom(renamedChatTitleAtom)
-  const setOpenTabs = useSetAtom(openTabsAtom)
   const { mutate: updateChat } = useUpdateChat()
   const reset = () => setRenamedChatTitle({ id: '', title: '', open: false })
 
@@ -57,9 +56,6 @@ export function RenameChatDialog() {
             onClick={() => {
               const { id, title } = renamedChatTitle
               updateChat({ id, title })
-              setOpenTabs((prev) =>
-                prev.map((tab) => (tab.id === id ? { ...tab, title } : tab))
-              )
               reset()
             }}
           >

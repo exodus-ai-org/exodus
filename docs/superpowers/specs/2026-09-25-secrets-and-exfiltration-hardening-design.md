@@ -31,8 +31,8 @@ documented. exodus-ios already works this way (`MarkdownImagePolicy`).
 ### 2.2 Secrets never leave the main process in plaintext (API)
 
 - **Registry:** one list of secret fields — `providers.{openaiApiKey, azureOpenaiApiKey, anthropicApiKey,
-googleGeminiApiKey, xAiApiKey}`, `googleCloud.googleApiKey`, `webSearch.braveApiKey`, `fullTextSearch.elasticsearch
-.password`, `knowledgeBase.apiKey`, `s3.{accessKeyId, secretAccessKey}`, every other key-like field the schema holds
+  googleGeminiApiKey, xAiApiKey}`, `googleCloud.googleApiKey`, `webSearch.braveApiKey`, `fullTextSearch.elasticsearch
+  .password`, `knowledgeBase.apiKey`, `s3.{accessKeyId, secretAccessKey}`, every other key-like field the schema holds
   (the implementer greps the schema and the Settings pages; a test fails when a new `*Key|*Secret|*Password|*Token`
   field is added without a registry decision), plus `mcp_server.env` / `headers` values.
 - **Reads:** `GET /api/v1/settings` and `GET /api/v1/mcp` return a secret as a mask `"•••• abcd"` (last 4, or `"••••"`
@@ -89,7 +89,7 @@ machine are **intercepted and left to the user** — real work sometimes needs t
   copies of key files), the terminal heuristic covers CLI print-token commands and process-argument listings (`ps`),
   and `call_mcp_tool` is matched on every string leaf of its `arguments`.
 - **Approval flow:** the paused call emits an SSE event `{ type: 'approval_required', runId, toolCallId, toolName,
-summary }` (summary = the path or command, never file contents); the run waits; the renderer shows an approval card
+  summary }` (summary = the path or command, never file contents); the run waits; the renderer shows an approval card
   in the timeline — **Allow once**, **Deny** — and `POST /api/v1/chat/approval { runId, toolCallId, decision }`
   resumes it. Deny → the tool returns "The user declined access to <path>." to the model. No answer within 10
   minutes → denied. Stop → denied. Allowed-once is per call, not remembered.

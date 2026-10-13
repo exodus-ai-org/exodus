@@ -242,7 +242,8 @@ async function vetHost(url: URL): Promise<Resolved> {
 function get(
   url: URL,
   addrs: Resolved,
-  signal: AbortSignal
+  signal: AbortSignal,
+  headers: Record<string, string> | undefined
 ): Promise<{ res: IncomingMessage; abort: (e: Error) => void }> {
   return new Promise((resolvePromise, reject) => {
     const req = request(
@@ -250,6 +251,7 @@ function get(
       {
         method: 'GET',
         signal,
+        headers,
         // Pinned: the socket connects to an address vetHost checked, never
         // to a fresh DNS answer.
         lookup: (_host, options, cb) => {
@@ -303,6 +305,8 @@ export interface FetchPublicHttpsOptions {
   timeoutMs?: number
   /** Default 3. */
   maxRedirects?: number
+  /** Sent with every hop: the `User-Agent` an API's policy asks for, an `Accept`. */
+  headers?: Record<string, string>
 }
 
 /**
@@ -317,7 +321,8 @@ export async function fetchPublicHttps(
     maxBytes,
     signal,
     timeoutMs = 60_000,
-    maxRedirects = 3
+    maxRedirects = 3,
+    headers
   }: FetchPublicHttpsOptions
 ): Promise<{ bytes: Buffer; contentType: string | null }> {
   const timeout = AbortSignal.timeout(timeoutMs)
@@ -330,7 +335,7 @@ export async function fetchPublicHttps(
   }
   for (let hop = 0; ; hop++) {
     const addrs = await vetHost(current)
-    const { res, abort } = await get(current, addrs, combined)
+    const { res, abort } = await get(current, addrs, combined, headers)
     const status = res.statusCode ?? 0
     if (REDIRECTS.has(status)) {
       res.resume()

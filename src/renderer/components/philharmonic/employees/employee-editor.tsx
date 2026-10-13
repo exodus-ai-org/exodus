@@ -35,7 +35,7 @@ import { EmployeeAvatar } from './employee-avatar'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-muted-foreground mb-1 text-[11px] tracking-wider uppercase">
+    <div className="text-muted-foreground text-2xs mb-1 tracking-wider uppercase">
       {children}
     </div>
   )
@@ -78,7 +78,7 @@ export function EmployeeEditor({
     <div className="flex h-full flex-col">
       <header className="border-border flex h-14 shrink-0 items-center border-b pr-14 pl-5">
         <div className="min-w-0">
-          <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
+          <div className="text-muted-foreground text-2xs tracking-wider uppercase">
             {t('philharmonic:employees.editor.header.label')}
           </div>
           <div className="text-foreground truncate text-sm font-semibold">
@@ -107,7 +107,7 @@ export function EmployeeEditor({
               >
                 <HugeiconsIcon
                   icon={EditIcon}
-                  strokeWidth={2}
+
                   className="text-muted-foreground h-3 w-3"
                 />
               </span>

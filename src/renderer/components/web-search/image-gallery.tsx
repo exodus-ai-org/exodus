@@ -44,8 +44,7 @@ export function ImageGallery({ images }: { images: GalleryImage[] }) {
                 />
                 {isLastWithMore && (
                   <div className="absolute inset-0 flex items-center justify-center gap-0.5 bg-black/50 text-sm font-medium text-white">
-                    <HugeiconsIcon icon={Add01Icon} strokeWidth={2} size={16} />{' '}
-                    {images.length}
+                    <HugeiconsIcon icon={Add01Icon} size={16} /> {images.length}
                   </div>
                 )}
               </button>

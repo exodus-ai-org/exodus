@@ -52,7 +52,6 @@ describe('philharmonic namespace (en)', () => {
 
   it('has the schedule tab and shared keys', () => {
     expect(philharmonic.schedule.tab).toMatchObject({
-      heading: 'Schedule',
       upcomingTrigger: 'Upcoming',
       recurringTrigger: 'Recurring'
     })
@@ -222,13 +221,8 @@ describe('philharmonic namespace (en)', () => {
     )
   })
 
-  it('has the cost analysis header, period, and kpi keys', () => {
+  it('has the cost analysis header, period toggle, and kpi keys', () => {
     expect(philharmonic.costAnalysis.header.title).toBe('Dashboard')
-    expect(philharmonic.costAnalysis.period).toMatchObject({
-      last7Days: 'Last 7 days',
-      last30Days: 'Last 30 days',
-      allTime: 'All time'
-    })
     expect(philharmonic.costAnalysis.periodToggle).toMatchObject({
       sevenDays: '7d',
       thirtyDays: '30d',
@@ -312,7 +306,7 @@ describe('philharmonic namespace workforce delete-dialog descriptions render cor
       )
     )
     expect(html).toBe(
-      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Ada</span> will be permanently removed along with their accumulated memory.'
+      '<span class="bg-background rounded-md px-1.5 py-0.5 text-xs">Ada</span> will be permanently removed along with their accumulated memory.'
     )
   })
 
@@ -341,34 +335,7 @@ describe('philharmonic namespace workforce delete-dialog descriptions render cor
       )
     )
     expect(html).toBe(
-      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Marketing</span> will be removed. Existing members keep their records but lose this team affiliation.'
-    )
-  })
-})
-
-describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {
-  it('hint — two <kbd> elements at indices 1 and 4, correct positions', async () => {
-    const { createElement } = await import('react')
-    const { renderToStaticMarkup } = await import('react-dom/server')
-    const { I18nextProvider, initReactI18next } = await import('react-i18next')
-    const i18next = (await import('i18next')).default
-    const { ComposerHint } =
-      await import('@/components/philharmonic/chat/composer')
-
-    const i18n = i18next.createInstance()
-    await i18n.use(initReactI18next).init({
-      lng: 'en',
-      resources: { en: { philharmonic } },
-      ns: ['philharmonic'],
-      defaultNS: 'philharmonic',
-      interpolation: { escapeValue: false }
-    })
-
-    const html = renderToStaticMarkup(
-      createElement(I18nextProvider, { i18n }, createElement(ComposerHint))
-    )
-    expect(html).toBe(
-      '<p class="text-muted-foreground mt-1.5 px-1 text-[10px]">Press <kbd class="bg-background rounded px-1 py-px">Enter</kbd> to send, <kbd class="bg-background ml-1 rounded px-1 py-px">Shift + Enter</kbd> for a new line. Paste or attach images.</p>'
+      '<span class="bg-background rounded-md px-1.5 py-0.5 text-xs">Marketing</span> will be removed. Existing members keep their records but lose this team affiliation.'
     )
   })
 })
@@ -399,7 +366,7 @@ describe('philharmonic namespace chat.conversationList.deleteDialog.description 
       )
     )
     expect(html).toBe(
-      '<span class="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">Marketing Team</span> and all its messages, tasks, and executions will be permanently removed.'
+      '<span class="bg-muted rounded-sm px-1.5 py-0.5 text-xs">Marketing Team</span> and all its messages, tasks, and executions will be permanently removed.'
     )
   })
 })

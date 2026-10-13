@@ -126,7 +126,7 @@ export function ExpandToggle({
         {label}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           className={cn(
             'transition-transform duration-200',
             open && 'rotate-180'
@@ -322,7 +322,7 @@ export function RegistryLeaderboard({
             {isFetchingNextPage && (
               <HugeiconsIcon
                 icon={Loading03Icon}
-                strokeWidth={2}
+
                 className="animate-spin"
               />
             )}

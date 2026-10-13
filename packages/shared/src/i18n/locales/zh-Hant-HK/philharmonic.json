@@ -17,7 +17,6 @@
   },
   "schedule": {
     "tab": {
-      "heading": "排程",
       "upcomingTrigger": "即將執行",
       "recurringTrigger": "定期執行"
     },
@@ -86,8 +85,7 @@
     "composer": {
       "placeholder": "傳送訊息給你的團隊…",
       "stopAria": "停止",
-      "sendAria": "傳送",
-      "hint": "按 <1>Enter</1> 傳送，<4>Shift + Enter</4> 換行。可貼上或附加圖片。"
+      "sendAria": "傳送"
     },
     "planCard": {
       "elapsed": {
@@ -216,11 +214,6 @@
   "costAnalysis": {
     "header": {
       "title": "儀表板"
-    },
-    "period": {
-      "last7Days": "過去 7 天",
-      "last30Days": "過去 30 天",
-      "allTime": "所有時間"
     },
     "periodToggle": {
       "sevenDays": "7 天",

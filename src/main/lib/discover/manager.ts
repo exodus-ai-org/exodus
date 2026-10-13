@@ -15,7 +15,11 @@ import { getActiveMemories, type MemoryRow } from '../db/memory-queries'
 import { getSettings } from '../db/queries'
 import { discoverFeed } from '../db/schema'
 import { logger } from '../logger'
-import { searchBraveNews } from './brave-news-client'
+import {
+  freshest,
+  type PooledNewsArticle,
+  searchBraveNews
+} from './brave-news-client'
 
 const STALE_AFTER_MS = 20 * 60 * 60 * 1000 // ~20h
 
@@ -38,6 +42,74 @@ const discoverItemSchema = z.object({
   topic: z.string().min(1),
   query: z.string().min(1).nullable().optional()
 })
+
+const DISCOVER_JUDGE_SYSTEM = `You check news search results against the subject a user follows. For each numbered topic you get its search results, numbered. Keep a result only when it is news about that subject itself: not a passing mention, not another place, team, company or field that shares a word with it, not a tutorial, listicle or evergreen guide.
+
+Return ONLY JSON: {"topics":[{"topic":1,"keep":[2,5]},{"topic":2,"keep":[]}]} — every topic given, by its number, with the numbers of the results to keep (an empty list when none fits).`
+
+const judgeSchema = z.object({
+  topics: z.array(
+    z.object({ topic: z.number().int(), keep: z.array(z.number().int()) })
+  )
+})
+
+/**
+ * Which pool articles are about their topic, per topic, as indexes into its
+ * pool; `null` when the judge's answer could not be read. One call for all
+ * topics, once a refresh (~daily). Brave News fills a thin pool with loose
+ * matches, so what it returns cannot be shown as it comes.
+ */
+async function judgeRelevance(
+  model: Parameters<typeof completeSimple>[0],
+  apiKey: string | undefined,
+  topics: { topic: string; query: string; pool: PooledNewsArticle[] }[]
+): Promise<Set<number>[] | null> {
+  const prompt = topics
+    .map(({ topic, query, pool }, t) => {
+      const lines = pool
+        .map(
+          (a, i) =>
+            `  ${i + 1}. ${a.title}${a.description ? ` — ${a.description.slice(0, 200)}` : ''}`
+        )
+        .join('\n')
+      return `Topic ${t + 1}: ${topic} (searched as "${query}")\n${lines}`
+    })
+    .join('\n\n')
+  try {
+    const result = await completeSimple(
+      model,
+      {
+        systemPrompt: DISCOVER_JUDGE_SYSTEM,
+        messages: [
+          {
+            role: 'user',
+            content: [{ type: 'text', text: prompt }],
+            timestamp: Date.now()
+          }
+        ]
+      },
+      { apiKey }
+    )
+    const parsed = parseJsonFromLlmResponse<z.infer<typeof judgeSchema> | null>(
+      extractTextFromCompletion(result.content),
+      judgeSchema,
+      null
+    )
+    if (!parsed) return null
+    const keep = topics.map(() => new Set<number>())
+    for (const { topic, keep: kept } of parsed.topics) {
+      const set = keep[topic - 1]
+      if (!set) continue
+      for (const n of kept) if (n >= 1) set.add(n - 1)
+    }
+    return keep
+  } catch (error) {
+    logger.warn('discover', 'Relevance check failed; showing Brave order', {
+      error
+    })
+    return null
+  }
+}
 
 // The top level only guarantees an `items` array — each element is validated
 // individually below so one malformed entry can't reject the whole response.
@@ -74,7 +146,12 @@ export async function runDiscoverRefresh(
     const topicCount = settings.discover.topicCount ?? 4
     const articlesPerTopic = settings.discover.articlesPerTopic ?? 3
 
-    const active = await getActiveMemories(LOCAL_USER_ID)
+    // Only what the user follows: where they live, who they are and the
+    // people around them are not news subjects ("Beijing-based" became
+    // "Beijing travel news").
+    const active = (await getActiveMemories(LOCAL_USER_ID)).filter(
+      (m) => m.section === 'topic'
+    )
     const candidates = [...active]
       .sort((a, b) => recencyMs(b) - recencyMs(a))
       .slice(0, Math.min(active.length, topicCount + 4))
@@ -139,7 +216,8 @@ export async function runDiscoverRefresh(
       )
     )
 
-    const groups: DiscoverGroup[] = []
+    const searched: ((typeof kept)[number] & { pool: PooledNewsArticle[] })[] =
+      []
     kept.forEach((item, idx) => {
       const outcome = settled[idx]
       if (outcome.status !== 'fulfilled') {
@@ -150,11 +228,28 @@ export async function runDiscoverRefresh(
         return
       }
       if (outcome.value.length === 0) return
+      searched.push({ ...item, pool: outcome.value })
+    })
+
+    // The freshest of what is about the topic; a topic left with nothing is
+    // dropped. Unjudged (the check failed), Brave's own relevance order, never
+    // the raw pool by recency.
+    const relevant =
+      searched.length > 0 ? await judgeRelevance(model, apiKey, searched) : null
+    const groups: DiscoverGroup[] = []
+    searched.forEach((item, t) => {
+      const articles = relevant
+        ? freshest(
+            item.pool.filter((_, i) => relevant[t].has(i)),
+            articlesPerTopic
+          )
+        : freshest(item.pool.slice(0, articlesPerTopic), articlesPerTopic)
+      if (articles.length === 0) return
       groups.push({
         memoryId: item.memoryId,
         topic: item.topic,
         query: item.query,
-        articles: outcome.value
+        articles
       })
     })
 

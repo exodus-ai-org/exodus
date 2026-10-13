@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Open settings"
       },
+      "go-back": {
+        "label": "Back"
+      },
+      "go-forward": {
+        "label": "Forward"
+      },
       "lock-now": {
         "label": "Lock now"
       },
@@ -145,7 +151,7 @@
         "label": "Close find bar"
       },
       "close-tab": {
-        "label": "Close current tab"
+        "label": "Close chat"
       },
       "focus-chat-input": {
         "label": "Focus chat input"
@@ -329,7 +335,11 @@
       "refresh": "Refresh model list",
       "fetchErrorTitle": "Could not fetch model list",
       "fetchErrorFallback": "Failed to fetch model list",
-      "reenterKey": "Re-enter the API key to use it with the new base URL."
+      "reenterKey": "Re-enter the API key to use it with the new base URL.",
+      "retiring": "retiring",
+      "retired": "retired",
+      "retiringOn": "Retires on {{date}}",
+      "retiredOn": "Retired on {{date}}"
     }
   },
   "tools": {
@@ -628,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "All",
       "allScopes": "All",
       "datePlaceholder": "Date",
-      "levelPlaceholder": "Level",
       "scopePlaceholder": "Scope",
-      "keywordPlaceholder": "Search keyword...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "Search  ·  scope:chat  trace:a1b2  -exclude",
+      "clear": "Clear filters"
     },
     "actions": {
       "openDirectory": "Open Directory",
       "export": "Export",
       "clearAll": "Clear All",
-      "clearAllConfirm": "Are you sure you want to delete all log files?"
+      "clearAllConfirm": "Are you sure you want to delete all log files?",
+      "more": "More actions"
     },
     "toast": {
       "exported": "Logs exported",
@@ -653,19 +663,48 @@
       "level": "Level",
       "scope": "Scope",
       "message": "Message",
-      "trace": "Trace",
-      "empty": "No log entries found."
+      "empty": "No log entries found.",
+      "noMatch": "No lines match these filters."
     },
     "pagination": {
-      "total_one": "{{count}} entry total",
-      "total_other": "{{count}} entries total",
       "pageOf": "Page {{page}} of {{totalPages}}",
       "prev": "Prev",
-      "next": "Next"
+      "next": "Next",
+      "range": "{{from}}–{{to}} of {{total}}"
     },
     "details": {
       "stack": "Stack trace",
-      "componentStack": "Component stack"
+      "componentStack": "Component stack",
+      "attributes": "Attributes"
+    },
+    "live": {
+      "label": "Live",
+      "onlyToday": "Live follows today's log"
+    },
+    "levels": {
+      "error": "Error",
+      "warn": "Warn",
+      "info": "Info",
+      "debug": "Debug"
+    },
+    "chart": {
+      "lines_one": "line",
+      "lines_other": "lines",
+      "newestFirst": "newest first",
+      "label": "Lines over time",
+      "noLines": "No lines"
+    },
+    "detail": {
+      "previous": "Previous line",
+      "next": "Next line",
+      "close": "Close",
+      "linesAround": "Lines around",
+      "copyForAi": "Copy for AI",
+      "sameTrace": "Same trace",
+      "message": "Message",
+      "fields": "Fields",
+      "resource": "Resource",
+      "copied": "Copied for AI"
     }
   },
   "mcpServers": {
@@ -1064,7 +1103,6 @@
       "elasticsearchPassword": "Elasticsearch password",
       "s3AccessKeyId": "Amazon S3 access key ID",
       "s3SecretAccessKey": "Amazon S3 secret access key",
-      "legacyMcpServers": "Legacy MCP configuration",
       "mcp": "MCP server “{{server}}”: {{field}}"
     }
   }

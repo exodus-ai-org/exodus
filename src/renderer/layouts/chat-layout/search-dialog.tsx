@@ -39,7 +39,7 @@ export function SearchDialog() {
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-2 border-b px-3 py-1">
-              <HugeiconsIcon icon={SearchIcon} strokeWidth={2} size={20} />
+              <HugeiconsIcon icon={SearchIcon} size={20} />
               <input
                 placeholder={t('sidebar.search.placeholder')}
                 aria-label={t('sidebar.search.ariaLabel')}

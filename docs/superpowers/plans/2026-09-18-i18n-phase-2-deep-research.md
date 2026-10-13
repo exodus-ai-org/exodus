@@ -38,7 +38,7 @@ here).
 - `deep-research.tsx`'s `"4"`/`"2"` numeric default placeholders
   (restating each description's own "Default: N" text) stay hardcoded,
   per the established technical-value convention. The `id=
-"deep-research-breadth-input"`/`"deep-research-depth-input"` DOM ids
+  "deep-research-breadth-input"`/`"deep-research-depth-input"` DOM ids
   and `autoFocus` are untouched (not user-facing text).
 
 **Tech Stack:** i18next + react-i18next (already wired).

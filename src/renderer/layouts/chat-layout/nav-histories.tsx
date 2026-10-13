@@ -41,11 +41,7 @@ import { useChatHistory, useUpdateChat } from '@/hooks/use-chat-history'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { cn } from '@/lib/utils'
-import {
-  openTabsAtom,
-  renamedChatTitleAtom,
-  toBeDeletedChatAtom
-} from '@/stores/chat'
+import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
 import type { Chat } from '@/types/db'
 
 /**
@@ -95,7 +91,6 @@ export const NavItems = memo(function NavItems({
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
-  const setOpenTabs = useSetAtom(openTabsAtom)
   const { handleCopy } = useClipboard()
 
   // The id is what another chat is given to read this one: pasted into a
@@ -110,24 +105,16 @@ export const NavItems = memo(function NavItems({
     <SidebarMenuItem className={cn(className, 'h-8')}>
       <SidebarMenuButton
         isActive={chat.id === id}
-        render={
-          <Link
-            to={`/chat/${chat.id}`}
-            onClick={() =>
-              setOpenTabs((prev) =>
-                prev.find((tab) => tab.id === chat.id)
-                  ? prev
-                  : [...prev, { id: chat.id, title: chat.title }]
-              )
-            }
-          />
-        }
+        render={<Link to={`/chat/${chat.id}`} />}
       >
         <span className="min-w-0 flex-1 truncate">{chat.title}</span>
-        <span className="text-muted-foreground shrink-0 text-[10px]">
-          {compactRelativeTime(parseLocalishCreatedAt(chat.createdAt))}
-        </span>
       </SidebarMenuButton>
+      {/* The row's age sits where the menu button does; the button takes its
+          place on hover and while its menu is open (owner, 2026-10-08): the
+          title keeps the width, and the right edge is never an empty band. */}
+      <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs tabular-nums transition-opacity group-focus-within/menu-item:opacity-0 group-hover/menu-item:opacity-0 group-has-[[aria-expanded=true]]/menu-item:opacity-0">
+        {compactRelativeTime(parseLocalishCreatedAt(chat.createdAt))}
+      </span>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -135,10 +122,7 @@ export const NavItems = memo(function NavItems({
               showOnHover
               data-testid={TEST_IDS.chatLayout.historyItemMenu}
             >
-              <HugeiconsIcon
-                icon={MoreHorizontalCircle01Icon}
-                strokeWidth={2}
-              />
+              <HugeiconsIcon icon={MoreHorizontalCircle01Icon} />
               <span className="sr-only">{t('chat:sidebar.history.more')}</span>
             </SidebarMenuAction>
           }
@@ -151,7 +135,7 @@ export const NavItems = memo(function NavItems({
           <DropdownMenuItem onClick={() => onToggleFavorite(chat)}>
             <HugeiconsIcon
               icon={StarIcon}
-              strokeWidth={2}
+
               className={cn('text-muted-foreground', {
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
@@ -173,7 +157,7 @@ export const NavItems = memo(function NavItems({
           >
             <HugeiconsIcon
               icon={EditIcon}
-              strokeWidth={2}
+
               className="text-muted-foreground"
             />
             <span>{t('chat:sidebar.history.rename')}</span>
@@ -184,7 +168,7 @@ export const NavItems = memo(function NavItems({
           >
             <HugeiconsIcon
               icon={Copy01Icon}
-              strokeWidth={2}
+
               className="text-muted-foreground"
             />
             <span>{t('chat:sidebar.history.copyId')}</span>
@@ -193,7 +177,7 @@ export const NavItems = memo(function NavItems({
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
             <HugeiconsIcon
               icon={Delete02Icon}
-              strokeWidth={2}
+
               className="text-destructive"
             />
             <span className="text-destructive hover:text-destructive">
@@ -262,7 +246,7 @@ export function NavHistories() {
                   </SidebarGroupLabel>
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
-                    strokeWidth={2}
+
                     className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90"
                   />
                 </CollapsibleTrigger>

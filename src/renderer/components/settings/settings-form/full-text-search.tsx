@@ -181,7 +181,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
                     <>
                       <HugeiconsIcon
                         icon={Loading03Icon}
-                        strokeWidth={2}
+
                         className="animate-spin"
                       />
                       {t('settings:fullTextSearch.connection.testingLabel')}
@@ -205,7 +205,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
                     <>
                       <HugeiconsIcon
                         icon={Loading03Icon}
-                        strokeWidth={2}
+
                         className="animate-spin"
                       />
                       {t('settings:fullTextSearch.connection.reindexingLabel')}

@@ -497,11 +497,20 @@ model "The user declined access to <summary>." Allow is per call, never remember
 | `GET /api/v1/chat/search?query=`         | full-text hits across chats (PGlite trigram; Elasticsearch when configured)              |
 | `PUT /api/v1/chat` `{ id, …fields }`     | updates a chat (title, project, `useProjectInstructions`)                                |
 | `DELETE /api/v1/chat/:id`                | deletes the chat, its rows, sources, summaries and media                                 |
-| `GET /api/v1/history`                    | the chat list                                                                            |
+| `GET /api/v1/history[?limit=&before=]`   | the chat list, whole or a page at a time (below)                                         |
 | `GET /api/v1/lcm/:chatId/status`         | SSE of compaction: `init`, then `start` / `complete` / `error`                           |
 | `GET /api/v1/memory/usage?chatId=`       | which memories each run used, by `runId`                                                 |
 | `POST /api/v1/memory/undo` `{ changes }` | reverses an `update_memory` run's changes, newest first, each only while unchanged since |
 | `GET /api/v1/media/:chatId/:file`        | a generated image                                                                        |
+
+**The chat list.** Without `limit`, `GET /api/v1/history` answers every chat as a bare array, newest first — the
+desktop renderer's contract, unchanged. With `limit` (1–100) it answers a page (`ChatHistoryPage`,
+`packages/shared/src/types/chat-history.ts`): `{ "chats": […], "olderCursor": "2026-10-06T12:00:00.000Z|<id>" | null,
+"favorites": […] }`. `chats` are the `limit` newest chats strictly older than `before`, ordered by `createdAt` (to the
+millisecond) then `id`, both descending, favourites included; `olderCursor` is `"<createdAt ISO>|<id>"` of the last
+one, passed back as `before`, and `null` on the last page (`utils/chat-history-cursor.ts`; exodus-ios builds the same
+string). `favorites` — every favourite, newest first — is on the first page only. A bad `limit` or cursor is `400
+VALIDATION_FAILED`.
 
 ## 11. Compatibility
 
@@ -562,3 +571,19 @@ Re-measure against these numbers with Chat Audit and a page's size after any cha
 4. Anything sent for the past must stay a pure function of stored data (§5); a digest change bumps `DIGEST_VERSION`.
 5. A new field a client reads: keep it out of `compactRow`'s drop list, or the page will not carry it.
 6. This document, CLAUDE.md, and the design spec it came from.
+
+## 15. Entity summaries: `GET /api/v1/entity/:title`
+
+For the panel a reply's `[name](entity:Title)` link opens (rich blocks phase 2). `title` is a Wikipedia article
+title (1–200 units of letters, digits, `_ ( ) . , ' - :`, percent-encoded in the path); `lang` a two- or
+three-letter Wikipedia language, default `en`. The computer reads `https://<lang>.wikipedia.org/api/rest_v1/page/summary/<title>`
+through the safe fetch (https, public addresses only), then English when that is a 404, and keeps the answer a day:
+
+```jsonc
+{ "title": "Marie Curie", "extract": "…", "description": "…",
+  "thumbnail": { "source": "https://upload.wikimedia.org/…", "width": 330, "height": 448 } | null,
+  "url": "https://en.wikipedia.org/wiki/Marie_Curie" | null, "lang": "en" }
+```
+
+An article neither language has is a `200` with `extract: null` and `url: null`. `400 VALIDATION_FAILED` for a title or
+`lang` outside the rule; `503 SERVICE_UNAVAILABLE` when Wikipedia could not be reached.

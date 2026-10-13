@@ -123,6 +123,12 @@
       "open-settings": {
         "label": "Ouvrir les paramètres"
       },
+      "go-back": {
+        "label": "Précédent"
+      },
+      "go-forward": {
+        "label": "Suivant"
+      },
       "lock-now": {
         "label": "Verrouiller maintenant"
       },
@@ -145,7 +151,7 @@
         "label": "Fermer la barre de recherche"
       },
       "close-tab": {
-        "label": "Fermer l'onglet actuel"
+        "label": "Fermer la discussion"
       },
       "focus-chat-input": {
         "label": "Placer le curseur dans le champ de saisie"
@@ -329,7 +335,11 @@
       "refresh": "Actualiser la liste des modèles",
       "fetchErrorTitle": "Impossible de récupérer la liste des modèles",
       "fetchErrorFallback": "Échec de la récupération de la liste des modèles",
-      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base."
+      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base.",
+      "retiring": "bientôt retiré",
+      "retired": "retiré",
+      "retiringOn": "Sera retiré le {{date}}",
+      "retiredOn": "Retiré le {{date}}"
     }
   },
   "tools": {
@@ -628,19 +638,19 @@
   },
   "logger": {
     "filters": {
-      "allLevels": "Tous",
       "allScopes": "Tous",
       "datePlaceholder": "Date",
-      "levelPlaceholder": "Niveau",
       "scopePlaceholder": "Portée",
-      "keywordPlaceholder": "Rechercher un mot-clé...",
-      "traceChip": "trace {{id}}"
+      "traceChip": "trace {{id}}",
+      "searchPlaceholder": "Rechercher  ·  scope:chat  trace:a1b2  -exclure",
+      "clear": "Effacer les filtres"
     },
     "actions": {
       "openDirectory": "Ouvrir le dossier",
       "export": "Exporter",
       "clearAll": "Tout effacer",
-      "clearAllConfirm": "Êtes-vous sûr de vouloir supprimer tous les fichiers journaux ?"
+      "clearAllConfirm": "Êtes-vous sûr de vouloir supprimer tous les fichiers journaux ?",
+      "more": "Plus d'actions"
     },
     "toast": {
       "exported": "Journaux exportés",
@@ -653,19 +663,48 @@
       "level": "Niveau",
       "scope": "Portée",
       "message": "Message",
-      "trace": "Trace",
-      "empty": "Aucune entrée de journal trouvée."
+      "empty": "Aucune entrée de journal trouvée.",
+      "noMatch": "Aucune ligne ne correspond à ces filtres."
     },
     "pagination": {
-      "total_one": "{{count}} entrée au total",
-      "total_other": "{{count}} entrées au total",
       "pageOf": "Page {{page}} sur {{totalPages}}",
       "prev": "Préc.",
-      "next": "Suiv."
+      "next": "Suiv.",
+      "range": "{{from}}–{{to}} sur {{total}}"
     },
     "details": {
       "stack": "Trace de la pile",
-      "componentStack": "Pile de composants"
+      "componentStack": "Pile de composants",
+      "attributes": "Attributs"
+    },
+    "live": {
+      "label": "En direct",
+      "onlyToday": "Le direct suit le journal d'aujourd'hui"
+    },
+    "levels": {
+      "error": "Erreur",
+      "warn": "Avert.",
+      "info": "Info",
+      "debug": "Débogage"
+    },
+    "chart": {
+      "lines_one": "ligne",
+      "lines_other": "lignes",
+      "newestFirst": "plus récentes d'abord",
+      "label": "Lignes dans le temps",
+      "noLines": "Aucune ligne"
+    },
+    "detail": {
+      "previous": "Ligne précédente",
+      "next": "Ligne suivante",
+      "close": "Fermer",
+      "linesAround": "Lignes autour",
+      "copyForAi": "Copier pour l'IA",
+      "sameTrace": "Même trace",
+      "message": "Message",
+      "fields": "Champs",
+      "resource": "Ressource",
+      "copied": "Copié pour l'IA"
     }
   },
   "mcpServers": {
@@ -1064,7 +1103,6 @@
       "elasticsearchPassword": "Mot de passe Elasticsearch",
       "s3AccessKeyId": "ID de clé d’accès Amazon S3",
       "s3SecretAccessKey": "Clé d’accès secrète Amazon S3",
-      "legacyMcpServers": "Ancienne configuration MCP",
       "mcp": "Serveur MCP « {{server}} » : {{field}}"
     }
   }

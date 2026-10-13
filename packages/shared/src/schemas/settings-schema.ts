@@ -76,7 +76,10 @@ export const ProviderConfigSchema = z.object({
 export const CachedModelEntrySchema = z.object({
   id: z.string(),
   displayName: z.string(),
-  snapshot: ModelSnapshotSchema
+  snapshot: ModelSnapshotSchema,
+  // The day the provider shuts the model down (`YYYY-MM-DD`), when its list
+  // says so — only OpenAI's does today (`shutdown_date`).
+  retiresAt: z.string().nullish()
 })
 export type CachedModelEntry = z.infer<typeof CachedModelEntrySchema>
 
@@ -157,6 +160,21 @@ export const ComputerUseSchema = z.object({
   settleMs: formNumber(z.number().gte(100).lte(5000)).nullish(),
   askHumanTimeoutMs: formNumber(z.number().gte(10_000).lte(1_800_000)).nullish()
 })
+
+/**
+ * Coding-agent employees (spec 2026-10-09). Unset numbers take their
+ * defaults where they are used (`src/main/lib/agents/settings.ts`): the
+ * projects folder `~/Exodus Projects`, 2 running at once, 10 minutes kept.
+ */
+export const AgentsSettingsSchema = z.object({
+  projectsDir: z.string().nullish(),
+  maxRunning: formNumber(z.number().int().gte(1).lte(8)).nullish(),
+  keepAliveMinutes: formNumber(z.number().int().gte(0).lte(120)).nullish(),
+  worktrees: z.boolean().default(true),
+  /** A path the owner set by hand, per CLI id; empty = look it up. */
+  cliPaths: z.record(z.string(), z.string()).default({})
+})
+export type AgentsSettings = z.infer<typeof AgentsSettingsSchema>
 
 export const DiscoverSchema = z.object({
   enabled: z.boolean().default(false),
@@ -279,7 +297,6 @@ export const SettingsSchema = z.object({
   providerConfig: ProviderConfigSchema.nullish(),
   providers: ProvidersSchema.nullish(),
   modelCatalog: ModelCatalogSchema.nullish(),
-  mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
   voice: VoiceSchema.nullish(),
   userAvatar: z.string().nullish(),
@@ -288,6 +305,7 @@ export const SettingsSchema = z.object({
   fullTextSearch: FullTextSearchSchema.nullish(),
   knowledgeBase: KnowledgeBaseSchema.nullish(),
   computerUse: ComputerUseSchema.nullish(),
+  agents: AgentsSettingsSchema.nullish(),
   discover: DiscoverSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),

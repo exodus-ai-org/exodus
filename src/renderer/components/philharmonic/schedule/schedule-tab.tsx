@@ -7,6 +7,7 @@ import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PhilharmonicHeaderSlot } from '@/layouts/philharmonic-layout/philharmonic-content-header'
 import {
   cancelScheduledTask,
   getRecurringTasks,
@@ -87,20 +88,19 @@ export function ScheduleTab({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-border flex shrink-0 items-center justify-between border-b px-4 py-3">
-        <span className="text-foreground text-sm font-semibold">
-          {t('schedule.tab.heading')}
-        </span>
+      {/* "Schedule task" at the content bar's right end; the bar's tab names the page. */}
+      <PhilharmonicHeaderSlot>
         <Button
+          className="no-drag"
           data-testid={TEST_IDS.schedule.createButton}
           type="button"
           size="sm"
           onClick={() => setFormOpen(true)}
         >
-          <HugeiconsIcon icon={Add01Icon} strokeWidth={2} className="h-4 w-4" />
+          <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
           {t('schedule.scheduleTaskButton')}
         </Button>
-      </div>
+      </PhilharmonicHeaderSlot>
       <Tabs defaultValue="upcoming" className="flex min-h-0 flex-1 flex-col">
         <TabsList className="mx-4 mt-3 w-fit shrink-0">
           <TabsTrigger value="upcoming">

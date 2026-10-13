@@ -25,7 +25,7 @@ home page.
   the component doesn't have direct access to `useSettingsTab()`'s
   setter otherwise), with an empirically-verified numbered placeholder.
   Verified this planning session: raw children are `[text, {' '}, button,
-text]`, so `<button>` sits at index `2`. Cross-checking the render
+  text]`, so `<button>` sits at index `2`. Cross-checking the render
   hit an unrelated, environment-specific Node ESM module-resolution
   quirk in the ad-hoc verification script (a duplicate-React-copy error
   traced to a stray, unrelated, empty-but-git-initialized directory one

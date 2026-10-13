@@ -4,6 +4,10 @@ import { join } from 'path'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { REPORTED_STACK_MAX_CHARS } from '@exodus/shared/constants/systems'
 import { NotFoundError } from '@exodus/shared/errors/app-error'
+import {
+  buildLogHistogram,
+  parseLogQuery
+} from '@exodus/shared/utils/log-query'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -15,7 +19,18 @@ import {
 } from '../../logger'
 import { mapStackTrace } from '../../logger/source-map'
 import { getLogsDir } from '../../paths'
-import { filterRecords, minSeverityFromLevel } from './logs-filter'
+import {
+  filterRecords,
+  levelsFromParam,
+  minSeverityFromLevel
+} from './logs-filter'
+
+/** An ISO time (or epoch ms) query param → epoch ms; undefined when absent or unreadable. */
+function timeParam(value: string | undefined): number | undefined {
+  if (!value) return undefined
+  const ms = /^\d+$/u.test(value) ? Number(value) : Date.parse(value)
+  return Number.isFinite(ms) ? ms : undefined
+}
 
 function parseLogFile(filePath: string): LogRecord[] {
   if (!existsSync(filePath)) return []
@@ -44,16 +59,25 @@ logsRouter.get('/', (c) => {
     Math.max(1, Number(c.req.query('pageSize')) || 100)
   )
 
-  const entries = filterRecords(
-    parseLogFile(join(getLogsDir(), `${date}.jsonl`)),
-    {
-      minSeverity: minSeverityFromLevel(c.req.query('level')),
-      // Query param stays `surface` for URL stability; it matches scope.name.
-      scope: c.req.query('surface'),
-      keyword: c.req.query('keyword'),
-      traceId: c.req.query('traceId')
-    }
-  )
+  const records = parseLogFile(join(getLogsDir(), `${date}.jsonl`))
+  const base = {
+    minSeverity: minSeverityFromLevel(c.req.query('level')),
+    // Query param stays `surface` for URL stability; it matches scope.name.
+    scope: c.req.query('surface'),
+    keyword: c.req.query('keyword'),
+    traceId: c.req.query('traceId'),
+    query: parseLogQuery(c.req.query('q'))
+  }
+  // The chart is drawn from every filter but the two it sets itself — the
+  // levels (its legend) and the time window (a bar) — so it stays a map of
+  // the day to pick from, not a picture of the pick.
+  const histogram = buildLogHistogram(filterRecords(records, base))
+  const entries = filterRecords(records, {
+    ...base,
+    levels: levelsFromParam(c.req.query('levels')),
+    from: timeParam(c.req.query('from')),
+    to: timeParam(c.req.query('to'))
+  })
 
   // Newest first
   entries.reverse()
@@ -62,7 +86,7 @@ logsRouter.get('/', (c) => {
   const start = (page - 1) * pageSize
   const paged = entries.slice(start, start + pageSize)
 
-  return c.json({ entries: paged, total, page })
+  return c.json({ entries: paged, total, page, histogram })
 })
 
 // GET /api/v1/logs/scopes — distinct scope names present in a day's file

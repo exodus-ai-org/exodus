@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { mkdtempSync, rmSync } from 'fs'
 import http from 'http'
+import http2 from 'http2'
 import { brotliDecompressSync } from 'node:zlib'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -190,6 +191,62 @@ describe('LAN access, end to end', () => {
     expect(Number(headers['content-length'])).toBe(body.length)
     expect(JSON.parse(brotliDecompressSync(body).toString())).toEqual(BIG)
     expect(body.length).toBeLessThan(JSON.stringify(BIG).length / 3)
+  })
+
+  // What the phone's URLSession negotiates: HTTP/2 over the same pinned TLS,
+  // its requests on one connection. (Every other test here speaks HTTP/1.1,
+  // which the listener still serves.)
+  it('speaks HTTP/2 to a client that offers it, many requests on one connection', async () => {
+    const session = http2.connect(`https://127.0.0.1:${port}`, {
+      // codeql[js/disabling-certificate-validation]: intentional — the pin below is the check.
+      rejectUnauthorized: false
+    })
+    await new Promise<void>((resolve, reject) => {
+      session.once('connect', () => resolve())
+      session.once('error', reject)
+    })
+    try {
+      const socket = session.socket as tls.TLSSocket
+      expect(socket.alpnProtocol).toBe('h2')
+      const seen = createHash('sha256')
+        .update(socket.getPeerCertificate().raw)
+        .digest('base64url')
+      expect(seen).toBe(pin)
+
+      const get = (path: string, acceptEncoding?: string) =>
+        new Promise<{ status: number; encoding?: string; body: Buffer }>(
+          (resolve, reject) => {
+            const stream = session.request({
+              ':path': path,
+              ...(acceptEncoding ? { 'accept-encoding': acceptEncoding } : {})
+            })
+            let status = 0
+            let encoding: string | undefined
+            const chunks: Buffer[] = []
+            stream.on('response', (headers) => {
+              status = Number(headers[':status'])
+              encoding = headers['content-encoding'] as string | undefined
+            })
+            stream.on('data', (d: Buffer) => chunks.push(d))
+            stream.on('end', () =>
+              resolve({ status, encoding, body: Buffer.concat(chunks) })
+            )
+            stream.on('error', reject)
+            stream.end()
+          }
+        )
+      const [big, refused] = await Promise.all([
+        get('/big', 'gzip, deflate, br'),
+        get('/api/v1/history')
+      ])
+      expect(big.status).toBe(200)
+      expect(big.encoding).toBe('br')
+      expect(JSON.parse(brotliDecompressSync(big.body).toString())).toEqual(BIG)
+      // No token: the auth gate answers over HTTP/2 as over HTTP/1.1.
+      expect(refused.status).toBe(401)
+    } finally {
+      session.close()
+    }
   })
 
   it('presents exactly the certificate whose fingerprint goes into the QR code', async () => {

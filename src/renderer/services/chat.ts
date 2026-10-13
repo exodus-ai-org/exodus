@@ -55,3 +55,7 @@ export const fetchChatPage = (
 /** One row whole: what a page's `truncated` row stands for. */
 export const fetchChatRow = (chatId: string, messageId: string) =>
   fetcher<ChatPageRow>(`/api/v1/chat/${chatId}/messages/${messageId}`)
+
+/** Every row of the chat, whole (no paging, no cut): what an export is written from. */
+export const fetchChatMessages = (chatId: string) =>
+  fetcher<ChatPageRow[]>(`/api/v1/chat/${chatId}`)

@@ -1,0 +1,47 @@
+import type {
+  AgentAnswer,
+  AgentPrompt,
+  PermissionMode
+} from '@exodus/shared/types/agents'
+
+export type AgentEvent =
+  | { type: 'init'; cliSessionId: string; model: string | null }
+  | { type: 'text_delta'; delta: string }
+  | { type: 'text'; text: string }
+  | { type: 'step_start'; id: string; tool: string; summary: string }
+  | { type: 'step_end'; id: string; isError: boolean }
+  | { type: 'blocked'; prompt: AgentPrompt }
+  | { type: 'answered'; requestId: string }
+  | { type: 'notice'; text: string }
+  | {
+      type: 'turn_end'
+      ok: boolean
+      interrupted: boolean
+      text: string
+      costUsd: number | null
+      denials: number
+    }
+  | { type: 'exit'; code: number | null; stderrTail: string; expected: boolean }
+
+export interface StartInput {
+  binPath: string
+  cwd: string
+  env: Record<string, string>
+  model?: string | null
+  permissionMode: PermissionMode
+  resume?: string | null
+  logPath: string
+}
+
+export interface AgentRun {
+  readonly cliSessionId: string | null
+  readonly alive: boolean
+  /** True between a `send` and its `turn_end` (and during an unprompted turn). */
+  readonly busy: boolean
+  on(listener: (e: AgentEvent) => void): () => void
+  send(text: string): boolean
+  /** False when that request is not pending (answered elsewhere, or the turn moved on). */
+  respond(requestId: string, answer: AgentAnswer): boolean
+  interrupt(): boolean
+  stop(): Promise<void>
+}

@@ -115,7 +115,7 @@ describe('getSystemPrompt', () => {
     // Roughly 3.5 chars a token: keep the fixed part under ~3.2k tokens. The
     // ceiling includes the interactive-blocks section (~2.2k characters: both
     // blocks with an example each, their limits and the answer message), which
-    // brought the chat prompt to ~11.2k characters.
-    expect(getSystemPrompt({}).length).toBeLessThan(11_500)
+    // brought the chat prompt to ~11.2k characters; phase 2 (steps, the entity link, the stock chart) adds ~1.8k.
+    expect(getSystemPrompt({}).length).toBeLessThan(13_500)
   })
 })

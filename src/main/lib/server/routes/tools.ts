@@ -1,9 +1,9 @@
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { AppError, ServiceError } from '@exodus/shared/errors/app-error'
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, session } from 'electron'
 import { Hono } from 'hono'
-import MarkdownIt from 'markdown-it'
 
+import { printDocument } from '../../pdf/print-document'
 import { markdownToPdfSchema } from '../schemas/tools'
 import { Variables } from '../types'
 import { getRequiredQuery, successResponse, validateSchema } from '../utils'
@@ -11,9 +11,11 @@ import { bufferToArrayBuffer } from '../utils/helpers'
 
 const tools = new Hono<{ Variables: Variables }>()
 
+/** In memory (no `persist:`), the print window's alone. */
+const PRINT_PARTITION = 'print-export'
+
 async function markdownStringToPdfBuffer(markdownString: string) {
-  const md = new MarkdownIt()
-  const html = md.render(markdownString)
+  const html = printDocument(markdownString)
 
   const win = new BrowserWindow({
     show: false,
@@ -22,9 +24,18 @@ async function markdownStringToPdfBuffer(markdownString: string) {
       contextIsolation: true,
       sandbox: true,
       // Rendered markdown is static; nothing in it should get to run.
-      javascript: false
+      javascript: false,
+      partition: PRINT_PARTITION
     }
   })
+  // The page is a data: URL and everything it may rightly show is inline in
+  // it, so nothing else is ever fetched: no picture the model linked, no host
+  // that could stall the export.
+  session
+    .fromPartition(PRINT_PARTITION)
+    .webRequest.onBeforeRequest((details, callback) =>
+      callback({ cancel: !details.url.startsWith('data:') })
+    )
 
   try {
     await win.loadURL(

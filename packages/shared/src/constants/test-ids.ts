@@ -108,7 +108,19 @@ export const TEST_IDS = {
   logger: {
     scopeSelect: 'logger.scope-select',
     traceBadge: 'logger.trace-badge',
-    traceFilterChip: 'logger.trace-filter-chip'
+    traceFilterChip: 'logger.trace-filter-chip',
+    searchInput: 'logger.search-input',
+    liveToggle: 'logger.live-toggle',
+    chart: 'logger.chart',
+    chartBar: 'logger.chart-bar',
+    levelToggle: 'logger.level-toggle',
+    windowChip: 'logger.window-chip',
+    row: 'logger.row',
+    detailSheet: 'logger.detail-sheet',
+    detailPrev: 'logger.detail-prev',
+    detailNext: 'logger.detail-next',
+    linesAround: 'logger.lines-around',
+    copyForAi: 'logger.copy-for-ai'
   },
   chatToc: {
     rail: 'chat-toc.rail',
@@ -234,6 +246,35 @@ export const TEST_IDS = {
     remoteImage: {
       placeholder: 'chat.remote-image.placeholder',
       loadButton: 'chat.remote-image.load-button'
+    },
+    /** The phase-2 blocks drawn in a reply: steps, the stock chart, the entity link and its panel (chat/interactive/). */
+    richBlocks: {
+      steps: 'chat.rich-blocks.steps',
+      step: 'chat.rich-blocks.step',
+      stepImage: 'chat.rich-blocks.step-image',
+      stock: 'chat.rich-blocks.stock',
+      stockFrame: 'chat.rich-blocks.stock-frame',
+      stockFallback: 'chat.rich-blocks.stock-fallback',
+      entityLink: 'chat.rich-blocks.entity-link',
+      entityPanel: 'chat.rich-blocks.entity-panel'
+    },
+    /** The chat header (chat/header/): the history arrows, the title group, the panel toggle. */
+    header: {
+      back: 'chat.header.back',
+      forward: 'chat.header.forward',
+      title: 'chat.header.title',
+      modelChip: 'chat.header.model-chip',
+      /** One per model in the chip's list (`data-model` holds the id). */
+      modelOption: 'chat.header.model-option',
+      menu: 'chat.header.menu',
+      panelToggle: 'chat.header.panel-toggle'
+    },
+    /** The header's files / tools / sources panel (chat/panel/): its root, a section tab, a row, the empty line. */
+    panel: {
+      root: 'chat.panel.root',
+      tab: 'chat.panel.tab',
+      item: 'chat.panel.item',
+      empty: 'chat.panel.empty'
     }
   },
   composer: {

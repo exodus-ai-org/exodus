@@ -135,7 +135,11 @@ export interface McpCard {
   }[]
 }
 export type McpConnectionState =
-  'disconnected' | 'connecting' | 'needs_auth' | 'connected' | 'error'
+  | 'disconnected'
+  | 'connecting'
+  | 'needs_auth'
+  | 'connected'
+  | 'error'
 export interface McpStatus {
   state: McpConnectionState
   error?: string

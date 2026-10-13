@@ -76,7 +76,7 @@ export function HealthContextCard({ json }: { json: string }) {
             >
               <HugeiconsIcon
                 icon={Icon}
-                strokeWidth={2}
+
                 aria-hidden
                 className="text-primary-ink size-3.5 shrink-0"
               />
@@ -86,7 +86,7 @@ export function HealthContextCard({ json }: { json: string }) {
         })}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           aria-hidden
           className="size-3 shrink-0 transition-transform duration-200 group-data-panel-open/health:rotate-180 motion-reduce:transition-none"
         />
@@ -97,7 +97,7 @@ export function HealthContextCard({ json }: { json: string }) {
       >
         <div className="bg-background/60 mt-1.5 flex flex-col gap-2.5 rounded-xl px-3 py-2.5 text-xs leading-normal">
           {details === null ? (
-            <pre className="text-muted-foreground font-mono text-[11px] break-all whitespace-pre-wrap select-text">
+            <pre className="text-muted-foreground text-2xs font-mono break-all whitespace-pre-wrap select-text">
               {json}
             </pre>
           ) : (

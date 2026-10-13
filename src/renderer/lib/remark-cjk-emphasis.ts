@@ -10,7 +10,9 @@
 // The rule here is the one of the CJK-friendly amendment to CommonMark
 // (github.com/tats-u/markdown-cjk-friendly): beside punctuation, a CJK
 // character counts as a boundary the way whitespace does. Only for `*`: `_`
-// keeps its stricter intraword rule. Latin text is unaffected — `a**"x"**b`
+// keeps its stricter intraword rule. Full-width CJK punctuation is CJK too:
+// `**再平衡。**2018` closes after the `。` though a digit follows, and
+// `2018**「引号」**` opens before the `「`. Latin text is unaffected — `a**"x"**b`
 // stays literal, as CommonMark has it — and code is never tokenized here.
 //
 // micromark's own `attention` construct is swapped for one whose tokenizer
@@ -83,13 +85,18 @@ const tokenizeAttention: Tokenizer = function (
     const token = effects.exit('attentionSequence')
     const after = classify(code)
     const cjk = marker === ASTERISK
+    // A CJK character on either side of the punctuation is the boundary a
+    // space would be — the punctuation itself too when it is full-width:
+    // `再平衡。**2018` closes, `2018**「引号」` opens.
     const open =
       !after ||
-      (after === 2 && (Boolean(before) || (cjk && isCjk(previous)))) ||
+      (after === 2 &&
+        (Boolean(before) || (cjk && (isCjk(previous) || isCjk(code))))) ||
       markers.includes(code)
     const close =
       !before ||
-      (before === 2 && (Boolean(after) || (cjk && isCjk(code)))) ||
+      (before === 2 &&
+        (Boolean(after) || (cjk && (isCjk(code) || isCjk(previous))))) ||
       markers.includes(previous)
     // eslint-disable-next-line no-underscore-dangle -- micromark's token fields
     token._open = marker === ASTERISK ? open : open && (!!before || !close)

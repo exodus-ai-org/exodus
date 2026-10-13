@@ -146,8 +146,8 @@ git commit -m "feat(computer): exodus-input Swift helper (list-windows, screensh
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-import { describe, expect, it } from 'vitest'
 import { Guard, AbortedByUser, OutOfBounds } from '@main/lib/computer/guard'
+import { describe, expect, it } from 'vitest'
 
 const vp = { width: 800, height: 600 }
 

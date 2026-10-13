@@ -16,6 +16,7 @@ import {
   CancelCircleIcon
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { capitalCase } from 'change-case'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -87,7 +88,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={CancelCircleIcon}
-        strokeWidth={2}
+
         size={15}
         className="text-destructive shrink-0"
       />
@@ -98,7 +99,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={Globe02Icon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -107,7 +108,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={AiBrainIcon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -116,7 +117,7 @@ function StepIcon({
     return (
       <HugeiconsIcon
         icon={MessageSquareTextIcon}
-        strokeWidth={2}
+
         size={15}
         className={cls}
       />
@@ -124,7 +125,7 @@ function StepIcon({
   return (
     <HugeiconsIcon
       icon={ClockFadingIcon}
-      strokeWidth={2}
+
       size={15}
       className={cls}
     />
@@ -184,7 +185,7 @@ function FoldedCard({
   const exitCode = terminal ? terminalExitCode(step.toolResult) : null
   const label = terminal
     ? exitCode === null
-      ? step.toolName
+      ? capitalCase(step.toolName ?? '')
       : t('terminalCard.exitCode', { code: exitCode })
     : (foldedFileName(step.toolResult) ?? step.toolName)
   return (
@@ -193,11 +194,11 @@ function FoldedCard({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-mono text-[11.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-xs transition-colors"
       >
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           size={13}
           className={cn('shrink-0 transition-transform', !open && '-rotate-90')}
         />
@@ -344,7 +345,7 @@ export function ThinkingTimeline({
         ) : (
           <HugeiconsIcon
             icon={Tick02Icon}
-            strokeWidth={2}
+
             size={16}
             className="shrink-0"
           />
@@ -360,7 +361,7 @@ export function ThinkingTimeline({
         )}
         <HugeiconsIcon
           icon={ArrowDown01Icon}
-          strokeWidth={2}
+
           size={16}
           className={cn(
             'shrink-0 transition-transform duration-200',
@@ -417,7 +418,7 @@ export function ThinkingTimeline({
                       <>
                         <p className="wrap-break-word">{step.text}</p>
                         {step.codeArgument && (
-                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap">
                             <code>{step.codeArgument}</code>
                           </pre>
                         )}
@@ -451,7 +452,7 @@ export function ThinkingTimeline({
                 icon={
                   <HugeiconsIcon
                     icon={CircleCheckBigIcon}
-                    strokeWidth={2}
+
                     size={15}
                     className="text-muted-foreground shrink-0"
                   />

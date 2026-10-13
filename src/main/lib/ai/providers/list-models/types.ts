@@ -4,6 +4,8 @@ export interface NormalizedModel {
   id: string
   displayName: string
   snapshot: ModelSnapshot
+  /** The shutdown day (`YYYY-MM-DD`), set only when the provider's list reports one. */
+  retiresAt?: string
 }
 
 export interface ListModelsArgs {

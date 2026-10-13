@@ -160,9 +160,9 @@ function ServerCard({
       className={ENTER_UP}
       icon={
         isRemote ? (
-          <HugeiconsIcon icon={CloudIcon} strokeWidth={2} />
+          <HugeiconsIcon icon={CloudIcon} />
         ) : (
-          <HugeiconsIcon icon={ComputerTerminal01Icon} strokeWidth={2} />
+          <HugeiconsIcon icon={ComputerTerminal01Icon} />
         )
       }
       title={
@@ -176,7 +176,7 @@ function ServerCard({
         </>
       }
       description={
-        <p className="truncate font-mono text-xs">
+        <p className="truncate text-xs">
           {isRemote
             ? maskUrlSecrets(server.url ?? '')
             : `${server.command} ${(server.args ?? []).join(' ')}`}
@@ -191,7 +191,7 @@ function ServerCard({
             aria-label={t('mcpServers.serverCard.editAria')}
             onClick={onEdit}
           >
-            <HugeiconsIcon icon={EditIcon} strokeWidth={2} />
+            <HugeiconsIcon icon={EditIcon} />
           </Button>
           <Button
             variant="ghost"
@@ -200,7 +200,7 @@ function ServerCard({
             aria-label={t('mcpServers.serverCard.deleteAria')}
             onClick={onDelete}
           >
-            <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={Delete02Icon} />
           </Button>
         </>
       }
@@ -232,7 +232,7 @@ function ServerCard({
             >
               <HugeiconsIcon
                 icon={ArrowDown01Icon}
-                strokeWidth={2}
+
                 className={cn(
                   'transition-transform duration-200',
                   !expanded && '-rotate-90'
@@ -253,9 +253,9 @@ function ServerCard({
                   className={cn('flex min-w-0 flex-col', ENTER_UP)}
                   style={staggerDelay(index)}
                 >
-                  <p className="font-mono text-xs font-medium">{tool.name}</p>
+                  <p className="text-xs font-medium">{tool.name}</p>
                   {tool.description && (
-                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-[11px] [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
+                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-2xs [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
                       <Markdown src={tool.description} />
                     </div>
                   )}
@@ -578,12 +578,12 @@ export function McpServers() {
             {!showForm && (
               <SettingsSection>
                 <SettingsItem
-                  icon={<HugeiconsIcon icon={PlugIcon} strokeWidth={2} />}
+                  icon={<HugeiconsIcon icon={PlugIcon} />}
                   title={t('settings:mcpServers.addCard.title')}
                   description={t('settings:mcpServers.addCard.description')}
                   actions={
                     <Button onClick={startNew}>
-                      <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+                      <HugeiconsIcon icon={Add01Icon} />
                       {t('settings:mcpServers.form.addServerButton')}
                     </Button>
                   }
@@ -743,7 +743,7 @@ export function McpServers() {
                             >
                               <HugeiconsIcon
                                 icon={Cancel01Icon}
-                                strokeWidth={2}
+
                                 className="h-4 w-4"
                               />
                             </Button>
@@ -757,7 +757,7 @@ export function McpServers() {
                         >
                           <HugeiconsIcon
                             icon={Add01Icon}
-                            strokeWidth={2}
+
                             className="h-3.5 w-3.5"
                           />
                           {t('settings:mcpServers.form.args.addButton')}
@@ -881,7 +881,7 @@ export function McpServers() {
                         <div className="flex h-32 items-center justify-center">
                           <HugeiconsIcon
                             icon={Loading03Icon}
-                            strokeWidth={2}
+
                             className="text-muted-foreground h-4 w-4 animate-spin"
                           />
                         </div>
@@ -928,7 +928,7 @@ export function McpServers() {
                     {saving && (
                       <HugeiconsIcon
                         icon={Loading03Icon}
-                        strokeWidth={2}
+
                         className="mr-1 h-3.5 w-3.5 animate-spin"
                       />
                     )}
@@ -954,7 +954,7 @@ export function McpServers() {
                   <div className="flex h-80 items-center justify-center">
                     <HugeiconsIcon
                       icon={Loading03Icon}
-                      strokeWidth={2}
+
                       className="text-muted-foreground h-5 w-5 animate-spin"
                     />
                   </div>

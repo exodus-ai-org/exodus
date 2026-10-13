@@ -71,7 +71,7 @@ export function AvatarUploader<T extends FieldValues>({
           {fallback}
         </span>
       ) : (
-        <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
+        <HugeiconsIcon icon={Add01Icon} />
       )}
 
       {!!field.value && (

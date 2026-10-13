@@ -354,11 +354,24 @@ describe('chat namespace (en) — tool-card additions', () => {
 })
 
 describe('chat namespace Phase 5 additions (en)', () => {
-  it('has the sourcesPanel keys', () => {
-    expect(chat.sourcesPanel.title_one).toBe('{{count}} Source')
-    expect(chat.sourcesPanel.title_other).toBe('{{count}} Sources')
-    expect(chat.sourcesPanel.citations).toBe('Citations ({{count}})')
-    expect(chat.sourcesPanel.more).toBe('More')
+  it('has the header panel keys', () => {
+    expect(chat).not.toHaveProperty('sourcesPanel')
+    expect(chat.panel.files).toBe('Files')
+    expect(chat.panel.tools).toBe('Tools')
+    expect(chat.panel.sources).toBe('Sources')
+    expect(chat.panel.empty).toBe(
+      'Files, tools and sources from this chat will show up here.'
+    )
+    expect(chat.panel.calls_one).toBe('{{count}} call')
+    expect(chat.panel.calls_other).toBe('{{count}} calls')
+  })
+
+  it('has the header and export keys', () => {
+    expect(chat.header.noModel).toBe('Choose a model')
+    expect(chat.header.exportMarkdown).toBe('Export as Markdown…')
+    expect(chat.header.panel).toBe('Files, tools and sources')
+    expect(chat.export.pictures_one).toBe('{{count}} picture attached')
+    expect(chat.export.tool).toBe('Tool: {{name}}')
   })
 
   it('has the sidebar.newChat / searchChats / history / dialogs / search keys', () => {

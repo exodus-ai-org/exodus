@@ -6,6 +6,7 @@
   },
   "privacy": {
     "title": "Verrouillage et confidentialité",
+    "thirdParty": "Un graphique boursier dans une conversation est une intégration TradingView : TradingView voit le symbole et votre adresse IP, comme pour tout graphique intégré.",
     "enroll": {
       "description": "Définissez un code PIN à 6 chiffres pour verrouiller Exodus. Lorsque l'application est verrouillée, l'interface et l'API locale sont inaccessibles, mais les tâches en arrière-plan continuent de s'exécuter.",
       "enterLabel": "Saisissez un code PIN à 6 chiffres",

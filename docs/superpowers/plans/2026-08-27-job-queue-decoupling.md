@@ -35,8 +35,8 @@ dependency), Drizzle's raw `sql` template via `db.execute()`.
   CLAUDE.md) where the real test counts still show all passing — retry
   the commit. Never use `git commit --no-verify`.
 - `db.execute(sql\`...\`)`on this repo's PGlite/Drizzle setup returns`{ rows: [...] }`, not a plain array — normalize with
-`(result as unknown as { rows: unknown[] }).rows ?? result`, matching
-the existing pattern in `src/main/lib/db/conversation-queries.ts:41-42`.
+  `(result as unknown as { rows: unknown[] }).rows ?? result`, matching
+  the existing pattern in `src/main/lib/db/conversation-queries.ts:41-42`.
 
 ---
 
@@ -90,8 +90,8 @@ Change to:
 
 ```ts
 import { PGlite } from '@electric-sql/pglite'
-import { vector } from '@electric-sql/pglite/vector'
 import { pgmq } from '@electric-sql/pglite-pgmq'
+import { vector } from '@electric-sql/pglite/vector'
 import { drizzle } from 'drizzle-orm/pglite'
 
 import { getDatabaseDir } from '../paths'
@@ -149,7 +149,10 @@ Create `src/main/lib/jobs/types.ts`:
 
 ```ts
 export type QueueName =
-  'index-message' | 'lcm-post-turn' | 'memory-write-judge' | 'session-summary'
+  | 'index-message'
+  | 'lcm-post-turn'
+  | 'memory-write-judge'
+  | 'session-summary'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',

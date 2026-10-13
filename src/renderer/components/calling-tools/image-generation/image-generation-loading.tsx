@@ -84,7 +84,7 @@ function DitherMark({
     return (
       <HugeiconsIcon
         icon={Tick02Icon}
-        strokeWidth={2}
+
         aria-hidden="true"
         className="size-3.5"
       />
@@ -95,7 +95,7 @@ function DitherMark({
     return (
       <HugeiconsIcon
         icon={AlertCircleIcon}
-        strokeWidth={2}
+
         aria-hidden="true"
         className="size-3.5"
       />
@@ -358,7 +358,7 @@ export function ImageGeneration({
           </AnimatePresence>
 
           {resolution ? (
-            <span className="bg-background/75 text-muted-foreground pointer-events-none absolute top-2 right-2 z-10 rounded-full px-2 py-0.5 font-mono text-[10px] tabular-nums">
+            <span className="bg-background/75 text-muted-foreground text-2xs pointer-events-none absolute top-2 right-2 z-10 rounded-full px-2 py-0.5 tabular-nums">
               {resolution}
             </span>
           ) : null}
@@ -408,7 +408,7 @@ export function ImageGeneration({
           >
             <HugeiconsIcon
               icon={RotateLeft01Icon}
-              strokeWidth={2}
+
               aria-hidden="true"
               className="size-4"
             />
